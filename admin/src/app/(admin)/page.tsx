@@ -31,11 +31,11 @@ export default async function DashboardPage() {
     ]);
 
   const stats = [
-    { label: 'Nutzerinnen', value: profiles, href: null },
+    { label: 'Nutzerinnen', value: profiles, sub: null, href: '/nutzerinnen' },
     { label: 'Rezepte', value: recipes, sub: draftRecipes > 0 ? `${draftRecipes} Entwürfe` : null, href: '/rezepte' },
     { label: 'Kurse', value: courses, sub: `${lessons} Lektionen`, href: '/kurse' },
-    { label: 'Offene Fragen', value: questions, sub: 'Q&A folgt in S14', href: null },
-    { label: 'Kurs-Käuferinnen', value: legacy, sub: `${legacyClaimed} angemeldet`, href: null },
+    { label: 'Offene Fragen', value: questions, sub: null, href: '/qa' },
+    { label: 'Kurs-Käuferinnen', value: legacy, sub: `${legacyClaimed} angemeldet`, href: '/nutzerinnen' },
   ];
 
   return (
@@ -66,11 +66,12 @@ export default async function DashboardPage() {
       </div>
       <div className="glass pad" style={{ marginTop: 20 }}>
         <div className="eyebrow" style={{ marginBottom: 8 }}>
-          Nächste Schritte
+          Umsatz & Abos
         </div>
         <p className="hint">
-          Rezepte und Kurse kannst du hier schon komplett pflegen. Broadcast-Nachrichten, Q&A-Antworten,
-          Gutscheine, Nutzerverwaltung und die Abo-Zahlen aus RevenueCat kommen mit Session 14.
+          Die Zahlen aus RevenueCat (Abos, Trials, Umsatz) erscheinen hier, sobald die
+          Abo-Integration steht — folgt nach Session 11. Bis dahin zeigen wir hier bewusst
+          nichts Geschätztes an.
         </p>
       </div>
     </>

@@ -2,5 +2,24 @@
   "model": "claude-fable-5",
   "enabledPlugins": {
     "claude-code-setup@claude-plugins-official": true
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case \"$(basename \"$f\")\" in .env|.env.*|.iri-*.env) echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Secret-Datei: .env- und .iri-*.env-Dateien sind für Edit/Write gesperrt (Hook secret-guard).\"}}';; esac; }",
+            "statusMessage": "Secret-Guard prüft Dateipfad"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/expo-pin-guard.py\"",
+            "statusMessage": "Expo-SDK-Pin wird geprüft"
+          }
+        ]
+      }
+    ]
   }
 }

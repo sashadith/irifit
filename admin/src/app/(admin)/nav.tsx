@@ -9,10 +9,11 @@ const LINKS = [
   { href: '/', label: 'Dashboard' },
   { href: '/rezepte', label: 'Rezepte' },
   { href: '/kurse', label: 'Kurse' },
+  { href: '/broadcast', label: 'Broadcast' },
+  { href: '/qa', label: 'Q&A' },
+  { href: '/gutscheine', label: 'Gutscheine' },
+  { href: '/nutzerinnen', label: 'Nutzerinnen' },
 ];
-
-// Session 14: Broadcast, Q&A, Gutscheine, Nutzerinnen
-const UPCOMING = ['Broadcast', 'Q&A', 'Gutscheine', 'Nutzerinnen'];
 
 export function Nav() {
   const pathname = usePathname();
@@ -35,12 +36,6 @@ export function Nav() {
           </Link>
         );
       })}
-      <div className="nav-hint">Folgt in Session 14</div>
-      {UPCOMING.map((label) => (
-        <span key={label} className="navlink disabled">
-          {label}
-        </span>
-      ))}
       <div className="foot">
         <button className="btn btn-ghost btn-small" onClick={signOut}>
           Abmelden
