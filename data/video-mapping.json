@@ -1,0 +1,61 @@
+{
+  "erstellt": "2026-07-20",
+  "quelle_ordner": "/Volumes/Weiss1TB Irina/Irina Skorik - KURS 2025",
+  "hinweise": [
+    "Zuordnung von Sascha bestätigt anhand der Finder-Dateiliste (20.07.2026).",
+    "EXPLAIN 4 und 7: Dateinamen im Finder abgeschnitten angezeigt — Skript soll per Präfix matchen (glob 'IRI EXPLAIN 4*', 'IRI EXPLAIN 7*').",
+    "EXPLAIN 8: v2-Datei verwenden ('...Routine v2.m4v'), die Version ohne v2 ignorieren.",
+    "EXPLAIN 9 (Lifesum): NICHT hochladen — Lektion 1535614 wird von Irina neu aufgenommen ('IRI – dein Freund und Helfer'); bis dahin Lektion unveröffentlicht lassen.",
+    "Lektion 1535617 'Fragen und Antworten' ist Entwurf ohne Video — auslassen.",
+    "Namenslogik: 'No comments' = Module OHNE VoiceOver; Dateien mit Ton-Kommentar = Module 'mit VoiceOver'. Gym-Dateien nutzen englisch 'Friday', Home-Dateien deutsch 'Freitag'; Gym-No-comments hat Tag-vor-Monat ('Friday 1M'), alle anderen Monat-vor-Tag ('1M Friday')."
+  ],
+  "extras_nicht_kurs": {
+    "Intro Green Final 4k Vertical.m4v": "HOCHFORMAT! Kandidat für App-Welcome-Video oder erstes Video der neuen Trainings-Bibliothek (Spur 2)",
+    "IRI EXPLAIN Promo Reel mit Memes FINAL.m4v": "Marketing-Asset für Launch-Kampagne aufheben",
+    "IRI EXPLAIN Promo Reel.m4v": "Marketing-Asset",
+    "IRI EXPLAIN Website Intro.m4v": "Kandidat für die Landing-Page bei Hostinger",
+    "IRI EXPLAIN 8 - Fünfte Woche und weitere Routine.m4v": "Alte Version — ignorieren (v2 verwenden)"
+  },
+  "mapping": [
+    {"lesson_id": 1535606, "titel": "Willkommen in meinem Kurs", "datei": "IRI EXPLAIN 1 - Willkommen in meinem Kurs.m4v"},
+    {"lesson_id": 1535607, "titel": "Überblick und Ziele", "datei": "IRI EXPLAIN 2 - Überblick und Ziele.m4v"},
+    {"lesson_id": 1535608, "titel": "Kalorien und 10.000 goldene Schritte", "datei": "IRI EXPLAIN 3 - Kalorien und 10.000 goldene Schritte.m4v"},
+    {"lesson_id": 1535609, "titel": "Fette, Kohlenhydrate und Eiweiss - Die richtige Balance", "datei_glob": "IRI EXPLAIN 4 - *.m4v"},
+    {"lesson_id": 1535610, "titel": "Der Anfang und die ersten 2 Wochen", "datei": "IRI EXPLAIN 5 - Der Anfang und die ersten 2 Wochen.m4v"},
+    {"lesson_id": 1535611, "titel": "Der Ablauf ab der dritten Woche", "datei": "IRI EXPLAIN 6 - Der Ablauf ab der dritten Woche.m4v"},
+    {"lesson_id": 1535612, "titel": "Umgang mit Ausnahmen – bleib entspannt, aber ehrlich", "datei_glob": "IRI EXPLAIN 7 - *.m4v"},
+    {"lesson_id": 1535613, "titel": "Fünfte Woche und weitere Routine", "datei": "IRI EXPLAIN 8 - Fünfte Woche und weitere Routine v2.m4v"},
+    {"lesson_id": 1535614, "titel": "Lifesum App - dein Freund und Helfer mit KI", "datei": null, "aktion": "SKIP — Neuaufnahme durch Irina, Lektion bis dahin unveröffentlicht"},
+    {"lesson_id": 1535615, "titel": "Tips & Tricks", "datei": "IRI EXPLAIN 10 - Tips & Tricks.m4v"},
+    {"lesson_id": 1535616, "titel": "Schlusswort", "datei": "IRI EXPLAIN 11 - Schlusswort.m4v"},
+    {"lesson_id": 1535617, "titel": "Fragen und Antworten", "datei": null, "aktion": "SKIP — Entwurf ohne Video"},
+
+    {"lesson_id": 1535618, "modul": "Workouts fürs Zuhause", "titel": "1. Monat - Montag", "datei": "IRI Home - No comments - 1M Montag.m4v"},
+    {"lesson_id": 1535619, "modul": "Workouts fürs Zuhause", "titel": "1. Monat - Mittwoch", "datei": "IRI Home - No comments - 1M Mittwoch.m4v"},
+    {"lesson_id": 1535620, "modul": "Workouts fürs Zuhause", "titel": "1. Monat - Freitag", "datei": "IRI Home - No comments - 1M Freitag.m4v"},
+    {"lesson_id": 1535621, "modul": "Workouts fürs Zuhause", "titel": "2. Monat - Montag", "datei": "IRI Home - No comments - 2M Montag.m4v"},
+    {"lesson_id": 1535622, "modul": "Workouts fürs Zuhause", "titel": "2. Monat - Mittwoch", "datei": "IRI Home - No comments - 2M Mittwoch.m4v"},
+    {"lesson_id": 1535623, "modul": "Workouts fürs Zuhause", "titel": "2. Monat - Freitag", "datei": "IRI Home - No comments - 2M Freitag.m4v"},
+
+    {"lesson_id": 1535624, "modul": "Workouts fürs Zuhause - mit VoiceOver", "titel": "1. Monat - Montag", "datei": "IRI Home - 1M Montag.m4v"},
+    {"lesson_id": 1535625, "modul": "Workouts fürs Zuhause - mit VoiceOver", "titel": "1. Monat - Mittwoch", "datei": "IRI Home - 1M Mittwoch.m4v"},
+    {"lesson_id": 1535626, "modul": "Workouts fürs Zuhause - mit VoiceOver", "titel": "1. Monat - Freitag", "datei": "IRI Home - 1M Freitag.m4v"},
+    {"lesson_id": 1535627, "modul": "Workouts fürs Zuhause - mit VoiceOver", "titel": "2. Monat - Montag", "datei": "IRI Home - 2M Montag.m4v"},
+    {"lesson_id": 1535628, "modul": "Workouts fürs Zuhause - mit VoiceOver", "titel": "2. Monat - Mittwoch", "datei": "IRI Home - 2M Mittwoch.m4v"},
+    {"lesson_id": 1535629, "modul": "Workouts fürs Zuhause - mit VoiceOver", "titel": "2. Monat - Freitag", "datei": "IRI Home - 2M Freitag.m4v"},
+
+    {"lesson_id": 1535630, "modul": "Workouts fürs Gym", "titel": "1. Monat - Montag", "datei": "IRI Gym - No comments - Montag 1M.m4v"},
+    {"lesson_id": 1535631, "modul": "Workouts fürs Gym", "titel": "1. Monat - Mittwoch", "datei": "IRI Gym - No comments - Mittwoch 1M.m4v"},
+    {"lesson_id": 1535632, "modul": "Workouts fürs Gym", "titel": "1. Monat - Freitag", "datei": "IRI Gym - No comments - Friday 1M.m4v"},
+    {"lesson_id": 1535633, "modul": "Workouts fürs Gym", "titel": "2. Monat - Montag", "datei": "IRI Gym - No comments - Montag 2M.m4v"},
+    {"lesson_id": 1535634, "modul": "Workouts fürs Gym", "titel": "2. Monat - Mittwoch", "datei": "IRI Gym - No comments - Mittwoch 2M.m4v"},
+    {"lesson_id": 1535635, "modul": "Workouts fürs Gym", "titel": "2. Monat - Freitag", "datei": "IRI Gym - No comments - Friday 2M.m4v"},
+
+    {"lesson_id": 1535636, "modul": "Workouts fürs Gym - mit VoiceOver", "titel": "1. Monat - Montag", "datei": "IRI Gym - 1M Montag.m4v"},
+    {"lesson_id": 1535637, "modul": "Workouts fürs Gym - mit VoiceOver", "titel": "1. Monat - Mittwoch", "datei": "IRI Gym - 1M Mittwoch.m4v"},
+    {"lesson_id": 1535638, "modul": "Workouts fürs Gym - mit VoiceOver", "titel": "1. Monat - Freitag", "datei": "IRI Gym - 1M Friday.m4v"},
+    {"lesson_id": 1535639, "modul": "Workouts fürs Gym - mit VoiceOver", "titel": "2. Monat - Montag", "datei": "IRI Gym - 2M Montag.m4v"},
+    {"lesson_id": 1535640, "modul": "Workouts fürs Gym - mit VoiceOver", "titel": "2. Monat - Mittwoch", "datei": "IRI Gym - 2M Mittwoch.m4v"},
+    {"lesson_id": 1535641, "modul": "Workouts fürs Gym - mit VoiceOver", "titel": "2. Monat - Freitag", "datei": "IRI Gym - 2M Friday.m4v"}
+  ]
+}

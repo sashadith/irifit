@@ -1,0 +1,73 @@
+{
+  "exported_at": "2026-07-20",
+  "source": "Mentortools entity_api (Portal 92227, irinaskorik.com) — via Browser-Session ausgelesen",
+  "hinweis": "Vollversion inkl. Lektions-Beschreibungen (HTML) liegt als kurs-struktur-vollstaendig.json in den Downloads auf dem Mac Studio — bitte nach data/ verschieben. video_file_id = Mentortools-interne Datei-ID (Videos liegen auf deren Vimeo-Backend; Original-Dateien kommen von Saschas Festplatte nach kurs-videos/).",
+  "uebernahme": "NUR dieser Kurs wird 1:1 in die IRI-App übernommen (Entscheidung Sascha 20.07.2026). Lektion 'Lifesum App' (1535614) inhaltlich veraltet -> durch IRI-eigene Lektion ersetzen oder neu aufnehmen. Lektion 'Fragen und Antworten' (1535617) ist Entwurf ohne Video.",
+  "course": {
+    "course_id": 106608,
+    "title": "BLEIB FIT mit IRI - Starte noch heute dein neues Leben!",
+    "modules": [
+      {
+        "module_id": 381059, "title": "BLEIB FIT mit IRI", "order": 1,
+        "lessons": [
+          {"lesson_id": 1535606, "title": "Willkommen in meinem Kurs", "order": 2, "video_file_id": "c0d4c7edd857303b7ea1b24b47a5ed1ce6dc"},
+          {"lesson_id": 1535607, "title": "Überblick und Ziele", "order": 3, "video_file_id": "c0d4c592ec3cf03a9d7f56b53d28d2ac1478"},
+          {"lesson_id": 1535608, "title": "Kalorien und 10.000 goldene Schritte", "order": 4, "video_file_id": "c0d4df4b1bf88bd19aec3ad5f6c412fc8427"},
+          {"lesson_id": 1535609, "title": "Fette, Kohlenhydrate und Eiweiss - Die richtige Balance", "order": 5, "video_file_id": "c0d42863ffc5fc68ce8139e262ed46c71b86"},
+          {"lesson_id": 1535610, "title": "Der Anfang und die ersten 2 Wochen", "order": 6, "video_file_id": "c0d4c7c21a9b1c648470398ab85760fae2bd"},
+          {"lesson_id": 1535611, "title": "Der Ablauf ab der dritten Woche", "order": 7, "video_file_id": "c0d47181d8aefa77a145e96b1b706e36f811"},
+          {"lesson_id": 1535612, "title": "Umgang mit Ausnahmen – bleib entspannt, aber ehrlich", "order": 8, "video_file_id": "c0d4c1125a7c703e73333f2b54f0d2611480"},
+          {"lesson_id": 1535613, "title": "Fünfte Woche und weitere Routine", "order": 9, "video_file_id": "c0d4fd7c1dc4fca69371efa4aa591b6f4fcf"},
+          {"lesson_id": 1535614, "title": "Lifesum App - dein Freund und Helfer mit KI", "order": 10, "video_file_id": "c0d479c10395dabe3063490cc6f8714d7417"},
+          {"lesson_id": 1535615, "title": "Tips & Tricks", "order": 11, "video_file_id": "c0d453a594dcde8f0fabc9a13a2fd911be93"},
+          {"lesson_id": 1535616, "title": "Schlusswort", "order": 12, "video_file_id": "c0d44a17c9bf196b193657156c0b51272d6c"},
+          {"lesson_id": 1535617, "title": "Fragen und Antworten", "order": 13, "video_file_id": null}
+        ]
+      },
+      {
+        "module_id": 381060, "title": "Workouts fürs Zuhause", "order": 14,
+        "lessons": [
+          {"lesson_id": 1535618, "title": "1. Monat - Montag", "order": 15, "video_file_id": "c0d470f3a355bcecbbe9e835eef87eb9b130"},
+          {"lesson_id": 1535619, "title": "1. Monat - Mittwoch", "order": 16, "video_file_id": "c0d48fe112b5b5ee7969c16765416cd784ff"},
+          {"lesson_id": 1535620, "title": "1. Monat - Freitag", "order": 17, "video_file_id": "c0d4a45a8759f382e3c4061cb4f1344d6ec6"},
+          {"lesson_id": 1535621, "title": "2. Monat - Montag", "order": 18, "video_file_id": "c0d484268c622db8e877aaf07cefe9c3fe62"},
+          {"lesson_id": 1535622, "title": "2. Monat - Mittwoch", "order": 19, "video_file_id": "c0d4cdf4dc1f74b1252454c814f1d7efa801"},
+          {"lesson_id": 1535623, "title": "2. Monat - Freitag", "order": 20, "video_file_id": "c0d4de68b0b4c5d9a06efeb20949124c98ce"}
+        ]
+      },
+      {
+        "module_id": 381061, "title": "Workouts fürs Zuhause - mit VoiceOver", "order": 21,
+        "lessons": [
+          {"lesson_id": 1535624, "title": "1. Monat - Montag", "order": 22, "video_file_id": "c0d400fca16a6546a486e6024336a27a057d"},
+          {"lesson_id": 1535625, "title": "1. Monat - Mittwoch", "order": 23, "video_file_id": "c0d47296baed0c47ba1c020abce9a583a4bc"},
+          {"lesson_id": 1535626, "title": "1. Monat - Freitag", "order": 24, "video_file_id": "c0d40555bfa243c6d15bbf899c9ad4e044f8"},
+          {"lesson_id": 1535627, "title": "2. Monat - Montag", "order": 25, "video_file_id": "c0d49a4bd0bd05591c98636753c068a51cae"},
+          {"lesson_id": 1535628, "title": "2. Monat - Mittwoch", "order": 26, "video_file_id": "c0d49af4f395278b332d905409b15f4941bf"},
+          {"lesson_id": 1535629, "title": "2. Monat - Freitag", "order": 27, "video_file_id": "c0d4461eb037016df7208d77049943ff1f0a"}
+        ]
+      },
+      {
+        "module_id": 381062, "title": "Workouts fürs Gym", "order": 28,
+        "lessons": [
+          {"lesson_id": 1535630, "title": "1. Monat - Montag", "order": 28, "video_file_id": "c0d47267681b0a2e68f8ed99439f82ba318f"},
+          {"lesson_id": 1535631, "title": "1. Monat - Mittwoch", "order": 29, "video_file_id": "c0d42290722da0b15e93e74f70e512689532"},
+          {"lesson_id": 1535632, "title": "1. Monat - Freitag", "order": 30, "video_file_id": "c0d4d15645827acf11e4f2812bd944ea7524"},
+          {"lesson_id": 1535633, "title": "2. Monat - Montag", "order": 31, "video_file_id": "c0d47c073313840944e753657248564e8434"},
+          {"lesson_id": 1535634, "title": "2. Monat - Mittwoch", "order": 32, "video_file_id": "c0d4010ba0b3ba95815bd00eb736a068fa39"},
+          {"lesson_id": 1535635, "title": "2. Monat - Freitag", "order": 33, "video_file_id": "c0d4ecdbbb7bd9a776a1805fbc9832b46546"}
+        ]
+      },
+      {
+        "module_id": 381063, "title": "Workouts fürs Gym - mit VoiceOver", "order": 34,
+        "lessons": [
+          {"lesson_id": 1535636, "title": "1. Monat - Montag", "order": 35, "video_file_id": "c0d480d5b01a409a2f63dde6a2137ec2e77f"},
+          {"lesson_id": 1535637, "title": "1. Monat - Mittwoch", "order": 36, "video_file_id": "c0d44d8d9d35c8151f1b913bba65d2a6c2a3"},
+          {"lesson_id": 1535638, "title": "1. Monat - Freitag", "order": 37, "video_file_id": "c0d46f674405584c1d9995d09c809d7adcc6"},
+          {"lesson_id": 1535639, "title": "2. Monat - Montag", "order": 38, "video_file_id": "c0d4f8a9fcd20445f9ef01dcdd4eb136c2bb"},
+          {"lesson_id": 1535640, "title": "2. Monat - Mittwoch", "order": 39, "video_file_id": "c0d4d47f624b87cbeed649c5b55e3f1d01e2"},
+          {"lesson_id": 1535641, "title": "2. Monat - Freitag", "order": 40, "video_file_id": "c0d48dffdeca989a1f96245a8bd2da4ac0c0"}
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IriFit — Branding-Board (Slogan · Logo · App-Icon)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Manrope:wght@400;500;600;700;800&family=Great+Vibes&family=Dancing+Script:wght@600;700&family=Kaushan+Script&family=Sacramento&family=Allura&family=Italianno&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rose-1: #E87F9C;
+    --rose-2: #D25578;
+    --grad: linear-gradient(135deg, #E87F9C 0%, #D25578 100%);
+    --ink: #2B2230;
+    --muted: #8A7B8E;
+    --wall: linear-gradient(160deg, #F9E9EE 0%, #F2E6F5 34%, #FCEDE4 68%, #F8E7EC 100%);
+    --glass: rgba(255,255,255,0.55);
+    --font-head: 'Italiana', serif;
+    --font-body: 'Manrope', -apple-system, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font-body);
+    color: var(--ink);
+    background: var(--wall);
+    min-height: 100vh;
+    padding: 48px 24px 120px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  h1 { font-family: var(--font-head); font-weight: 400; font-size: 54px; letter-spacing: 0.02em; }
+  .sub { color: var(--muted); font-size: 15px; margin: 6px 0 40px; }
+  h2 { font-family: var(--font-head); font-weight: 400; font-size: 34px; margin: 56px 0 6px; }
+  .hint { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+  .panel {
+    background: var(--glass);
+    border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 24px;
+    padding: 28px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 10px 40px rgba(120, 60, 90, 0.08);
+    margin-bottom: 24px;
+  }
+
+  /* ---------- Slogans ---------- */
+  .slogan-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; border-radius: 16px; cursor: pointer;
+    transition: background .15s;
+  }
+  .slogan-item:hover { background: rgba(255,255,255,0.55); }
+  .slogan-item.active { background: #fff; box-shadow: 0 4px 18px rgba(120,60,90,.10); }
+  .slogan-item .txt { font-size: 20px; font-weight: 600; }
+  .slogan-item .why { font-size: 13px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+  .dot {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid #D9C6D2; flex-shrink: 0;
+  }
+  .slogan-item.active .dot { border: 6px solid var(--rose-2); }
+  .badge {
+    font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    background: var(--grad); color: #fff; padding: 3px 9px; border-radius: 99px; margin-left: auto;
+  }
+
+  /* ---------- Wordmarks ---------- */
+  .wm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .wm-card {
+    background: #fff; border-radius: 20px; padding: 40px 24px 20px; text-align: center;
+    cursor: pointer; border: 2px solid transparent; transition: border .15s, transform .15s;
+  }
+  .wm-card:hover { transform: translateY(-2px); }
+  .wm-card.active { border-color: var(--rose-2); }
+  .wm-card .label { font-size: 12px; color: var(--muted); margin-top: 22px; font-weight: 600; letter-spacing: .04em; }
+  .gradient-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+  .wm1 { font-family: var(--font-head); font-size: 64px; color: var(--ink); line-height: 1; }
+  .wm1 .stroke { display: block; width: 84px; height: 4px; border-radius: 2px; background: var(--grad); margin: 10px auto 0; }
+  .wm2 { font-size: 64px; line-height: 1; }
+  .wm2 .iri { font-family: var(--font-head); color: var(--ink); }
+  .wm2 .fit { font-family: var(--font-body); font-weight: 800; letter-spacing: -0.02em; }
+  .wm3 { font-family: var(--font-body); font-weight: 800; font-size: 58px; letter-spacing: -0.02em; line-height: 1.15; }
+  .wm4 { font-family: var(--font-head); font-size: 64px; line-height: 1; }
+
+  /* ---------- Lockup ---------- */
+  .lockup {
+    background: #fff; border-radius: 24px; text-align: center; padding: 70px 24px 60px;
+  }
+  .lockup .slogan-line { font-family: var(--font-body); font-weight: 500; color: var(--muted); font-size: 19px; margin-top: 18px; letter-spacing: .01em; }
+
+  /* ---------- Icons ---------- */
+  .icon-row { display: flex; flex-wrap: wrap; gap: 28px; }
+  .icon-col { text-align: center; }
+  .icon-col .name { font-size: 13px; font-weight: 700; margin-top: 14px; }
+  .icon-col .desc { font-size: 12px; color: var(--muted); max-width: 190px; margin: 4px auto 0; line-height: 1.45; }
+  .app-icon {
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 12px 30px rgba(120,60,90,.18);
+  }
+  .sz180 { width: 180px; height: 180px; border-radius: 40px; }
+  .sz60  { width: 60px;  height: 60px;  border-radius: 14px; }
+  .sz29  { width: 29px;  height: 29px;  border-radius: 7px; }
+  .sizes { display: flex; align-items: flex-end; justify-content: center; gap: 14px; }
+
+  .bg-grad { background: var(--grad); }
+  .bg-wall { background: linear-gradient(150deg, #F6DEE7 0%, #EBD9F2 40%, #FBE3D3 100%); }
+  .bg-cream { background: #FBF4F0; }
+
+  .icn-i { font-family: var(--font-head); color: #fff; }
+  .sz180 .icn-i { font-size: 120px; }
+  .sz60 .icn-i  { font-size: 40px; }
+  .sz29 .icn-i  { font-size: 19px; }
+  .icn-i-ink { font-family: var(--font-head); }
+  .sz180 .icn-i-ink { font-size: 84px; }
+  .sz60 .icn-i-ink  { font-size: 28px; }
+  .sz29 .icn-i-ink  { font-size: 13px; }
+
+  /* homescreen strip */
+  .homescreen {
+    border-radius: 28px; padding: 34px 30px;
+    background: linear-gradient(165deg, #3E2A3C 0%, #5A3B54 55%, #7A4E62 100%);
+    display: flex; gap: 26px; align-items: flex-start;
+  }
+  .hs-app { text-align: center; width: 74px; }
+  .hs-app .hs-label { color: rgba(255,255,255,.9); font-size: 11px; margin-top: 7px; font-weight: 500; }
+  .hs-dummy {
+    width: 60px; height: 60px; border-radius: 14px; margin: 0 auto;
+    background: rgba(255,255,255,.22);
+  }
+  .hs-real { margin: 0 auto; }
+
+  footer { margin-top: 70px; color: var(--muted); font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>IriFit</h1>
+  <div class="sub">Branding-Board · Slogan · Wortmarke · App-Icon — 22.07.2026 · Klicke Slogans und Wortmarken an, das Lockup unten kombiniert deine Auswahl live.</div>
+
+  <!-- ============ 1. SLOGAN ============ -->
+  <h2>1 · Slogan</h2>
+  <div class="hint">Der Slogan lebt unter dem Logo, im App Store (Untertitel, max. 30 Zeichen bei Apple) und in Irinas Posts. Anklicken zum Ausprobieren.</div>
+  <div class="panel" id="sloganList">
+    <div class="slogan-item active" data-slogan="Abnehmen ohne zu hungern.">
+      <div class="dot"></div>
+      <div><div class="txt">Abnehmen ohne zu hungern.</div><div class="why">Der Kern-Claim — klarster Nutzen, 24 Zeichen, perfekt als Store-Untertitel</div></div>
+      <div class="badge">Empfehlung</div>
+    </div>
+    <div class="slogan-item" data-slogan="Iss dich leicht.">
+      <div class="dot"></div>
+      <div><div class="txt">Iss dich leicht.</div><div class="why">Kurz, frech, merkfähig — dreht „Essen“ vom Problem zur Lösung</div></div>
+    </div>
+    <div class="slogan-item" data-slogan="Satt. Fit. Du.">
+      <div class="dot"></div>
+      <div><div class="txt">Satt. Fit. Du.</div><div class="why">Rhythmisch, minimal — knüpft an „Satt &amp; Fit“ an und endet bei der Nutzerin</div></div>
+    </div>
+    <div class="slogan-item" data-slogan="Werde satt. Werde leicht.">
+      <div class="dot"></div>
+      <div><div class="txt">Werde satt. Werde leicht.</div><div class="why">Parallelismus, positiv, doppeltes Versprechen</div></div>
+    </div>
+    <div class="slogan-item" data-slogan="Satt war noch nie so leicht.">
+      <div class="dot"></div>
+      <div><div class="txt">Satt war noch nie so leicht.</div><div class="why">Wortspiel leicht/einfach — charmant, etwas länger</div></div>
+    </div>
+    <div class="slogan-item" data-slogan="Dein Teller. Dein Tempo.">
+      <div class="dot"></div>
+      <div><div class="txt">Dein Teller. Dein Tempo.</div><div class="why">Anti-Diät-Haltung, null Druck — passt zu Irinas Ton</div></div>
+    </div>
+    <div class="slogan-item" data-slogan="Satt &amp; fit mit Irina.">
+      <div class="dot"></div>
+      <div><div class="txt">Satt &amp; fit mit Irina.</div><div class="why">Kontinuität zum Store-Titel, persönlichste Variante</div></div>
+    </div>
+  </div>
+
+  <!-- ============ 2. WORTMARKE ============ -->
+  <h2>2 · Wortmarke</h2>
+  <div class="hint">Vier Richtungen — alle aus dem eingefrorenen Design-System (Italiana, Manrope, Rosé-Verlauf). Anklicken, um sie im Lockup zu sehen.</div>
+  <div class="wm-grid">
+    <div class="wm-card active" data-wm="1">
+      <div class="wm1">IriFit<span class="stroke"></span></div>
+      <div class="label">W1 · Italiana pur + Verlaufsstrich — elegant, ruhig, sehr „Liquid Glass“</div>
+    </div>
+    <div class="wm-card" data-wm="2">
+      <div class="wm2"><span class="iri">Iri</span><span class="fit gradient-text">Fit</span></div>
+      <div class="label">W2 · Italiana „Iri“ + Manrope „Fit“ im Verlauf — Person trifft Produkt</div>
+    </div>
+    <div class="wm-card" data-wm="3">
+      <div class="wm3 gradient-text">IriFit</div>
+      <div class="label">W3 · Manrope ExtraBold im Verlauf — modern, App-typisch, kräftig</div>
+    </div>
+    <div class="wm-card" data-wm="4">
+      <div class="wm4 gradient-text">IriFit</div>
+      <div class="label">W4 · Italiana im Verlauf — feminin, edel, Signatur-Charakter</div>
+    </div>
+  </div>
+
+  <!-- ============ 2b. IRI+FIT EXPLORATION ============ -->
+  <h2>2b · „Iri“ + „Fit“: zwei Schriften, zwei Farben</h2>
+  <div class="hint">Saschas Richtung (22.07.): beide Wortteile getrennt behandeln. Sechs Kombinationen — Schrift und Farbe jeweils getauscht. Anklicken für das Lockup.</div>
+  <div class="wm-grid">
+    <div class="wm-card" data-wm="5">
+      <div class="wm2"><span class="iri">Iri</span><span class="fit gradient-text">Fit</span></div>
+      <div class="label">B1 · Italiana „Iri“ in Tinte + Manrope „Fit“ im Verlauf</div>
+    </div>
+    <div class="wm-card" data-wm="6">
+      <div class="wm2"><span class="iri gradient-text">Iri</span><span class="fit" style="color: var(--ink);">Fit</span></div>
+      <div class="label">B2 · getauscht: Italiana „Iri“ im Verlauf + Manrope „Fit“ in Tinte</div>
+    </div>
+    <div class="wm-card" data-wm="7">
+      <div class="wm2"><span class="fit" style="color: var(--ink);">Iri</span><span class="iri gradient-text">Fit</span></div>
+      <div class="label">B3 · Schrift-Tausch: Manrope „Iri“ in Tinte + Italiana „Fit“ im Verlauf</div>
+    </div>
+    <div class="wm-card" data-wm="8">
+      <div class="wm2"><span class="iri">Iri</span><span class="fit" style="color: var(--rose-2);">Fit</span></div>
+      <div class="label">B4 · wie B1, aber „Fit“ in flachem Rosé statt Verlauf — ruhiger</div>
+    </div>
+    <div class="wm-card" data-wm="9">
+      <div class="wm2"><span class="iri" style="color: var(--rose-2);">Iri</span><span class="fit" style="color: var(--ink);">Fit</span></div>
+      <div class="label">B5 · Italiana „Iri“ in Rosé + Manrope „Fit“ in Tinte — Irina als Farbakzent</div>
+    </div>
+    <div class="wm-card" data-wm="10">
+      <div class="wm2"><span class="iri">Iri</span><span class="fit gradient-text" style="font-size: 0.62em; letter-spacing: 0.14em; vertical-align: 0.09em;">FIT</span></div>
+      <div class="label">B6 · Italiana „Iri“ + kleines „FIT“ in Versalien mit Sperrung — editorial</div>
+    </div>
+  </div>
+
+  <!-- ============ 2c. SCRIPT-VARIANTEN ============ -->
+  <h2>2c · Mit Script-Touch</h2>
+  <div class="hint">Saschas Richtung (22.07.): die zweite Schrift mit Schwung. Oben: „Fit“ als Script hinter Italiana. Unten: „Iri“ als Signatur vor klarem „Fit“. Anklicken für das Lockup.</div>
+  <div class="wm-grid">
+    <div class="wm-card" data-wm="11">
+      <div class="wm2"><span class="iri">Iri</span><span class="gradient-text" style="font-family:'Great Vibes',cursive; font-size:1.12em; margin-left:0.03em;">Fit</span></div>
+      <div class="label">S1 · Italiana „Iri“ + Great Vibes „Fit“ — klassische Kalligrafie, sehr edel</div>
+    </div>
+    <div class="wm-card" data-wm="12">
+      <div class="wm2"><span class="iri">Iri</span><span class="gradient-text" style="font-family:'Dancing Script',cursive; font-weight:700; font-size:0.98em; margin-left:0.05em;">Fit</span></div>
+      <div class="label">S2 · Italiana „Iri“ + Dancing Script „Fit“ — lebendig, freundlich, nahbar</div>
+    </div>
+    <div class="wm-card" data-wm="13">
+      <div class="wm2"><span class="iri">Iri</span><span class="gradient-text" style="font-family:'Kaushan Script',cursive; font-size:0.88em; margin-left:0.09em; vertical-align:0.04em;">Fit</span></div>
+      <div class="label">S3 · Italiana „Iri“ + Kaushan Script „Fit“ — Pinselstrich, Energie, Fitness-Schwung</div>
+    </div>
+    <div class="wm-card" data-wm="14">
+      <div class="wm2"><span class="gradient-text" style="font-family:'Great Vibes',cursive; font-size:1.15em;">Iri</span><span class="fit" style="color:var(--ink); margin-left:0.06em;">Fit</span></div>
+      <div class="label">S4 · Great Vibes „Iri“ als Signatur + Manrope „Fit“ — die Unterschrift der Marke</div>
+    </div>
+    <div class="wm-card" data-wm="15">
+      <div class="wm2"><span style="font-family:'Sacramento',cursive; color:var(--rose-2); font-size:1.1em;">Iri</span><span class="fit" style="color:var(--ink); margin-left:0.06em;">Fit</span></div>
+      <div class="label">S5 · Sacramento „Iri“ in Rosé + Manrope „Fit“ — feine Linie, modern-leicht</div>
+    </div>
+    <div class="wm-card" data-wm="16">
+      <div class="wm2"><span class="iri">Iri</span><span class="gradient-text" style="font-family:'Allura',cursive; font-size:1.08em; margin-left:0.04em;">Fit</span></div>
+      <div class="label">S6 · Italiana „Iri“ + Allura „Fit“ — weich, romantisch, zwischen S1 und S2</div>
+    </div>
+  </div>
+
+  <!-- ============ LOCKUP ============ -->
+  <h2>Lockup-Vorschau</h2>
+  <div class="hint">Deine aktuelle Kombination aus Wortmarke + Slogan.</div>
+  <div class="lockup panel">
+    <div id="lockupMark"><div class="wm1" style="font-size:84px;">IriFit<span class="stroke" style="width:110px;"></span></div></div>
+    <div class="slogan-line" id="lockupSlogan">Abnehmen ohne zu hungern.</div>
+  </div>
+
+  <!-- ============ 3. APP-ICON ============ -->
+  <h2>3 · App-Icon</h2>
+  <div class="hint">Jede Richtung in drei echten Größen (Detail · Homescreen · Einstellungen). Entscheidend ist die kleinste.</div>
+
+  <div class="panel">
+    <div class="icon-row">
+
+      <!-- I1: Der Ring -->
+      <div class="icon-col">
+        <div class="sizes">
+          <div class="app-icon sz180 bg-wall">
+            <svg viewBox="0 0 100 100" width="118" height="118">
+              <defs><linearGradient id="rg1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#E87F9C"/><stop offset="100%" stop-color="#D25578"/>
+              </linearGradient></defs>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="11"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="url(#rg1)" stroke-width="11"
+                stroke-linecap="round" stroke-dasharray="188 51" stroke-dashoffset="-12"
+                transform="rotate(-90 50 50)"/>
+            </svg>
+          </div>
+          <div class="app-icon sz60 bg-wall">
+            <svg viewBox="0 0 100 100" width="40" height="40">
+              <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="12"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="url(#rg1)" stroke-width="12"
+                stroke-linecap="round" stroke-dasharray="188 51" stroke-dashoffset="-12"
+                transform="rotate(-90 50 50)"/>
+            </svg>
+          </div>
+          <div class="app-icon sz29 bg-wall">
+            <svg viewBox="0 0 100 100" width="20" height="20">
+              <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="13"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="url(#rg1)" stroke-width="13"
+                stroke-linecap="round" stroke-dasharray="188 51" stroke-dashoffset="-12"
+                transform="rotate(-90 50 50)"/>
+            </svg>
+          </div>
+        </div>
+        <div class="name">I1 · Der Ring</div>
+        <div class="desc">Produkt-DNA: der „übrig“-Ring aus der Tagesansicht als Marke. Pastell-Wallpaper + Verlaufsring. Einzigartig unter Fitness-Icons, in jeder Größe lesbar.</div>
+      </div>
+
+      <!-- I2: Monogramm -->
+      <div class="icon-col">
+        <div class="sizes">
+          <div class="app-icon sz180 bg-grad"><span class="icn-i">I</span></div>
+          <div class="app-icon sz60 bg-grad"><span class="icn-i">I</span></div>
+          <div class="app-icon sz29 bg-grad"><span class="icn-i">I</span></div>
+        </div>
+        <div class="name">I2 · Monogramm</div>
+        <div class="desc">Rosé-Verlauf + weißes Italiana-„I“. Maximal edel und schlicht — aber das „I“ allein ist wenig unverwechselbar.</div>
+      </div>
+
+      <!-- I3: Ring + Monogramm -->
+      <div class="icon-col">
+        <div class="sizes">
+          <div class="app-icon sz180 bg-wall">
+            <svg viewBox="0 0 100 100" width="128" height="128" style="position:absolute;">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="url(#rg1)" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="201 51" stroke-dashoffset="-12"
+                transform="rotate(-90 50 50)"/>
+            </svg>
+            <span class="icn-i-ink gradient-text">I</span>
+          </div>
+          <div class="app-icon sz60 bg-wall">
+            <svg viewBox="0 0 100 100" width="43" height="43" style="position:absolute;">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="url(#rg1)" stroke-width="8"
+                stroke-linecap="round" stroke-dasharray="201 51" stroke-dashoffset="-12"
+                transform="rotate(-90 50 50)"/>
+            </svg>
+            <span class="icn-i-ink gradient-text">I</span>
+          </div>
+          <div class="app-icon sz29 bg-wall">
+            <svg viewBox="0 0 100 100" width="21" height="21" style="position:absolute;">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="url(#rg1)" stroke-width="9"
+                stroke-linecap="round" stroke-dasharray="201 51" stroke-dashoffset="-12"
+                transform="rotate(-90 50 50)"/>
+            </svg>
+            <span class="icn-i-ink gradient-text">I</span>
+          </div>
+        </div>
+        <div class="name">I3 · Ring + Monogramm</div>
+        <div class="desc">Kombination: offener Verlaufsring um Italiana-„I“. Marke + Produkt in einem — braucht in klein aber gute Augen.</div>
+      </div>
+
+      <!-- I4: Herz-Schale -->
+      <div class="icon-col">
+        <div class="sizes">
+          <div class="app-icon sz180 bg-grad">
+            <svg viewBox="0 0 100 100" width="112" height="112">
+              <path d="M 22 52 A 28 28 0 0 0 78 52 Z" fill="none" stroke="#fff" stroke-width="5.5" stroke-linejoin="round"/>
+              <path d="M 30 66 L 70 66" stroke="#fff" stroke-width="5.5" stroke-linecap="round"/>
+              <path d="M 50 40 C 50 33 42 30 42 24.5 C 42 20.5 45.5 18.5 48 20.5 C 49 21.3 50 23 50 23 C 50 23 51 21.3 52 20.5 C 54.5 18.5 58 20.5 58 24.5 C 58 30 50 33 50 40 Z" fill="#fff"/>
+            </svg>
+          </div>
+          <div class="app-icon sz60 bg-grad">
+            <svg viewBox="0 0 100 100" width="38" height="38">
+              <path d="M 22 52 A 28 28 0 0 0 78 52 Z" fill="none" stroke="#fff" stroke-width="6.5" stroke-linejoin="round"/>
+              <path d="M 30 66 L 70 66" stroke="#fff" stroke-width="6.5" stroke-linecap="round"/>
+              <path d="M 50 40 C 50 33 42 30 42 24.5 C 42 20.5 45.5 18.5 48 20.5 C 49 21.3 50 23 50 23 C 50 23 51 21.3 52 20.5 C 54.5 18.5 58 20.5 58 24.5 C 58 30 50 33 50 40 Z" fill="#fff"/>
+            </svg>
+          </div>
+          <div class="app-icon sz29 bg-grad">
+            <svg viewBox="0 0 100 100" width="19" height="19">
+              <path d="M 22 52 A 28 28 0 0 0 78 52 Z" fill="none" stroke="#fff" stroke-width="8" stroke-linejoin="round"/>
+              <path d="M 30 66 L 70 66" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+              <path d="M 50 40 C 50 33 42 30 42 24.5 C 42 20.5 45.5 18.5 48 20.5 C 49 21.3 50 23 50 23 C 50 23 51 21.3 52 20.5 C 54.5 18.5 58 20.5 58 24.5 C 58 30 50 33 50 40 Z" fill="#fff"/>
+            </svg>
+          </div>
+        </div>
+        <div class="name">I4 · Herz über der Schale</div>
+        <div class="desc">Schale + Herz-Dampf im IRI-Icon-Stil (Strichzeichnung): „Essen mit Liebe, satt werden“. Emotionalste Variante.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- homescreen preview -->
+  <h2>Auf dem Homescreen</h2>
+  <div class="hint">Die vier Kandidaten zwischen anderen Apps — so entscheidet sich, was heraussticht.</div>
+  <div class="homescreen panel" style="background: linear-gradient(165deg, #3E2A3C 0%, #5A3B54 55%, #7A4E62 100%);">
+    <div class="hs-app"><div class="hs-dummy"></div><div class="hs-label">Fotos</div></div>
+    <div class="hs-app">
+      <div class="app-icon sz60 bg-wall hs-real">
+        <svg viewBox="0 0 100 100" width="40" height="40">
+          <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="12"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="url(#rg1)" stroke-width="12"
+            stroke-linecap="round" stroke-dasharray="188 51" stroke-dashoffset="-12" transform="rotate(-90 50 50)"/>
+        </svg>
+      </div>
+      <div class="hs-label">IriFit</div>
+    </div>
+    <div class="hs-app"><div class="hs-dummy"></div><div class="hs-label">Mail</div></div>
+    <div class="hs-app">
+      <div class="app-icon sz60 bg-grad hs-real"><span class="icn-i">I</span></div>
+      <div class="hs-label">IriFit</div>
+    </div>
+    <div class="hs-app"><div class="hs-dummy"></div><div class="hs-label">Wetter</div></div>
+    <div class="hs-app">
+      <div class="app-icon sz60 bg-wall hs-real">
+        <svg viewBox="0 0 100 100" width="43" height="43" style="position:absolute;">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="url(#rg1)" stroke-width="8"
+            stroke-linecap="round" stroke-dasharray="201 51" stroke-dashoffset="-12" transform="rotate(-90 50 50)"/>
+        </svg>
+        <span class="icn-i-ink gradient-text">I</span>
+      </div>
+      <div class="hs-label">IriFit</div>
+    </div>
+    <div class="hs-app"><div class="hs-dummy"></div><div class="hs-label">Karten</div></div>
+    <div class="hs-app">
+      <div class="app-icon sz60 bg-grad hs-real">
+        <svg viewBox="0 0 100 100" width="38" height="38">
+          <path d="M 22 52 A 28 28 0 0 0 78 52 Z" fill="none" stroke="#fff" stroke-width="6.5" stroke-linejoin="round"/>
+          <path d="M 30 66 L 70 66" stroke="#fff" stroke-width="6.5" stroke-linecap="round"/>
+          <path d="M 50 40 C 50 33 42 30 42 24.5 C 42 20.5 45.5 18.5 48 20.5 C 49 21.3 50 23 50 23 C 50 23 51 21.3 52 20.5 C 54.5 18.5 58 20.5 58 24.5 C 58 30 50 33 50 40 Z" fill="#fff"/>
+        </svg>
+      </div>
+      <div class="hs-label">IriFit</div>
+    </div>
+  </div>
+
+  <footer>IriFit Branding-Board · Design-System: Italiana / Manrope / Rosé-Verlauf #E87F9C→#D25578 · eingefroren 18.07.2026</footer>
+</div>
+
+<script>
+  // Slogan selection
+  const sloganItems = document.querySelectorAll('.slogan-item');
+  const lockupSlogan = document.getElementById('lockupSlogan');
+  sloganItems.forEach(el => el.addEventListener('click', () => {
+    sloganItems.forEach(x => x.classList.remove('active'));
+    el.classList.add('active');
+    lockupSlogan.textContent = el.dataset.slogan;
+  }));
+
+  // Wordmark selection
+  const wmCards = document.querySelectorAll('.wm-card');
+  const lockupMark = document.getElementById('lockupMark');
+  const marks = {
+    '1': '<div class="wm1" style="font-size:84px;">IriFit<span class="stroke" style="width:110px;"></span></div>',
+    '2': '<div class="wm2" style="font-size:84px;"><span class="iri">Iri</span><span class="fit gradient-text">Fit</span></div>',
+    '3': '<div class="wm3 gradient-text" style="font-size:76px;">IriFit</div>',
+    '4': '<div class="wm4 gradient-text" style="font-size:84px;">IriFit</div>',
+    '5': '<div class="wm2" style="font-size:84px;"><span class="iri">Iri</span><span class="fit gradient-text">Fit</span></div>',
+    '6': '<div class="wm2" style="font-size:84px;"><span class="iri gradient-text">Iri</span><span class="fit" style="color: var(--ink);">Fit</span></div>',
+    '7': '<div class="wm2" style="font-size:84px;"><span class="fit" style="color: var(--ink);">Iri</span><span class="iri gradient-text">Fit</span></div>',
+    '8': '<div class="wm2" style="font-size:84px;"><span class="iri">Iri</span><span class="fit" style="color: var(--rose-2);">Fit</span></div>',
+    '9': '<div class="wm2" style="font-size:84px;"><span class="iri" style="color: var(--rose-2);">Iri</span><span class="fit" style="color: var(--ink);">Fit</span></div>',
+    '10': '<div class="wm2" style="font-size:84px;"><span class="iri">Iri</span><span class="fit gradient-text" style="font-size: 0.62em; letter-spacing: 0.14em; vertical-align: 0.09em;">FIT</span></div>',
+    '11': '<div class="wm2" style="font-size:84px;"><span class="iri">Iri</span><span class="gradient-text" style="font-family:\'Great Vibes\',cursive; font-size:1.12em; margin-left:0.03em;">Fit</span></div>',
+    '12': '<div class="wm2" style="font-size:84px;"><span class="iri">Iri</span><span class="gradient-text" style="font-family:\'Dancing Script\',cursive; font-weight:700; font-size:0.98em; margin-left:0.05em;">Fit</span></div>',
+    '13': '<div class="wm2" style="font-size:84px;"><span class="iri">Iri</span><span class="gradient-text" style="font-family:\'Kaushan Script\',cursive; font-size:0.88em; margin-left:0.09em; vertical-align:0.04em;">Fit</span></div>',
+    '14': '<div class="wm2" style="font-size:84px;"><span class="gradient-text" style="font-family:\'Great Vibes\',cursive; font-size:1.15em;">Iri</span><span class="fit" style="color:var(--ink); margin-left:0.06em;">Fit</span></div>',
+    '15': '<div class="wm2" style="font-size:84px;"><span style="font-family:\'Sacramento\',cursive; color:var(--rose-2); font-size:1.1em;">Iri</span><span class="fit" style="color:var(--ink); margin-left:0.06em;">Fit</span></div>',
+    '16': '<div class="wm2" style="font-size:84px;"><span class="iri">Iri</span><span class="gradient-text" style="font-family:\'Allura\',cursive; font-size:1.08em; margin-left:0.04em;">Fit</span></div>'
+  };
+  wmCards.forEach(el => el.addEventListener('click', () => {
+    wmCards.forEach(x => x.classList.remove('active'));
+    el.classList.add('active');
+    lockupMark.innerHTML = marks[el.dataset.wm];
+  }));
+</script>
+</body>
+</html>

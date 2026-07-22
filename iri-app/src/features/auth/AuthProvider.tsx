@@ -1,0 +1,223 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { Session } from '@supabase/supabase-js';
+import {
+  createContext,
+  PropsWithChildren,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
+import { fetchMyLegacyAccess, LegacyAccess } from '@/features/auth/legacy';
+import { calcTargets } from '@/features/onboarding/calorieGoal';
+import {
+  OnboardingAnswers,
+  PENDING_ANSWERS_KEY,
+} from '@/features/onboarding/OnboardingProvider';
+import { supabase } from '@/lib/supabase';
+
+export interface Profile {
+  id: string;
+  display_name: string | null;
+  kcal_goal: number | null;
+  protein_goal_g: number | null;
+  carbs_goal_g: number | null;
+  fat_goal_g: number | null;
+  water_goal_ml: number;
+  water_glass_ml: number;
+  streak_count: number;
+  streak_longest: number;
+  allergies: string[];
+  diet_preference: string | null;
+  start_weight_kg: number | null;
+  target_weight_kg: number | null;
+  onboarding_completed_at: string | null;
+}
+
+interface AuthContextValue {
+  session: Session | null;
+  profile: Profile | null;
+  /** Beanspruchter Digistore24-Kauf (null = keine Legacy-Kundin) */
+  legacy: LegacyAccess | null;
+  /** true bis Session UND Profil initial geladen sind */
+  loading: boolean;
+  refreshProfile: () => Promise<void>;
+  refreshLegacy: () => Promise<void>;
+  completeOnboarding: () => Promise<void>;
+  signOut: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+const PROFILE_COLUMNS =
+  'id, display_name, kcal_goal, protein_goal_g, carbs_goal_g, fat_goal_g, water_goal_ml, water_glass_ml, streak_count, streak_longest, allergies, diet_preference, start_weight_kg, target_weight_kg, onboarding_completed_at';
+
+/** Profilzeile anlegen, falls sie fehlt — aus den lokal gespiegelten Quiz-Antworten */
+async function ensureProfile(userId: string): Promise<Profile | null> {
+  const { data: existing, error } = await supabase
+    .from('profiles')
+    .select(PROFILE_COLUMNS)
+    .eq('id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  if (existing) return existing;
+
+  const raw = await AsyncStorage.getItem(PENDING_ANSWERS_KEY);
+  const a: OnboardingAnswers = raw ? JSON.parse(raw) : {};
+  const targets =
+    a.goal && a.birthYear && a.heightCm && a.weightKg && a.activity
+      ? calcTargets({
+          goal: a.goal,
+          birthYear: a.birthYear,
+          heightCm: a.heightCm,
+          weightKg: a.weightKg,
+          activity: a.activity,
+        })
+      : null;
+
+  const { data: created, error: insertError } = await supabase
+    .from('profiles')
+    .insert({
+      id: userId,
+      display_name: a.displayName?.trim() || null,
+      goal: a.goal ?? null,
+      birth_year: a.birthYear ?? null,
+      height_cm: a.heightCm ?? null,
+      start_weight_kg: a.weightKg ?? null,
+      target_weight_kg: a.targetWeightKg ?? null,
+      activity_level: a.activity ?? null,
+      diet_preference: a.dietPreference === 'none' ? null : (a.dietPreference ?? null),
+      allergies: a.allergies ?? [],
+      kcal_goal: targets?.kcal ?? null,
+      protein_goal_g: targets?.proteinG ?? null,
+      carbs_goal_g: targets?.carbsG ?? null,
+      fat_goal_g: targets?.fatG ?? null,
+      health_consent_at: a.healthConsentAt ?? null,
+    })
+    .select(PROFILE_COLUMNS)
+    .single();
+  if (insertError) throw insertError;
+  return created;
+}
+
+export function AuthProvider({ children }: PropsWithChildren) {
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [legacy, setLegacy] = useState<LegacyAccess | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      if (!data.session) setLoading(false);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
+      setSession(next);
+      if (!next) {
+        setProfile(null);
+        setLegacy(null);
+        setLoading(false);
+      }
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!session) return;
+    let cancelled = false;
+    Promise.all([
+      ensureProfile(session.user.id),
+      fetchMyLegacyAccess(session.user.id).catch(() => null),
+    ])
+      .then(([p, l]) => {
+        if (cancelled) return;
+        setProfile(p);
+        setLegacy(l);
+      })
+      .catch((e) => console.warn('Profil laden fehlgeschlagen', e))
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user.id]);
+
+  const refreshProfile = useCallback(async () => {
+    if (!session) return;
+    const p = await ensureProfile(session.user.id);
+    setProfile(p);
+  }, [session?.user.id]);
+
+  const refreshLegacy = useCallback(async () => {
+    if (!session) return;
+    const l = await fetchMyLegacyAccess(session.user.id).catch(() => null);
+    setLegacy(l);
+  }, [session?.user.id]);
+
+  const completeOnboarding = useCallback(async () => {
+    if (!session) return;
+    // Sicherstellen, dass die Profilzeile existiert (Insert läuft ggf. noch parallel)
+    await ensureProfile(session.user.id);
+    // Quiz-Antworten nachziehen: Bei Legacy-Nutzerinnen entsteht die Profilzeile
+    // schon beim Magic-Link-Login (leer) — das Quiz käme sonst nie im Profil an.
+    const raw = await AsyncStorage.getItem(PENDING_ANSWERS_KEY);
+    const a: OnboardingAnswers = raw ? JSON.parse(raw) : {};
+    const targets =
+      a.goal && a.birthYear && a.heightCm && a.weightKg && a.activity
+        ? calcTargets({
+            goal: a.goal,
+            birthYear: a.birthYear,
+            heightCm: a.heightCm,
+            weightKg: a.weightKg,
+            activity: a.activity,
+          })
+        : null;
+    const answerUpdate = targets
+      ? {
+          display_name: a.displayName?.trim() || null,
+          goal: a.goal,
+          birth_year: a.birthYear,
+          height_cm: a.heightCm,
+          start_weight_kg: a.weightKg,
+          target_weight_kg: a.targetWeightKg ?? null,
+          activity_level: a.activity,
+          diet_preference: a.dietPreference === 'none' ? null : (a.dietPreference ?? null),
+          allergies: a.allergies ?? [],
+          kcal_goal: targets.kcal,
+          protein_goal_g: targets.proteinG,
+          carbs_goal_g: targets.carbsG,
+          fat_goal_g: targets.fatG,
+          health_consent_at: a.healthConsentAt ?? null,
+        }
+      : {};
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ ...answerUpdate, onboarding_completed_at: new Date().toISOString() })
+      .eq('id', session.user.id)
+      .select(PROFILE_COLUMNS)
+      .single();
+    if (error) throw error;
+    setProfile(data);
+    await AsyncStorage.removeItem(PENDING_ANSWERS_KEY);
+  }, [session?.user.id]);
+
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
+  }, []);
+
+  const value = useMemo(
+    () => ({ session, profile, legacy, loading, refreshProfile, refreshLegacy, completeOnboarding, signOut }),
+    [session, profile, legacy, loading, refreshProfile, refreshLegacy, completeOnboarding, signOut],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth außerhalb des AuthProvider');
+  return ctx;
+}

@@ -1,0 +1,6 @@
+{
+  "model": "claude-fable-5",
+  "enabledPlugins": {
+    "claude-code-setup@claude-plugins-official": true
+  }
+}

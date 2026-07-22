@@ -1,0 +1,20 @@
+# Abhängigkeiten & Build-Artefakte
+node_modules/
+.expo/
+.next/
+dist/
+build/
+*.tsbuildinfo
+
+# Secrets — niemals committen
+.env
+.env.*
+.iri-*.env
+
+# Kundendaten (DSGVO: enthält Käuferinnen-E-Mails aus Digistore24)
+data/legacy-import.json
+data/legacy-import.sql
+
+# System & Editor
+.DS_Store
+.~lock.*

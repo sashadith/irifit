@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRI – Design-Prototyp · Liquid Glass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --display-font:'Italiana',Georgia,serif; --display-weight:400;
+    --body-font:'Manrope',-apple-system,BlinkMacSystemFont,sans-serif;
+    --ink:#1C1C21; --muted:rgba(60,60,67,.6); --muted2:rgba(60,60,67,.4);
+    --tint:#E87F9C; --tint-deep:#D25578; --water:#5AC8DE; --ok:#4CAF7D;
+    --glass:rgba(255,255,255,.58); --glass-strong:rgba(255,255,255,.78);
+    --stroke:rgba(255,255,255,.75); --track:rgba(120,120,128,.16);
+    --r-lg:28px; --r-md:20px;
+    --sh:0 10px 34px rgba(30,32,40,.14), inset 0 1px 0 rgba(255,255,255,.9);
+    --blur:blur(26px) saturate(1.7);
+    --sys:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#101014;font-family:var(--sys);color:#fff;min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;padding:34px 16px}
+  .screen, .btn, .tabbar{font-family:var(--body-font)}
+  h1.proto{font-size:24px;font-weight:700;letter-spacing:-.3px}
+  p.proto{color:rgba(255,255,255,.45);font-size:13px;margin:6px 0 22px}
+  /* Phone */
+  .phone{width:375px;height:770px;border-radius:46px;box-shadow:0 34px 90px rgba(0,0,0,.6), inset 0 0 0 10px #1B1B1F;
+    overflow:hidden;position:relative;background:#EAE6E0}
+  .notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:118px;height:26px;background:#1B1B1F;border-radius:0 0 16px 16px;z-index:50}
+  /* Wallpaper hinter dem Glas */
+  .screen{position:absolute;inset:10px;border-radius:38px;overflow-y:auto;overflow-x:hidden;display:none;
+    padding:56px 20px 108px;scrollbar-width:none;color:var(--ink);
+    background:
+      radial-gradient(56% 38% at 18% 8%, rgba(244,187,205,.8), transparent 70%),
+      radial-gradient(50% 36% at 88% 22%, rgba(214,198,232,.8), transparent 72%),
+      radial-gradient(60% 42% at 70% 88%, rgba(250,214,196,.75), transparent 70%),
+      radial-gradient(46% 34% at 12% 72%, rgba(236,208,222,.7), transparent 70%),
+      linear-gradient(170deg,#FAF3F2,#F4ECEE)}
+  .screen::-webkit-scrollbar{display:none}
+  .screen.active{display:block;animation:fadeUp .35s ease}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  /* Typo */
+  .display{font-family:var(--display-font);font-weight:var(--display-weight);letter-spacing:.2px}
+  .eyebrow{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);font-weight:700}
+  /* Glas-Bausteine */
+  .card{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+    border:1px solid var(--stroke);border-radius:var(--r-lg);padding:18px;box-shadow:var(--sh)}
+  .btn{display:block;width:100%;border:none;cursor:pointer;font-family:var(--body-font);font-weight:700;font-size:15.5px;
+    padding:16px;border-radius:999px;background:linear-gradient(180deg,#2A2A30,#1C1C21);color:#fff;
+    box-shadow:0 10px 26px rgba(28,28,33,.35), inset 0 1px 0 rgba(255,255,255,.18);transition:.2s}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.ghost{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+    color:var(--ink);border:1px solid var(--stroke);box-shadow:var(--sh);font-weight:600;margin-top:10px}
+  /* Tabbar — schwebendes Glas-Pill */
+  .tabbar{position:absolute;left:22px;right:22px;bottom:22px;height:70px;z-index:40;
+    background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+    border:1px solid var(--stroke);border-radius:999px;box-shadow:var(--sh);
+    display:flex;align-items:center;justify-content:space-around;padding:0 8px}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--muted);cursor:pointer;font-weight:600;width:56px}
+  svg.iri{fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .tab .ico{width:24px;height:24px;opacity:.6;transition:.2s}
+  .tab.active{color:var(--ink)}
+  .tab.active .ico{opacity:1}
+  .tab.plus{width:54px;height:54px;border-radius:50%;justify-content:center;margin-top:0;color:#fff;font-size:26px;font-weight:400;
+    background:linear-gradient(160deg,var(--tint),var(--tint-deep));box-shadow:0 10px 24px rgba(210,85,120,.45), inset 0 1px 0 rgba(255,255,255,.5)}
+  /* Onboarding */
+  .progress{height:4px;background:var(--track);border-radius:2px;margin-bottom:34px}
+  .progress i{display:block;height:100%;width:29%;background:var(--ink);border-radius:2px}
+  .choice{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+    border:1px solid var(--stroke);border-radius:var(--r-md);padding:18px;margin-bottom:12px;cursor:pointer;
+    display:flex;align-items:center;gap:14px;font-weight:600;font-size:15px;box-shadow:var(--sh);transition:.15s}
+  .choice:hover{transform:scale(1.01)}
+  .choice.sel{border:2px solid var(--ink);background:var(--glass-strong)}
+  .choice span.em{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.6);border:1px solid var(--stroke);display:flex;align-items:center;justify-content:center;color:var(--tint-deep);flex-shrink:0}
+  .choice span.em svg{width:20px;height:20px}
+  /* Ring */
+  .ringwrap{display:flex;flex-direction:column;align-items:center;margin:8px 0 4px}
+  .ring{position:relative;width:210px;height:210px}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring .num b{font-family:var(--display-font);font-size:52px;font-weight:var(--display-weight);letter-spacing:0}
+  .ring .num span{font-size:11px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;font-weight:700}
+  .macros{display:flex;gap:10px;margin:18px 0}
+  .macro{flex:1;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+    border:1px solid var(--stroke);border-radius:var(--r-md);padding:12px;box-shadow:var(--sh)}
+  .macro small{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.5px}
+  .macro .val{font-weight:700;font-size:13.5px;margin:4px 0 6px}
+  .bar{height:5px;border-radius:3px;background:var(--track)}
+  .bar i{display:block;height:100%;border-radius:3px}
+  .meal{display:flex;align-items:center;gap:14px;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+    border:1px solid var(--stroke);border-radius:var(--r-md);padding:14px 16px;margin-bottom:10px;box-shadow:var(--sh)}
+  .meal .em{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.65);border:1px solid var(--stroke);display:flex;align-items:center;justify-content:center;color:var(--tint-deep)}
+  .meal .em svg{width:21px;height:21px}
+  .meal .t{flex:1}
+  .meal .t b{font-size:15px}
+  .meal .t small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+  .meal .add{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.7);border:1px solid var(--stroke);
+    display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:19px;cursor:pointer;font-weight:600}
+  .water{display:flex;gap:7px;margin-top:10px}
+  .glass-el{width:30px;height:38px;border-radius:8px 8px 11px 11px;background:var(--track);cursor:pointer;transition:.2s;
+    border:1px solid rgba(255,255,255,.5)}
+  .glass-el.full{background:linear-gradient(180deg,rgba(122,206,222,.85),rgba(90,178,200,.9));box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+  .streak{display:flex;align-items:center;gap:7px;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+    border:1px solid var(--stroke);border-radius:999px;padding:8px 14px;box-shadow:var(--sh);font-weight:700;font-size:13px;width:fit-content}
+  /* Scan */
+  .scanphoto{border-radius:var(--r-lg);overflow:hidden;height:190px;background:
+    radial-gradient(circle at 35% 40%, #E8C9A8 0 22%, transparent 23%),
+    radial-gradient(circle at 62% 55%, #C97B5D 0 16%, transparent 17%),
+    radial-gradient(circle at 55% 32%, #9BAA7F 0 13%, transparent 14%),
+    radial-gradient(circle at 45% 65%, #F2E6D0 0 20%, transparent 21%),
+    linear-gradient(145deg,#DED5C2,#CBC0A8);position:relative;border:1px solid var(--stroke)}
+  .conf{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.75);backdrop-filter:blur(10px);
+    border-radius:999px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--ink)}
+  .zutat{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--track);font-size:14px}
+  .zutat:last-child{border:none}
+  .zutat b{font-weight:600}
+  .stepper{display:flex;align-items:center;gap:10px}
+  .stepper button{width:27px;height:27px;border-radius:50%;border:1px solid var(--stroke);background:rgba(255,255,255,.7);
+    color:var(--ink);font-size:15px;cursor:pointer;font-weight:600}
+  /* Rezepte */
+  .search{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--stroke);
+    border-radius:999px;padding:12px 18px;color:var(--muted);font-size:14px;box-shadow:var(--sh);margin-bottom:14px}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:none}
+  .chip{flex-shrink:0;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+    border:1px solid var(--stroke);border-radius:999px;padding:8px 16px;font-size:13px;font-weight:600;color:var(--ink);box-shadow:var(--sh);cursor:pointer}
+  .chip.sel{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .rgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .rcard{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+    border:1px solid var(--stroke);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--sh);cursor:pointer}
+  .rimg{height:92px}
+  .rcard .p{padding:10px 12px 12px}
+  .rcard b{font-size:13px;line-height:1.3;display:block}
+  .rcard small{color:var(--muted);font-size:11.5px;display:block;margin-top:4px;font-weight:600}
+  /* Coaching */
+  .modul{display:flex;gap:14px;align-items:center;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+    border:1px solid var(--stroke);border-radius:var(--r-md);padding:14px;margin-bottom:10px;box-shadow:var(--sh)}
+  .modul .n{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.7);border:1px solid var(--stroke);
+    display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--ink);flex-shrink:0}
+  .modul .n.done{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .bcast{background:rgba(28,28,33,.82);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+    border:1px solid rgba(255,255,255,.14);border-radius:var(--r-lg);padding:18px;color:#fff;margin-bottom:14px;
+    box-shadow:0 14px 36px rgba(20,22,28,.35)}
+  .bcast .t{font-size:14px;line-height:1.5}
+  .bcast .eyebrow{color:rgba(255,255,255,.55)}
+  .reactions{display:flex;gap:7px;margin-top:12px;flex-wrap:nowrap}
+  .react{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer;transition:.15s}
+  .react:hover{background:rgba(255,255,255,.28)}
+  /* Paywall */
+  .plan{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+    border:1.5px solid var(--stroke);border-radius:var(--r-md);padding:16px;margin-bottom:12px;cursor:pointer;position:relative;box-shadow:var(--sh)}
+  .plan.sel{border:2px solid var(--ink);background:var(--glass-strong)}
+  .plan .save{position:absolute;top:-11px;right:14px;background:linear-gradient(160deg,var(--tint),var(--tint-deep));
+    color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:4px 10px;box-shadow:0 4px 12px rgba(210,85,120,.4)}
+  .plan b{font-size:16px}
+  .plan small{color:var(--muted);display:block;margin-top:3px;font-size:13px}
+  .avatar{width:74px;height:74px;border-radius:50%;margin:0 auto 14px;
+    background:linear-gradient(135deg,#C9A080,#8A6D55);display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-size:24px;border:2px solid rgba(255,255,255,.8);box-shadow:var(--sh)}
+  .nav-links{position:fixed;top:18px;left:18px;display:flex;flex-direction:column;gap:6px;z-index:99}
+  .nav-links button{border:1px solid rgba(255,255,255,.14);background:rgba(40,40,46,.7);backdrop-filter:blur(12px);
+    border-radius:999px;padding:8px 14px;font-family:var(--sys);font-size:12px;font-weight:600;
+    color:rgba(255,255,255,.8);cursor:pointer;text-align:left;transition:.15s}
+  .nav-links button.cur{background:#fff;color:#1C1C21}
+  .sectionlabel{margin:20px 0 10px}
+</style>
+</head>
+<body>
+
+<h1 class="proto">IRI <span style="color:rgba(255,255,255,.4);font-size:15px">· Liquid Glass · Italiana / Manrope / Rosé</span></h1>
+<p class="proto">Satt &amp; Fit mit Irina Dith — klickbar: Tabs unten, Buttons &amp; Screens links wechseln</p>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="ir-home" viewBox="0 0 24 24"><path d="M4.5 11.5C7 8.8 9.5 6.3 12 4.2c2.5 2.1 5 4.6 7.5 7.3M6.3 10.2V18a2 2 0 0 0 2 2h7.4a2 2 0 0 0 2-2v-7.8M10.3 20v-4.2a1.7 1.7 0 0 1 3.4 0V20"/></symbol>
+<symbol id="ir-book" viewBox="0 0 24 24"><path d="M12 6.8C10.3 5.1 7.8 4.6 5 4.7v13.2c2.8-.1 5.3.4 7 2.1 1.7-1.7 4.2-2.2 7-2.1V4.7c-2.8-.1-5.3.4-7 2.1zM12 6.8v13.2M7.3 8.6c1.2.1 2.3.4 3.2.9M16.7 8.6c-1.2.1-2.3.4-3.2.9"/></symbol>
+<symbol id="ir-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.7"/><path d="M10.4 8.9c1.7.9 3.2 1.9 4.6 3.1-1.4 1.2-2.9 2.2-4.6 3.1z"/></symbol>
+<symbol id="ir-user" viewBox="0 0 24 24"><circle cx="12" cy="7.9" r="3.4"/><path d="M5.2 20.2c1-3.9 3.6-5.9 6.8-5.9s5.8 2 6.8 5.9"/></symbol>
+<symbol id="ir-bowl" viewBox="0 0 24 24"><path d="M4.5 12.8h15a7.5 7.5 0 0 1-15 0zM9.5 20.4h5M10.1 9.4c-.6-.8-.6-1.7.1-2.4.6-.6.7-1.4.2-2.1M13.8 9.4c-.6-.8-.6-1.7.1-2.4.6-.6.7-1.4.2-2.1"/></symbol>
+<symbol id="ir-leaf" viewBox="0 0 24 24"><path d="M6.2 16.2C6 9.5 11 5.8 18 6c.3 7-3.4 12-10.1 11.8-.7 0-1.3-.1-1.7-.2M6.2 16.2C8.7 13 12 10.5 15.3 9"/></symbol>
+<symbol id="ir-plate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="4.2"/></symbol>
+<symbol id="ir-cherry" viewBox="0 0 24 24"><circle cx="8.8" cy="16.2" r="2.9"/><circle cx="15.8" cy="15.4" r="2.9"/><path d="M8.8 13.3c.4-3.4 2.4-6.1 5.7-7.9M15.8 12.5c-.3-2.5.2-4.8 1.7-6.7M14.5 5.4c1.4-.9 2.9-1.2 4.4-.8-.5 1.5-1.6 2.6-3.2 3"/></symbol>
+<symbol id="ir-drop" viewBox="0 0 24 24"><path d="M12 3.8c3.4 4 5.7 7 5.7 10a5.7 5.7 0 0 1-11.4 0c0-3 2.3-6 5.7-10zM9.4 13.4c0 1.7.9 3 2.4 3.5"/></symbol>
+<symbol id="ir-flame" viewBox="0 0 24 24"><path d="M12 3.6c.5 2.9 2.1 4.5 3.6 6.1 1.4 1.5 2.4 3 2.4 5a6 6 0 0 1-12 0c0-1.7.7-3.2 1.8-4.4.2 1 .7 1.8 1.4 2.3-.2-3.3 1-6.5 2.8-9z"/></symbol>
+<symbol id="ir-chart" viewBox="0 0 24 24"><path d="M4.5 17.5C8 17 9.5 12.5 12.5 11s5-1.5 6.8-4.3"/><circle cx="19.5" cy="6.5" r="1.1"/></symbol>
+<symbol id="ir-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="5.8"/><path d="M15.2 15.2 19.8 19.8"/></symbol>
+<symbol id="ir-scales" viewBox="0 0 24 24"><path d="M12 4.6v14.8M7.8 19.4h8.4M12 5.2 6.2 7.3M12 5.2l5.8 2.1M6.2 7.3l-1.9 4.6a2.75 2.75 0 0 0 3.8 0zM17.8 7.3l-1.9 4.6a2.75 2.75 0 0 0 3.8 0z"/></symbol>
+<symbol id="ir-sparkle" viewBox="0 0 24 24"><path d="M12 4.5c.7 3.4 3.1 5.8 6.5 6.5-3.4.7-5.8 3.1-6.5 6.5-.7-3.4-3.1-5.8-6.5-6.5 3.4-.7 5.8-3.1 6.5-6.5z"/></symbol>
+</defs></svg>
+<div class="nav-links" id="navlinks"></div>
+
+<div class="phone" id="phone">
+  <div class="notch"></div>
+
+  <!-- WILLKOMMEN (Schritt 1) -->
+  <section class="screen active" id="s-welcome">
+    <div style="height:26px"></div>
+    <div class="avatar" style="width:110px;height:110px;font-size:36px">ID</div>
+    <p class="eyebrow" style="text-align:center">Willkommen bei IRI</p>
+    <h2 class="display" style="font-size:32px;text-align:center;line-height:1.15;margin:12px 0 16px">Schön, dass<br>du da bist. 🤍</h2>
+    <div class="card" style="margin:0 2px">
+      <p style="text-align:center;color:var(--muted);font-size:14.5px;line-height:1.6">
+        Ich bin Irina. Hier zählst du keine Kalorien-Tabellen und hungerst dich durch keine Diät —
+        wir finden gemeinsam heraus, wie <b style="color:var(--ink)">du satt wirst und dich trotzdem leichter fühlst</b>.
+        Ein paar kurze Fragen, dann bauen wir deinen Plan.</p>
+    </div>
+    <div style="margin-top:24px">
+      <button class="btn" onclick="go('s-onboarding')">Los geht's — 7 kurze Fragen</button>
+      <button class="btn ghost" style="font-size:13px">Ich habe schon einen Account</button>
+    </div>
+  </section>
+
+  <!-- ONBOARDING (Schritt 2) -->
+  <section class="screen" id="s-onboarding">
+    <div class="progress"><i></i></div>
+    <p class="eyebrow">Schritt 2 von 7</p>
+    <h2 class="display" style="font-size:30px;line-height:1.15;margin:10px 0 22px">Was ist dein Ziel?</h2>
+    <div class="choice sel" onclick="selectChoice(this)"><span class="em"><svg class="iri"><use href="#ir-leaf"/></svg></span> Abnehmen — ohne zu hungern</div>
+    <div class="choice" onclick="selectChoice(this)"><span class="em"><svg class="iri"><use href="#ir-scales"/></svg></span> Gewicht halten</div>
+    <div class="choice" onclick="selectChoice(this)"><span class="em"><svg class="iri"><use href="#ir-sparkle"/></svg></span> Fitter &amp; stärker werden</div>
+    <div style="margin-top:26px">
+      <button class="btn" onclick="go('s-ziel')">Weiter</button>
+      <button class="btn ghost" onclick="go('s-welcome')">Zurück</button>
+    </div>
+  </section>
+
+  <!-- ZIEL-ERGEBNIS -->
+  <section class="screen" id="s-ziel">
+    <p class="eyebrow" style="text-align:center;margin-top:26px">Dein persönlicher Plan</p>
+    <h2 class="display" style="font-size:28px;text-align:center;margin:12px 0 6px;line-height:1.2">Satt werden —<br>und trotzdem abnehmen.</h2>
+    <div class="card" style="margin-top:14px">
+      <div class="ringwrap">
+        <div class="ring">
+          <svg width="210" height="210">
+            <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#E87F9C"/><stop offset="100%" stop-color="#D25578"/></linearGradient></defs>
+            <circle cx="105" cy="105" r="92" fill="none" stroke="var(--track)" stroke-width="14"/>
+            <circle cx="105" cy="105" r="92" fill="none" stroke="url(#g1)" stroke-width="14" stroke-linecap="round"
+              stroke-dasharray="578" stroke-dashoffset="140"/>
+          </svg>
+          <div class="num"><b>1.640</b><span>kcal pro Tag</span></div>
+        </div>
+      </div>
+      <p style="text-align:center;color:var(--muted);font-size:13.5px;line-height:1.55;padding:0 6px">
+        Berechnet aus deinen Angaben. Du kannst das Ziel jederzeit frei anpassen — bei IRI ist nichts gesperrt.</p>
+    </div>
+    <div style="margin-top:22px"><button class="btn" onclick="go('s-paywall')">Los geht's</button></div>
+  </section>
+
+  <!-- PAYWALL -->
+  <section class="screen" id="s-paywall">
+    <div class="avatar">ID</div>
+    <h2 class="display" style="font-size:26px;text-align:center;line-height:1.2">3 Tage kostenlos —<br>dann entscheidest du.</h2>
+    <p style="text-align:center;color:var(--muted);font-size:13.5px;margin:10px 0 20px;line-height:1.5">
+      Alles drin: AI-Foto-Scan, 157 Rezepte, Irinas Ernährungskurs, Trainings &amp; Community. Keine versteckten Stufen.</p>
+    <div class="plan sel" onclick="selectPlan(this)">
+      <span class="save">Spare 29 %</span>
+      <b>Jahresabo · 59,99 €</b>
+      <small>entspricht nur 4,99 € im Monat</small>
+    </div>
+    <div class="plan" onclick="selectPlan(this)">
+      <b>Monatsabo · 6,99 €</b>
+      <small>monatlich kündbar</small>
+    </div>
+    <button class="btn" onclick="go('s-home')">3 Tage gratis starten</button>
+    <p style="text-align:center;color:var(--muted);font-size:11.5px;margin-top:10px">
+      Wir erinnern dich rechtzeitig, bevor der Trial endet. Jederzeit kündbar.</p>
+    <button class="btn ghost" style="font-size:13px" onclick="go('s-home')">Gutschein-Code einlösen</button>
+  </section>
+
+  <!-- HOME -->
+  <section class="screen" id="s-home">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div>
+        <p class="eyebrow">Freitag, 18. Juli</p>
+        <h2 class="display" style="font-size:24px;margin-top:4px">Hallo Sandra 🤍</h2>
+      </div>
+      <div class="streak"><svg class="iri" style="width:16px;height:16px;color:var(--tint-deep)"><use href="#ir-flame"/></svg>6 Tage</div>
+    </div>
+    <div class="card" style="padding:10px 18px 14px;margin-bottom:4px">
+      <div class="ringwrap">
+        <div class="ring">
+          <svg width="210" height="210">
+            <defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#E87F9C"/><stop offset="100%" stop-color="#D25578"/></linearGradient></defs>
+            <circle cx="105" cy="105" r="92" fill="none" stroke="var(--track)" stroke-width="14"/>
+            <circle cx="105" cy="105" r="92" fill="none" stroke="url(#g2)" stroke-width="14" stroke-linecap="round"
+              stroke-dasharray="578" stroke-dashoffset="240"/>
+          </svg>
+          <div class="num"><b>958</b><span>kcal übrig</span></div>
+        </div>
+        <p style="color:var(--muted);font-size:12.5px">Gegessen: 682 · Ziel: 1.640</p>
+      </div>
+    </div>
+    <div class="macros">
+      <div class="macro"><small>CARBS</small><div class="val">74 / 185 g</div><div class="bar"><i style="width:40%;background:#E8B45C"></i></div></div>
+      <div class="macro"><small>PROTEIN</small><div class="val">38 / 95 g</div><div class="bar"><i style="width:40%;background:var(--tint-deep)"></i></div></div>
+      <div class="macro"><small>FETT</small><div class="val">21 / 55 g</div><div class="bar"><i style="width:38%;background:#5AC8DE"></i></div></div>
+    </div>
+    <div class="card" style="padding:14px 16px;margin-bottom:14px;border-radius:var(--r-md)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <b style="font-size:14px;display:flex;align-items:center;gap:7px"><svg class="iri" style="width:17px;height:17px;color:var(--water)"><use href="#ir-drop"/></svg>Wasser</b><small style="color:var(--muted);font-weight:700">0,75 / 2 L</small>
+      </div>
+      <div class="water">
+        <div class="glass-el full"></div><div class="glass-el full"></div><div class="glass-el full"></div>
+        <div class="glass-el" onclick="this.classList.add('full')"></div><div class="glass-el"></div><div class="glass-el"></div><div class="glass-el"></div><div class="glass-el"></div>
+      </div>
+    </div>
+    <div class="meal"><span class="em"><svg class="iri"><use href="#ir-bowl"/></svg></span><div class="t"><b>Frühstück</b><small>Haferbrei mit Früchten &amp; Nüssen · 245 kcal</small></div><div class="add">✓</div></div>
+    <div class="meal"><span class="em"><svg class="iri"><use href="#ir-leaf"/></svg></span><div class="t"><b>Mittagessen</b><small>Quinoa-Salat mit Gemüse · 437 kcal</small></div><div class="add">✓</div></div>
+    <div class="meal"><span class="em"><svg class="iri"><use href="#ir-plate"/></svg></span><div class="t"><b>Abendessen</b><small>Empfohlen: 450–650 kcal</small></div><div class="add" onclick="go('s-scan')">+</div></div>
+    <div class="meal"><span class="em"><svg class="iri"><use href="#ir-cherry"/></svg></span><div class="t"><b>Snacks</b><small>Empfohlen: bis 200 kcal</small></div><div class="add" onclick="go('s-scan')">+</div></div>
+    <div class="card" style="margin-top:14px;display:flex;align-items:center;gap:14px;cursor:pointer;border-radius:var(--r-md);padding:14px 16px">
+      <span class="em" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.65);border:1px solid var(--stroke);display:flex;align-items:center;justify-content:center;color:var(--tint-deep)"><svg class="iri" style="width:20px;height:20px"><use href="#ir-chart"/></svg></span>
+      <div style="flex:1"><b style="font-size:14px">Dein Fortschritt</b>
+      <small style="display:block;color:var(--muted);font-size:12px;margin-top:2px">−2,4 kg seit Start · Zielgewicht 68 kg</small></div>
+      <span style="color:var(--muted)">›</span>
+    </div>
+  </section>
+
+  <!-- SCAN -->
+  <section class="screen" id="s-scan">
+    <p class="eyebrow">AI-Scan</p>
+    <h2 class="display" style="font-size:24px;margin:8px 0 14px">Sieht lecker aus!</h2>
+    <div class="scanphoto"><span class="conf">✓ ziemlich sicher</span></div>
+    <div class="card" style="margin-top:-26px;position:relative;z-index:2;margin-left:10px;margin-right:10px">
+      <b class="display" style="font-size:19px">Lachs mit Ofengemüse</b>
+      <p style="color:var(--muted);font-size:12.5px;margin:4px 0 10px">ca. 1 Portion · Schätzung — tippe zum Anpassen</p>
+      <span class="display" style="font-size:27px">≈ 512 kcal</span>
+      <div style="margin-top:8px">
+        <div class="zutat"><b>Lachsfilet</b><div class="stepper"><button>−</button><span>150 g</span><button>+</button></div></div>
+        <div class="zutat"><b>Ofengemüse (Zucchini, Paprika)</b><div class="stepper"><button>−</button><span>200 g</span><button>+</button></div></div>
+        <div class="zutat"><b>Olivenöl</b><div class="stepper"><button>−</button><span>1 EL</span><button>+</button></div></div>
+        <div class="zutat" style="color:var(--muted);font-size:13px;cursor:pointer">＋ Zutat ergänzen oder Hinweis („war mit Sahne …“)</div>
+      </div>
+    </div>
+    <div style="margin-top:16px">
+      <button class="btn" onclick="go('s-home')">Ins Abendessen eintragen</button>
+      <button class="btn ghost" onclick="go('s-home')">Nochmal fotografieren</button>
+    </div>
+  </section>
+
+  <!-- REZEPTE -->
+  <section class="screen" id="s-rezepte">
+    <h2 class="display" style="font-size:26px;margin-bottom:14px">Irinas Rezepte</h2>
+    <div class="search" style="display:flex;align-items:center;gap:9px"><svg class="iri" style="width:16px;height:16px"><use href="#ir-search"/></svg>Suche in 157 Rezepten …</div>
+    <div class="chips">
+      <div class="chip sel">Alle</div><div class="chip">Frühstück</div><div class="chip">Hauptgerichte</div>
+      <div class="chip">Suppen</div><div class="chip">Salate</div><div class="chip">Desserts</div><div class="chip">🌱 Vegetarisch</div>
+    </div>
+    <div class="rgrid">
+      <div class="rcard"><div class="rimg" style="background:linear-gradient(135deg,#E8C9A8,#C9A96A)"></div>
+        <div class="p"><b>Haferbrei mit Früchten &amp; Nüssen</b><small>245 kcal · 1 Portion</small></div></div>
+      <div class="rcard"><div class="rimg" style="background:linear-gradient(135deg,#A8C3A0,#7A8B6F)"></div>
+        <div class="p"><b>Smoothie mit Avocado &amp; Spinat</b><small>230 kcal · 1 Portion</small></div></div>
+      <div class="rcard"><div class="rimg" style="background:linear-gradient(135deg,#D9B08C,#B0785E)"></div>
+        <div class="p"><b>Gebackene Kartoffeln mit Rosmarin</b><small>285 kcal · 1 Portion</small></div></div>
+      <div class="rcard"><div class="rimg" style="background:linear-gradient(135deg,#E6A5A1,#C97B76)"></div>
+        <div class="p"><b>Bananeneis mit Beeren</b><small>145 kcal · 3 Portionen</small></div></div>
+      <div class="rcard"><div class="rimg" style="background:linear-gradient(135deg,#C4B5D6,#9A87B8)"></div>
+        <div class="p"><b>Hüttenkäse-Mousse mit Beeren</b><small>185 kcal · 2 Portionen</small></div></div>
+      <div class="rcard"><div class="rimg" style="background:linear-gradient(135deg,#F0D9A8,#D4B86A)"></div>
+        <div class="p"><b>Kokosmakronen</b><small>70 kcal · 20 Stück</small></div></div>
+    </div>
+  </section>
+
+  <!-- COACHING -->
+  <section class="screen" id="s-coaching">
+    <h2 class="display" style="font-size:26px;margin-bottom:14px">Coaching mit Irina</h2>
+    <div class="bcast">
+      <p class="eyebrow">Broadcast · heute 09:12</p>
+      <p class="t" style="margin-top:8px">Guten Morgen ihr Lieben! 🤍 Heute gibt's ein neues Sommersalat-Rezept — perfekt bei der Hitze. Und denkt an euer Wasser! 💧</p>
+      <div class="reactions">
+        <span class="react">❤️ 214</span><span class="react">🔥 89</span><span class="react">💪 67</span><span class="react">😂 12</span><span class="react">👏 45</span>
+      </div>
+    </div>
+    <p class="eyebrow sectionlabel">Ernährungskurs · 3 von 8 Modulen</p>
+    <div class="modul"><div class="n done">✓</div><div style="flex:1"><b style="font-size:14px">Warum Diäten scheitern</b><small style="display:block;color:var(--muted);font-size:12px">4 Lektionen · abgeschlossen</small></div></div>
+    <div class="modul"><div class="n done">✓</div><div style="flex:1"><b style="font-size:14px">Satt essen, richtig kombiniert</b><small style="display:block;color:var(--muted);font-size:12px">5 Lektionen · abgeschlossen</small></div></div>
+    <div class="modul" style="border:2px solid var(--ink)"><div class="n">3</div><div style="flex:1"><b style="font-size:14px">Dein Kaloriendefizit ohne Hunger</b><small style="display:block;color:var(--muted);font-size:12px">Lektion 2 von 6 · weiter →</small></div></div>
+    <div class="modul" style="opacity:.55"><div class="n">4</div><div style="flex:1"><b style="font-size:14px">Emotionales Essen verstehen</b><small style="display:block;color:var(--muted);font-size:12px">öffnet nach Modul 3</small></div></div>
+    <p class="eyebrow sectionlabel">Neue Trainings</p>
+    <div class="rgrid">
+      <div class="rcard"><div class="rimg" style="background:linear-gradient(135deg,#8B9B7A,#6B705C)"></div>
+        <div class="p"><b>Bauch &amp; Core · 15 min</b><small>Anfängerinnen</small></div></div>
+      <div class="rcard"><div class="rimg" style="background:linear-gradient(135deg,#B0785E,#8A5A44)"></div>
+        <div class="p"><b>Ganzkörper · 25 min</b><small>Mittelstufe</small></div></div>
+    </div>
+  </section>
+
+  <!-- TABBAR -->
+  <div class="tabbar">
+    <div class="tab" data-s="s-home" onclick="go('s-home')"><svg class="ico iri"><use href="#ir-home"/></svg>Home</div>
+    <div class="tab" data-s="s-rezepte" onclick="go('s-rezepte')"><svg class="ico iri"><use href="#ir-book"/></svg>Rezepte</div>
+    <div class="tab plus" onclick="go('s-scan')">＋</div>
+    <div class="tab" data-s="s-coaching" onclick="go('s-coaching')"><svg class="ico iri"><use href="#ir-play"/></svg>Coaching</div>
+    <div class="tab" data-s="s-welcome" onclick="go('s-welcome')"><svg class="ico iri"><use href="#ir-user"/></svg>Profil</div>
+  </div>
+</div>
+
+<script>
+  const screens = {
+    's-welcome':'Willkommen (Schritt 1)', 's-onboarding':'Quiz (Schritt 2)', 's-ziel':'Ziel-Ergebnis', 's-paywall':'Paywall',
+    's-home':'Home / Tagebuch', 's-scan':'AI-Scan', 's-rezepte':'Rezepte', 's-coaching':'Coaching'
+  };
+  const nav = document.getElementById('navlinks');
+  Object.entries(screens).forEach(([id, name]) => {
+    const b = document.createElement('button');
+    b.textContent = name; b.id = 'nav-' + id; b.onclick = () => go(id);
+    nav.appendChild(b);
+  });
+  function go(id){
+    document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+    document.querySelectorAll('.tab[data-s]').forEach(t => t.classList.toggle('active', t.dataset.s === id));
+    document.querySelectorAll('#navlinks button').forEach(b => b.classList.toggle('cur', b.id === 'nav-' + id));
+    document.getElementById(id).scrollTop = 0;
+  }
+  function selectChoice(el){ el.parentNode.querySelectorAll('.choice').forEach(c => c.classList.remove('sel')); el.classList.add('sel'); }
+  function selectPlan(el){ el.parentNode.querySelectorAll('.plan').forEach(c => c.classList.remove('sel')); el.classList.add('sel'); }
+
+  go('s-welcome');
+</script>
+</body>
+</html>

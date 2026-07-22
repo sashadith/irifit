@@ -1,0 +1,419 @@
+/* IRI Admin — Design-Tokens aus IRI-Prototyp.html (eingefroren 18.07.2026),
+   desktop-tauglich übersetzt: Liquid-Glass-Panels über Pastell-Wallpaper,
+   Italiana für Headlines/Zahlen, Manrope für allen UI-Text, EIN Rosé-Akzent. */
+
+:root {
+  --ink: #1c1c21;
+  --muted: rgba(60, 60, 67, 0.6);
+  --muted2: rgba(60, 60, 67, 0.4);
+  --tint: #e87f9c;
+  --tint-deep: #d25578;
+  --ok: #4caf7d;
+  --glass: rgba(255, 255, 255, 0.58);
+  --glass-strong: rgba(255, 255, 255, 0.78);
+  --stroke: rgba(255, 255, 255, 0.75);
+  --track: rgba(120, 120, 128, 0.16);
+  --radius-lg: 28px;
+  --radius-md: 20px;
+  --font-display: var(--font-italiana), serif;
+  --font-ui: var(--font-manrope), -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  color: var(--ink);
+  background:
+    radial-gradient(1100px 700px at 18% 8%, rgba(244, 187, 205, 0.8), transparent 60%),
+    radial-gradient(1000px 700px at 88% 22%, rgba(214, 198, 232, 0.8), transparent 58%),
+    radial-gradient(1100px 800px at 70% 88%, rgba(250, 214, 196, 0.75), transparent 60%),
+    radial-gradient(900px 700px at 12% 72%, rgba(236, 208, 222, 0.7), transparent 58%),
+    linear-gradient(160deg, #faf3f2, #f4ecee);
+  background-attachment: fixed;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ---- Layout ------------------------------------------------------------ */
+
+.shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 232px;
+  flex-shrink: 0;
+  padding: 22px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--glass);
+  backdrop-filter: blur(22px) saturate(1.4);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  border-right: 1px solid var(--stroke);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.sidebar .brand {
+  font-family: var(--font-display);
+  font-size: 34px;
+  letter-spacing: 0.06em;
+  padding: 0 12px 18px;
+}
+
+.sidebar .brand span {
+  background: linear-gradient(135deg, var(--tint), var(--tint-deep));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.navlink {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--muted);
+  transition: background 0.15s, color 0.15s;
+}
+
+.navlink:hover {
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--ink);
+}
+
+.navlink.active {
+  background: linear-gradient(135deg, var(--tint), var(--tint-deep));
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(210, 85, 120, 0.35);
+}
+
+.navlink.disabled {
+  color: var(--muted2);
+  cursor: default;
+}
+
+.navlink.disabled:hover {
+  background: none;
+}
+
+.nav-hint {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  padding: 16px 12px 4px;
+}
+
+.sidebar .foot {
+  margin-top: auto;
+  padding: 0 12px;
+}
+
+.main {
+  flex: 1;
+  padding: 30px 36px 60px;
+  max-width: 1120px;
+}
+
+/* ---- Typografie -------------------------------------------------------- */
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 32px;
+  letter-spacing: 0.01em;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.hint {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* ---- Glas-Panels ------------------------------------------------------- */
+
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(28, 28, 33, 0.07);
+}
+
+.glass.pad {
+  padding: 20px;
+}
+
+/* ---- Buttons ----------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 13.5px;
+  border-radius: 999px;
+  padding: 10px 20px;
+  transition: transform 0.1s, opacity 0.15s;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--tint), var(--tint-deep));
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(210, 85, 120, 0.35);
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--stroke);
+  color: var(--ink);
+}
+
+.btn-danger {
+  background: none;
+  border: 1px solid rgba(210, 85, 120, 0.4);
+  color: var(--tint-deep);
+}
+
+.btn-small {
+  font-size: 12px;
+  padding: 6px 14px;
+}
+
+/* ---- Formulare --------------------------------------------------------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.field label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.field input,
+.field select,
+.field textarea {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--stroke);
+  border-radius: 13px;
+  padding: 10px 13px;
+  outline: none;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--tint);
+  box-shadow: 0 0 0 3px rgba(232, 127, 156, 0.18);
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.form-row {
+  display: grid;
+  gap: 14px;
+}
+
+.form-row.cols-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.form-row.cols-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.form-row.cols-4 {
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+
+/* ---- Tabellen / Listen ------------------------------------------------- */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--track);
+}
+
+.table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--track);
+  font-size: 13.5px;
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr {
+  transition: background 0.12s;
+}
+
+.table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.row-link {
+  cursor: pointer;
+}
+
+/* ---- Kleinkram --------------------------------------------------------- */
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.badge.published {
+  background: rgba(76, 175, 125, 0.15);
+  color: #2e7d54;
+}
+
+.badge.draft {
+  background: var(--track);
+  color: var(--muted);
+}
+
+.satt {
+  color: var(--tint-deep);
+  letter-spacing: 2px;
+  font-size: 12px;
+}
+
+.thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: linear-gradient(135deg, rgba(244, 187, 205, 0.7), rgba(214, 198, 232, 0.7));
+  display: block;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 40px;
+  line-height: 1.1;
+}
+
+.error-text {
+  color: var(--tint-deep);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.ok-text {
+  color: var(--ok);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.progressbar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.progressbar > div {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--tint), var(--tint-deep));
+  transition: width 0.2s;
+}
+
+/* Login */
+.login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-card {
+  width: 380px;
+  padding: 34px;
+  text-align: center;
+}

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRI – Design-Varianten A · B · C</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sora:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#23241F;min-height:100vh;padding:40px 20px;font-family:'Plus Jakarta Sans',sans-serif;color:#fff;
+    display:flex;flex-direction:column;align-items:center}
+  .head{text-align:center;margin-bottom:30px}
+  .head h1{font-size:24px;font-weight:800;letter-spacing:.5px}
+  .head p{color:#9B9C92;font-size:13px;margin-top:6px}
+  .row{display:flex;gap:34px;flex-wrap:wrap;justify-content:center}
+  .col{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .label{text-align:center}
+  .label b{font-size:15px}
+  .label small{display:block;color:#9B9C92;font-size:12px;margin-top:3px}
+  .phone{width:340px;height:700px;border-radius:40px;box-shadow:0 26px 70px rgba(0,0,0,.5), inset 0 0 0 9px #171814;
+    overflow:hidden;position:relative}
+  .scr{position:absolute;inset:9px;border-radius:33px;overflow-y:auto;padding:46px 18px 24px;scrollbar-width:none}
+  .scr::-webkit-scrollbar{display:none}
+  .notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:104px;height:22px;background:#171814;border-radius:0 0 14px 14px;z-index:5}
+
+  /* ============ Gemeinsame Bausteine (pro Variante über Variablen gefärbt) ============ */
+  .v .eyebrow{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--accent-deep)}
+  .v h2{font-size:21px;font-weight:800;color:var(--ink);margin-top:3px}
+  .v .streak{display:flex;align-items:center;gap:6px;background:var(--card);border-radius:999px;padding:7px 12px;font-weight:700;font-size:12px;color:var(--ink);box-shadow:var(--sh)}
+  .v .ringwrap{display:flex;flex-direction:column;align-items:center;margin:10px 0 4px}
+  .v .ring{position:relative;width:185px;height:185px}
+  .v .ring svg{transform:rotate(-90deg)}
+  .v .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ink)}
+  .v .num b{font-size:42px;font-weight:800;letter-spacing:-1px}
+  .v .num span{font-size:10.5px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;font-weight:700}
+  .v .sub{color:var(--muted);font-size:11.5px;margin-top:2px}
+  .v .macros{display:flex;gap:8px;margin:14px 0}
+  .v .macro{flex:1;background:var(--card);border-radius:15px;padding:10px;box-shadow:var(--sh)}
+  .v .macro small{font-size:9.5px;color:var(--muted);font-weight:800;letter-spacing:.5px}
+  .v .macro .val{font-weight:700;font-size:12px;margin:3px 0 5px;color:var(--ink)}
+  .v .bar{height:4px;border-radius:2px;background:var(--track)}
+  .v .bar i{display:block;height:100%;border-radius:2px}
+  .v .waterc{background:var(--card);border-radius:16px;padding:12px 14px;box-shadow:var(--sh);margin-bottom:11px}
+  .v .waterc .t{display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;color:var(--ink)}
+  .v .waterc small{color:var(--muted);font-weight:700}
+  .v .water{display:flex;gap:6px;margin-top:8px}
+  .v .glass{width:26px;height:32px;border-radius:6px 6px 9px 9px;background:var(--track)}
+  .v .glass.full{background:var(--water)}
+  .v .meal{display:flex;align-items:center;gap:11px;background:var(--card);border-radius:15px;padding:11px 13px;margin-bottom:8px;box-shadow:var(--sh)}
+  .v .meal .em{font-size:19px}
+  .v .meal b{font-size:13px;color:var(--ink)}
+  .v .meal small{display:block;color:var(--muted);font-size:10.5px;margin-top:1px}
+  .v .meal .t{flex:1}
+  .v .add{width:29px;height:29px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
+  .v .tb{position:sticky;bottom:0;margin:14px -18px -24px;background:var(--tabbg);backdrop-filter:blur(8px);border-top:1px solid var(--track);
+    display:flex;justify-content:space-around;align-items:center;padding:10px 6px 16px}
+  .v .tab{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:9px;font-weight:700;color:var(--muted)}
+  .v .tab.on{color:var(--accent-deep)}
+  .v .tab .i{font-size:17px}
+  .v .plus{width:46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:23px;margin-top:-26px;box-shadow:0 8px 18px var(--accent-glow)}
+
+  /* ============ VARIANTE A — Frisch & feminin ============ */
+  .vA{font-family:'Plus Jakarta Sans',sans-serif;
+    --bg:#FFFDFA; --card:#FFFFFF; --ink:#2D2A2E; --muted:#A39CA0; --track:#F4EDEE;
+    --accent:#E8837E; --accent-deep:#D6656F; --accent-glow:rgba(232,131,126,.35);
+    --water:#8FC3D8; --sh:0 6px 18px rgba(45,42,46,.07); --tabbg:rgba(255,253,250,.92)}
+  .vA .scr{background:linear-gradient(175deg,#FFF6F2, #FFFDFA 30%)}
+  .vA .ringcol{stroke:#E8837E}
+
+  /* ============ VARIANTE B — Modern & premium ============ */
+  .vB{font-family:'Sora',sans-serif;
+    --bg:#FAFAF7; --card:#FFFFFF; --ink:#1E2321; --muted:#8E948F; --track:#ECEEE9;
+    --accent:#1E4D3B; --accent-deep:#1E4D3B; --accent-glow:rgba(30,77,59,.3);
+    --water:#7FB6A4; --sh:0 5px 16px rgba(30,35,33,.07); --tabbg:rgba(250,250,247,.94)}
+  .vB .scr{background:#FAFAF7}
+  .vB h2,.vB .num b{font-weight:700}
+  .vB .ringcol{stroke:#2E7D5B}
+  .vB .add{background:#1E4D3B}
+  .vB .macro .bar i{opacity:.85}
+
+  /* ============ VARIANTE C — Soft Glow ============ */
+  .vC{font-family:'Poppins',sans-serif;
+    --bg:#FBF7FF; --card:#FFFFFF; --ink:#3B3350; --muted:#A79FBB; --track:#F1EBF7;
+    --accent:#B78FDB; --accent-deep:#9A6FC4; --accent-glow:rgba(183,143,219,.4);
+    --water:#93C6E8; --sh:0 6px 20px rgba(59,51,80,.08); --tabbg:rgba(251,247,255,.92)}
+  .vC .scr{background:linear-gradient(170deg,#F6EFFB,#FBF7FF 42%,#FDF5F0)}
+  .vC .ringcol{stroke:url(#gradC)}
+  .vC h2{font-weight:600}
+  .vC .num b{font-weight:600}
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>IRI — Design-Varianten</h1>
+  <p>Gleicher Home-Screen, drei Richtungen. Auf dem Handy öffnen und mit Irina durchscrollen.</p>
+</div>
+
+<svg width="0" height="0"><defs>
+  <linearGradient id="gradC" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#B78FDB"/><stop offset="100%" stop-color="#E89A8E"/>
+  </linearGradient>
+</defs></svg>
+
+<div class="row">
+
+  <!-- ================= A ================= -->
+  <div class="col">
+    <div class="label"><b>A · Frisch &amp; feminin</b><small>Warmweiß + Koralle · Plus Jakarta Sans</small></div>
+    <div class="phone"><div class="notch"></div>
+      <div class="scr v vA">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><p class="eyebrow">Freitag, 18. Juli</p><h2>Hallo Sandra 🤍</h2></div>
+          <div class="streak">🔥 6</div>
+        </div>
+        <div class="ringwrap">
+          <div class="ring">
+            <svg width="185" height="185">
+              <circle cx="92" cy="92" r="80" fill="none" stroke="var(--track)" stroke-width="13"/>
+              <circle class="ringcol" cx="92" cy="92" r="80" fill="none" stroke-width="13" stroke-linecap="round" stroke-dasharray="503" stroke-dashoffset="209"/>
+            </svg>
+            <div class="num"><b>958</b><span>kcal übrig</span></div>
+          </div>
+          <p class="sub">Gegessen: 682 · Ziel: 1.640</p>
+        </div>
+        <div class="macros">
+          <div class="macro"><small>CARBS</small><div class="val">74/185 g</div><div class="bar"><i style="width:40%;background:#F0B65C"></i></div></div>
+          <div class="macro"><small>PROTEIN</small><div class="val">38/95 g</div><div class="bar"><i style="width:40%;background:#E8837E"></i></div></div>
+          <div class="macro"><small>FETT</small><div class="val">21/55 g</div><div class="bar"><i style="width:38%;background:#8FC3D8"></i></div></div>
+        </div>
+        <div class="waterc">
+          <div class="t">💧 Wasser <small>0,75 / 2 L</small></div>
+          <div class="water"><div class="glass full"></div><div class="glass full"></div><div class="glass full"></div><div class="glass"></div><div class="glass"></div><div class="glass"></div><div class="glass"></div><div class="glass"></div></div>
+        </div>
+        <div class="meal"><span class="em">🥣</span><div class="t"><b>Frühstück</b><small>Haferbrei mit Früchten · 245 kcal</small></div><div class="add">✓</div></div>
+        <div class="meal"><span class="em">🥗</span><div class="t"><b>Mittagessen</b><small>Quinoa-Salat · 437 kcal</small></div><div class="add">✓</div></div>
+        <div class="meal"><span class="em">🍽️</span><div class="t"><b>Abendessen</b><small>Empfohlen: 450–650 kcal</small></div><div class="add">+</div></div>
+        <div class="tb">
+          <div class="tab on"><span class="i">🏠</span>Home</div><div class="tab"><span class="i">🥗</span>Rezepte</div>
+          <div class="plus">＋</div>
+          <div class="tab"><span class="i">🎓</span>Coaching</div><div class="tab"><span class="i">👤</span>Profil</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= B ================= -->
+  <div class="col">
+    <div class="label"><b>B · Modern &amp; premium</b><small>Off-White + Tannengrün · Sora</small></div>
+    <div class="phone"><div class="notch"></div>
+      <div class="scr v vB">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><p class="eyebrow">Freitag, 18. Juli</p><h2>Hallo Sandra</h2></div>
+          <div class="streak">🔥 6</div>
+        </div>
+        <div class="ringwrap">
+          <div class="ring">
+            <svg width="185" height="185">
+              <circle cx="92" cy="92" r="80" fill="none" stroke="var(--track)" stroke-width="13"/>
+              <circle class="ringcol" cx="92" cy="92" r="80" fill="none" stroke-width="13" stroke-linecap="round" stroke-dasharray="503" stroke-dashoffset="209"/>
+            </svg>
+            <div class="num"><b>958</b><span>kcal übrig</span></div>
+          </div>
+          <p class="sub">Gegessen: 682 · Ziel: 1.640</p>
+        </div>
+        <div class="macros">
+          <div class="macro"><small>CARBS</small><div class="val">74/185 g</div><div class="bar"><i style="width:40%;background:#C8A24E"></i></div></div>
+          <div class="macro"><small>PROTEIN</small><div class="val">38/95 g</div><div class="bar"><i style="width:40%;background:#2E7D5B"></i></div></div>
+          <div class="macro"><small>FETT</small><div class="val">21/55 g</div><div class="bar"><i style="width:38%;background:#7FB6A4"></i></div></div>
+        </div>
+        <div class="waterc">
+          <div class="t">💧 Wasser <small>0,75 / 2 L</small></div>
+          <div class="water"><div class="glass full"></div><div class="glass full"></div><div class="glass full"></div><div class="glass"></div><div class="glass"></div><div class="glass"></div><div class="glass"></div><div class="glass"></div></div>
+        </div>
+        <div class="meal"><span class="em">🥣</span><div class="t"><b>Frühstück</b><small>Haferbrei mit Früchten · 245 kcal</small></div><div class="add">✓</div></div>
+        <div class="meal"><span class="em">🥗</span><div class="t"><b>Mittagessen</b><small>Quinoa-Salat · 437 kcal</small></div><div class="add">✓</div></div>
+        <div class="meal"><span class="em">🍽️</span><div class="t"><b>Abendessen</b><small>Empfohlen: 450–650 kcal</small></div><div class="add">+</div></div>
+        <div class="tb">
+          <div class="tab on"><span class="i">🏠</span>Home</div><div class="tab"><span class="i">🥗</span>Rezepte</div>
+          <div class="plus">＋</div>
+          <div class="tab"><span class="i">🎓</span>Coaching</div><div class="tab"><span class="i">👤</span>Profil</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= C ================= -->
+  <div class="col">
+    <div class="label"><b>C · Soft Glow</b><small>Flieder + Pfirsich-Verlauf · Poppins</small></div>
+    <div class="phone"><div class="notch"></div>
+      <div class="scr v vC">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><p class="eyebrow">Freitag, 18. Juli</p><h2>Hallo Sandra ✨</h2></div>
+          <div class="streak">🔥 6</div>
+        </div>
+        <div class="ringwrap">
+          <div class="ring">
+            <svg width="185" height="185">
+              <circle cx="92" cy="92" r="80" fill="none" stroke="var(--track)" stroke-width="13"/>
+              <circle class="ringcol" cx="92" cy="92" r="80" fill="none" stroke-width="13" stroke-linecap="round" stroke-dasharray="503" stroke-dashoffset="209"/>
+            </svg>
+            <div class="num"><b>958</b><span>kcal übrig</span></div>
+          </div>
+          <p class="sub">Gegessen: 682 · Ziel: 1.640</p>
+        </div>
+        <div class="macros">
+          <div class="macro"><small>CARBS</small><div class="val">74/185 g</div><div class="bar"><i style="width:40%;background:#F0C179"></i></div></div>
+          <div class="macro"><small>PROTEIN</small><div class="val">38/95 g</div><div class="bar"><i style="width:40%;background:#B78FDB"></i></div></div>
+          <div class="macro"><small>FETT</small><div class="val">21/55 g</div><div class="bar"><i style="width:38%;background:#E89A8E"></i></div></div>
+        </div>
+        <div class="waterc">
+          <div class="t">💧 Wasser <small>0,75 / 2 L</small></div>
+          <div class="water"><div class="glass full"></div><div class="glass full"></div><div class="glass full"></div><div class="glass"></div><div class="glass"></div><div class="glass"></div><div class="glass"></div><div class="glass"></div></div>
+        </div>
+        <div class="meal"><span class="em">🥣</span><div class="t"><b>Frühstück</b><small>Haferbrei mit Früchten · 245 kcal</small></div><div class="add">✓</div></div>
+        <div class="meal"><span class="em">🥗</span><div class="t"><b>Mittagessen</b><small>Quinoa-Salat · 437 kcal</small></div><div class="add">✓</div></div>
+        <div class="meal"><span class="em">🍽️</span><div class="t"><b>Abendessen</b><small>Empfohlen: 450–650 kcal</small></div><div class="add">+</div></div>
+        <div class="tb">
+          <div class="tab on"><span class="i">🏠</span>Home</div><div class="tab"><span class="i">🥗</span>Rezepte</div>
+          <div class="plus">＋</div>
+          <div class="tab"><span class="i">🎓</span>Coaching</div><div class="tab"><span class="i">👤</span>Profil</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
