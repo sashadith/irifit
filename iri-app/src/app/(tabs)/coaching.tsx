@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { IrinaCard } from '@/components/coaching/IrinaCard';
@@ -157,6 +158,14 @@ export default function CoachingScreen() {
                 {t('coaching.broadcastEyebrow', { time: formatBroadcastTime(latest.sent_at) })}
               </Text>
             </View>
+            {latest.imageUrl ? (
+              <Image
+                source={{ uri: latest.imageUrl }}
+                style={styles.broadcastImage}
+                contentFit="cover"
+                accessibilityLabel={t('coaching.broadcastImage')}
+              />
+            ) : null}
             <Text style={styles.broadcastBody}>{latest.body}</Text>
             <View style={styles.reactions}>
               {REACTION_EMOJIS.map((emoji) => {
@@ -336,16 +345,25 @@ export default function CoachingScreen() {
               <Text style={styles.qaMineTitle}>{t('coaching.qaMine')}</Text>
               {questions.map((q) => (
                 <View key={q.id} style={styles.qaRow}>
-                  <Text style={styles.qaBody} numberOfLines={2}>
-                    {q.body}
-                  </Text>
-                  <Text style={styles.qaStatus}>
-                    {q.status === 'new'
-                      ? t('coaching.qaStatusNew')
-                      : q.status === 'answered'
-                        ? t('coaching.qaStatusAnswered')
-                        : t('coaching.qaStatusPublished')}
-                  </Text>
+                  <View style={styles.qaRowHead}>
+                    <Text style={styles.qaBody} numberOfLines={2}>
+                      {q.body}
+                    </Text>
+                    <Text style={styles.qaStatus}>
+                      {q.status === 'new'
+                        ? t('coaching.qaStatusNew')
+                        : q.status === 'answered'
+                          ? t('coaching.qaStatusAnswered')
+                          : t('coaching.qaStatusPublished')}
+                    </Text>
+                  </View>
+                  {/* Irinas Antwort — sichtbar ab status=answered, nicht erst published */}
+                  {q.answer ? (
+                    <View style={styles.qaAnswer}>
+                      <Text style={styles.qaAnswerLabel}>{t('coaching.qaAnswerLabel')}</Text>
+                      <Text style={styles.qaAnswerText}>{q.answer}</Text>
+                    </View>
+                  ) : null}
                 </View>
               ))}
             </View>
@@ -388,6 +406,13 @@ const styles = StyleSheet.create({
     letterSpacing: 1.6,
     textTransform: 'uppercase',
     color: 'rgba(255,255,255,0.55)',
+  },
+  broadcastImage: {
+    width: '100%',
+    aspectRatio: 4 / 3,
+    borderRadius: 14,
+    marginTop: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   broadcastBody: {
     fontFamily: font.regular,
@@ -547,6 +572,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.track,
   },
+  qaRowHead: {},
   qaBody: {
     fontFamily: font.regular,
     fontSize: 13,
@@ -559,5 +585,27 @@ const styles = StyleSheet.create({
     marginTop: 3,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  qaAnswer: {
+    marginTop: 8,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    borderRadius: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.tint,
+    padding: 10,
+  },
+  qaAnswerLabel: {
+    fontFamily: font.bold,
+    fontSize: 10.5,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    color: colors.muted,
+    marginBottom: 3,
+  },
+  qaAnswerText: {
+    fontFamily: font.regular,
+    fontSize: 13,
+    lineHeight: 20,
+    color: colors.ink,
   },
 });

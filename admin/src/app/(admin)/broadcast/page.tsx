@@ -10,8 +10,12 @@ interface BroadcastRow extends Broadcast {
   imageUrl: string | null;
 }
 
+const EMOJIS = ['❤️', '🔥', '💪', '😂', '👏', '🥰', '🤍', '✨', '🎉', '😊', '🙌', '☀️', '🥗', '🍓', '🏃‍♀️', '🧘‍♀️'];
+
 export default function BroadcastPage() {
   const [body, setBody] = useState('');
+  const [showEmoji, setShowEmoji] = useState(false);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
   const [imagePath, setImagePath] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [sendPush, setSendPush] = useState(true);
@@ -56,6 +60,19 @@ export default function BroadcastPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const insertEmoji = (emoji: string) => {
+    const el = bodyRef.current;
+    const pos = el?.selectionStart ?? body.length;
+    const next = body.slice(0, pos) + emoji + body.slice(el?.selectionEnd ?? pos);
+    setBody(next);
+    // Fokus + Cursor hinter das eingefügte Emoji
+    requestAnimationFrame(() => {
+      if (!el) return;
+      el.focus();
+      el.selectionStart = el.selectionEnd = pos + emoji.length;
+    });
+  };
 
   const uploadImage = async (file: File) => {
     setBusy(true);
@@ -117,14 +134,58 @@ export default function BroadcastPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20, alignItems: 'start' }}>
         <div className="glass pad">
-          <div className="field">
+          <div className="field" style={{ position: 'relative' }}>
             <label>Nachricht an alle</label>
             <textarea
+              ref={bodyRef}
               style={{ minHeight: 140 }}
               placeholder="Was möchtest du deinen Frauen sagen?"
               value={body}
               onChange={(e) => setBody(e.target.value)}
             />
+            <button
+              type="button"
+              className="btn btn-ghost btn-small"
+              style={{ position: 'absolute', right: 8, top: 26 }}
+              title="Emoji einfügen"
+              onClick={() => setShowEmoji((s) => !s)}
+            >
+              😊
+            </button>
+            {showEmoji ? (
+              <div
+                className="glass"
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: 62,
+                  zIndex: 10,
+                  padding: 10,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(8, 34px)',
+                  gap: 4,
+                  background: 'var(--glass-strong)',
+                }}
+              >
+                {EMOJIS.map((e) => (
+                  <button
+                    key={e}
+                    type="button"
+                    onClick={() => insertEmoji(e)}
+                    style={{
+                      fontSize: 19,
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      borderRadius: 8,
+                      padding: 3,
+                    }}
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
             <input

@@ -14,4 +14,4 @@ Mama, Wahl-Zypriotin, 43 — und der lebende Beweis, dass satt und fit zusammeng
 ## Links (für die Buttons)
 - Instagram: https://instagram.com/iri.fitnessmum (Deep Link: instagram://user?username=iri.fitnessmum)
 - TikTok: https://tiktok.com/@iri.fitnessmum
-- Website: https://www.irinaskorik.com
+- Website: https://irinaskorik.com (ohne www — www-Variante nicht erreichbar, Stand 22.07.2026)

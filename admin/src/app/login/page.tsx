@@ -42,7 +42,8 @@ export default function LoginPage() {
     <div className="login-wrap">
       <div className="glass login-card">
         <div className="display" style={{ fontSize: 42, marginBottom: 4 }}>
-          IRI <span style={{ color: 'var(--tint-deep)' }}>Admin</span>
+          Iri<span style={{ color: '#8a7b8e' }}>Fit</span>{' '}
+          <span style={{ fontSize: 24, color: 'var(--muted)' }}>Admin</span>
         </div>
         <p className="hint" style={{ marginBottom: 24 }}>
           Verwaltung für Irinas App

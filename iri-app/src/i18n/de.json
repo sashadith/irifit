@@ -16,7 +16,7 @@
   "onboarding": {
     "stepLabel": "Schritt {step} von 7",
     "welcome": {
-      "eyebrow": "Willkommen bei IRI",
+      "eyebrow": "Willkommen bei IriFit",
       "title": "Schön, dass\ndu da bist. 🤍",
       "intro": "Ich bin Irina. Hier zählst du keine Kalorien-Tabellen und hungerst dich durch keine Diät — wir finden gemeinsam heraus, wie du satt wirst und dich trotzdem leichter fühlst. Ein paar kurze Fragen, dann bauen wir deinen Plan.",
       "start": "Los geht's — 7 kurze Fragen",
@@ -37,7 +37,7 @@
       "targetWeightKg": "Zielgewicht",
       "consentTitle": "Deine Daten, deine Entscheidung",
       "consentText": "Größe, Gewicht und deine Ziele sind Gesundheitsdaten (Art. 9 DSGVO). Ich verwende sie ausschließlich, um dein Kalorienziel zu berechnen und die App für dich einzustellen — niemals für Werbung, niemals weitergegeben. Du kannst deinen Account samt aller Daten jederzeit in der App löschen.",
-      "consentCheckbox": "Ja, ich willige ein, dass IRI diese Daten dafür verarbeitet.",
+      "consentCheckbox": "Ja, ich willige ein, dass IriFit diese Daten dafür verarbeitet.",
       "invalidValues": "Bitte prüfe deine Angaben noch einmal."
     },
     "activity": {
@@ -72,7 +72,7 @@
       "titleMaintain": "Gut versorgt —\nim Gleichgewicht bleiben.",
       "titleFit": "Stark werden —\nsatt und mit Plan.",
       "ringLabel": "kcal pro Tag",
-      "explanation": "Berechnet aus deinen Angaben (Mifflin-St-Jeor-Formel und dein Alltag). Du kannst das Ziel jederzeit frei anpassen — bei IRI ist nichts gesperrt.",
+      "explanation": "Berechnet aus deinen Angaben (Mifflin-St-Jeor-Formel und dein Alltag). Du kannst das Ziel jederzeit frei anpassen — bei IriFit ist nichts gesperrt.",
       "macros": "Dein Startwert: {protein} g Protein · {carbs} g Carbs · {fat} g Fett",
       "cta": "Weiter zum Account"
     },
@@ -264,7 +264,9 @@
     "irinaCardBio": "Hallo, ich bin Irina — Mama von zwei Jungs und überzeugt davon, dass Abnehmen nichts mit Hungern zu tun hat. Seit Jahren teile ich meine Rezepte, meine Trainings und meinen Alltag mit hunderttausenden Frauen — und diese App ist mein Weg, dich dabei jeden Tag persönlich zu begleiten. Schön, dass du hier bist. 🤍",
     "irinaCardInstagram": "Instagram",
     "irinaCardTiktok": "TikTok",
-    "irinaCardWebsite": "Website"
+    "irinaCardWebsite": "Website",
+    "broadcastImage": "Bild von Irina",
+    "qaAnswerLabel": "Irinas Antwort"
   },
   "profile": {
     "title": "Dein Profil",
@@ -278,7 +280,7 @@
     "capture": "Foto aufnehmen",
     "pickPhoto": "Aus Fotos wählen",
     "permissionTitle": "Kamera-Zugriff",
-    "permissionText": "IRI braucht die Kamera, um deine Mahlzeit zu schätzen. Fotos werden nicht gespeichert.",
+    "permissionText": "IriFit braucht die Kamera, um deine Mahlzeit zu schätzen. Fotos werden nicht gespeichert.",
     "permissionCta": "Kamera erlauben",
     "analyzing": "Einen Moment — ich schaue mir dein Essen an …",
     "resultTitle": "Sieht lecker aus!",
@@ -342,8 +344,8 @@
     "intro": "Hier findest du alle Videos aus deinem BLEIB-FIT-Kurs. Sie gehören dir, ohne Abo und ohne Zeitlimit.",
     "loadingCourses": "Deine Kurse werden geladen …",
     "upsellTitle": "Lust auf mehr?",
-    "upsellText": "In der neuen IRI-App warten Foto-Tracking, 157 Rezepte und Irinas neue Trainings auf dich. Teste alles 3 Tage gratis.",
-    "upsellCta": "IRI kennenlernen",
+    "upsellText": "In der neuen IriFit-App warten Foto-Tracking, 157 Rezepte und Irinas neue Trainings auf dich. Teste alles 3 Tage gratis.",
+    "upsellCta": "IriFit kennenlernen",
     "signOut": "Abmelden"
   }
 }

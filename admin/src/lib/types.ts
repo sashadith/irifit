@@ -65,6 +65,7 @@ export interface Question {
   answer: string | null;
   answered_at: string | null;
   published_at: string | null;
+  send_push: boolean;
   created_at: string;
 }
 

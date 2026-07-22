@@ -27,7 +27,8 @@ const LINKS: { labelKey: 'coaching.irinaCardInstagram' | 'coaching.irinaCardTikt
   {
     labelKey: 'coaching.irinaCardWebsite',
     app: null,
-    web: 'https://www.irinaskorik.com',
+    // ohne www — die www-Variante ist nicht erreichbar (Feedback 22.07.)
+    web: 'https://irinaskorik.com',
   },
 ];
 

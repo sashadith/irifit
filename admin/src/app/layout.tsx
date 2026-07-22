@@ -14,8 +14,8 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: 'IRI Admin',
-  description: 'Verwaltung für die IRI-App',
+  title: 'IriFit Admin',
+  description: 'Verwaltung für die IriFit-App',
   robots: { index: false, follow: false },
 };
 

@@ -16,6 +16,7 @@ export default function QaPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [pushFlags, setPushFlags] = useState<Record<string, boolean>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,10 +53,12 @@ export default function QaPage() {
   const saveAnswer = (q: Question) => {
     const answer = (drafts[q.id] ?? q.answer ?? '').trim();
     if (!answer) return;
+    // send_push = Übergabepunkt S12: der Push-Versand (Expo Notifications) liest das Flag
     update(q, {
       answer,
       status: 'answered',
       answered_at: q.answered_at ?? new Date().toISOString(),
+      send_push: pushFlags[q.id] ?? q.send_push,
     });
   };
 
@@ -105,7 +108,7 @@ export default function QaPage() {
                 placeholder="Antwort schreiben …"
               />
             </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
               <button
                 className="btn btn-primary btn-small"
                 onClick={() => saveAnswer(q)}
@@ -113,6 +116,14 @@ export default function QaPage() {
               >
                 {q.status === 'new' ? 'Antworten & als beantwortet markieren' : 'Antwort speichern'}
               </button>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 600 }}>
+                <input
+                  type="checkbox"
+                  checked={pushFlags[q.id] ?? q.send_push}
+                  onChange={(e) => setPushFlags((f) => ({ ...f, [q.id]: e.target.checked }))}
+                />
+                Push senden (aktiv ab Session 12)
+              </label>
               {q.status === 'answered' ? (
                 <button
                   className="btn btn-ghost btn-small"

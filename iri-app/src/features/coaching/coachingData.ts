@@ -86,6 +86,8 @@ export interface Broadcast {
   id: string;
   body: string;
   image_path: string | null;
+  /** Signierte URL fürs Broadcast-Bild (1 h gültig; null = kein Bild) */
+  imageUrl: string | null;
   sent_at: string;
   counts: Record<ReactionEmoji, number>;
   mine: Set<ReactionEmoji>;
@@ -107,6 +109,18 @@ export async function fetchBroadcasts(userId: string, limit = 5): Promise<Broadc
     .select('broadcast_id, user_id, emoji')
     .in('broadcast_id', ids);
 
+  // Bilder liegen im privaten broadcast-media-Bucket → signierte URLs erzeugen
+  const imagePaths = rows.filter((r) => r.image_path).map((r) => r.image_path as string);
+  const signedByPath = new Map<string, string>();
+  if (imagePaths.length > 0) {
+    const { data: signed } = await supabase.storage
+      .from('broadcast-media')
+      .createSignedUrls(imagePaths, 3600);
+    for (const s of signed ?? []) {
+      if (s.path && s.signedUrl) signedByPath.set(s.path, s.signedUrl);
+    }
+  }
+
   return rows.map((row) => {
     const counts = Object.fromEntries(REACTION_EMOJIS.map((e) => [e, 0])) as Record<ReactionEmoji, number>;
     const mine = new Set<ReactionEmoji>();
@@ -116,7 +130,12 @@ export async function fetchBroadcasts(userId: string, limit = 5): Promise<Broadc
       counts[emoji] = (counts[emoji] ?? 0) + 1;
       if (r.user_id === userId) mine.add(emoji);
     }
-    return { ...row, counts, mine };
+    return {
+      ...row,
+      imageUrl: row.image_path ? (signedByPath.get(row.image_path) ?? null) : null,
+      counts,
+      mine,
+    };
   });
 }
 
