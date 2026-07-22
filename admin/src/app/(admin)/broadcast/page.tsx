@@ -241,8 +241,38 @@ export default function BroadcastPage() {
                 'radial-gradient(200px 160px at 20% 10%, rgba(244,187,205,.8), transparent 70%), radial-gradient(220px 180px at 85% 90%, rgba(214,198,232,.8), transparent 70%), linear-gradient(160deg,#faf3f2,#f4ecee)',
             }}
           >
-            <div className="glass" style={{ padding: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+            <div className="glass" style={{ padding: 16, position: 'relative', overflow: 'visible' }}>
+              {/* Polaroid oben rechts, wie in der App (Feedback Sascha 22.07.) */}
+              {imagePreview ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={imagePreview}
+                  alt=""
+                  style={{
+                    position: 'absolute',
+                    top: -12,
+                    right: -12,
+                    width: 96,
+                    height: 96,
+                    objectFit: 'cover',
+                    objectPosition: 'top center',
+                    background: '#fff',
+                    padding: 4,
+                    borderRadius: 4,
+                    transform: 'rotate(3deg)',
+                    boxShadow: '0 6px 14px rgba(20,22,28,0.35)',
+                  }}
+                />
+              ) : null}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  marginBottom: 8,
+                  paddingRight: imagePreview ? 96 : 0,
+                }}
+              >
                 <span
                   style={{
                     width: 34,
@@ -266,15 +296,14 @@ export default function BroadcastPage() {
                   </div>
                 </div>
               </div>
-              {imagePreview ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={imagePreview}
-                  alt=""
-                  style={{ width: '100%', borderRadius: 14, marginBottom: 8, display: 'block' }}
-                />
-              ) : null}
-              <p style={{ fontSize: 13.5, lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+              <p
+                style={{
+                  fontSize: 13.5,
+                  lineHeight: 1.55,
+                  whiteSpace: 'pre-wrap',
+                  marginTop: imagePreview ? 42 : 0,
+                }}
+              >
                 {body.trim() || 'Deine Nachricht erscheint hier …'}
               </p>
               <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>

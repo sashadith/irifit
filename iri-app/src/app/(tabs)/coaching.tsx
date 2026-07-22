@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   StyleSheet,
@@ -64,6 +65,7 @@ export default function CoachingScreen() {
   const [questionText, setQuestionText] = useState('');
   const [qaBusy, setQaBusy] = useState(false);
   const [showIrina, setShowIrina] = useState(false);
+  const [showBroadcastImage, setShowBroadcastImage] = useState(false);
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -143,10 +145,10 @@ export default function CoachingScreen() {
       <ScreenScaffold>
         <Text style={[typography.displayLg, styles.title]}>{t('coaching.title')}</Text>
 
-        {/* Broadcast (dunkle Glas-Karte aus dem Prototyp) */}
+        {/* Broadcast (dunkle Glas-Karte aus dem Prototyp); Bild als Polaroid oben rechts */}
         {latest ? (
           <View style={styles.broadcastCard}>
-            <View style={styles.broadcastHeader}>
+            <View style={[styles.broadcastHeader, latest.imageUrl != null && styles.broadcastHeaderWithImage]}>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Irina"
@@ -159,14 +161,23 @@ export default function CoachingScreen() {
               </Text>
             </View>
             {latest.imageUrl ? (
-              <Image
-                source={{ uri: latest.imageUrl }}
-                style={styles.broadcastImage}
-                contentFit="cover"
+              <Pressable
+                accessibilityRole="imagebutton"
                 accessibilityLabel={t('coaching.broadcastImage')}
-              />
+                onPress={() => setShowBroadcastImage(true)}
+                style={styles.polaroid}
+              >
+                <Image
+                  source={{ uri: latest.imageUrl }}
+                  style={styles.polaroidImage}
+                  contentFit="cover"
+                  contentPosition="top center"
+                />
+              </Pressable>
             ) : null}
-            <Text style={styles.broadcastBody}>{latest.body}</Text>
+            <Text style={[styles.broadcastBody, latest.imageUrl != null && styles.broadcastBodyBelowPolaroid]}>
+              {latest.body}
+            </Text>
             <View style={styles.reactions}>
               {REACTION_EMOJIS.map((emoji) => {
                 const active = latest.mine.has(emoji);
@@ -371,6 +382,29 @@ export default function CoachingScreen() {
         </GlassView>
       </ScreenScaffold>
       <IrinaCard visible={showIrina} onClose={() => setShowIrina(false)} />
+      {/* Vollbild-Viewer fürs Broadcast-Bild: Tap irgendwo schließt */}
+      <Modal
+        visible={showBroadcastImage && latest?.imageUrl != null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowBroadcastImage(false)}
+      >
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('scan.close')}
+          style={styles.imageViewer}
+          onPress={() => setShowBroadcastImage(false)}
+        >
+          {latest?.imageUrl ? (
+            <Image
+              source={{ uri: latest.imageUrl }}
+              style={styles.imageViewerImage}
+              contentFit="contain"
+              accessibilityLabel={t('coaching.broadcastImage')}
+            />
+          ) : null}
+        </Pressable>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -407,12 +441,30 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     color: 'rgba(255,255,255,0.55)',
   },
-  broadcastImage: {
-    width: '100%',
-    aspectRatio: 4 / 3,
-    borderRadius: 14,
-    marginTop: 12,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+  // Polaroid-Thumbnail: überlappt die Kartenkante oben rechts (Karte lässt overflow sichtbar)
+  polaroid: {
+    position: 'absolute',
+    top: -12,
+    right: -12,
+    backgroundColor: colors.white,
+    padding: 4,
+    borderRadius: 4,
+    transform: [{ rotate: '3deg' }],
+    shadowColor: '#14161C',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  polaroidImage: {
+    width: 96,
+    height: 96,
+    borderRadius: 2,
+    backgroundColor: 'rgba(28,28,33,0.08)',
+  },
+  broadcastHeaderWithImage: {
+    // Platz fürs Polaroid rechts (104 breit, 12 überstehend)
+    paddingRight: 96,
   },
   broadcastBody: {
     fontFamily: font.regular,
@@ -420,6 +472,20 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     color: colors.white,
     marginTop: 10,
+  },
+  // Text beginnt unterhalb des Polaroids in voller Breite (kein Umfluss in RN)
+  broadcastBodyBelowPolaroid: {
+    marginTop: 42,
+  },
+  imageViewer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.96)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageViewerImage: {
+    width: '100%',
+    height: '100%',
   },
   reactions: {
     flexDirection: 'row',
