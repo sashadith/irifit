@@ -240,6 +240,23 @@ Deno.serve(async (req: Request) => {
   }
   const userId = userData.user.id;
 
+  // S11-Sicherheitscheckliste (b): Scans nur mit gültigem Abo — die Hard
+  // Paywall ist clientseitig, hier ist die serverseitige Grenze (Admins frei).
+  const isAdmin = userData.user.app_metadata?.role === 'admin';
+  if (!isAdmin) {
+    const { data: sub } = await admin
+      .from('subscriptions')
+      .select('status, current_period_end')
+      .eq('user_id', userId)
+      .in('status', ['trialing', 'active', 'in_grace'])
+      .maybeSingle();
+    const valid =
+      sub != null && (sub.current_period_end == null || new Date(sub.current_period_end) > new Date());
+    if (!valid) {
+      return new Response(JSON.stringify({ error: 'no_subscription' }), { status: 403, headers: CORS });
+    }
+  }
+
   let body: {
     image?: { base64: string; mediaType: string };
     correction?: { previous: ScanResult; note?: string };
@@ -255,18 +272,20 @@ Deno.serve(async (req: Request) => {
   }
   const mode = body.mode === 'inventory' ? 'inventory' : 'meal';
 
-  // Fair-Use: 300 Analysen pro Kalendermonat
+  // Fair-Use: 300 Analysen pro Kalendermonat — atomarer Increment VOR dem
+  // Modell-Aufruf (S11-Checkliste d: Read-then-Upsert war race-anfällig)
   const month = new Date().toISOString().slice(0, 7);
-  const { data: usage } = await admin
-    .from('scan_usage')
-    .select('count')
-    .eq('user_id', userId)
-    .eq('month', month)
-    .maybeSingle();
-  const used = usage?.count ?? 0;
-  if (used >= FAIR_USE_LIMIT) {
+  const { data: newCount, error: usageError } = await admin.rpc('increment_scan_usage', {
+    p_user_id: userId,
+    p_month: month,
+  });
+  if (usageError) {
+    return new Response(JSON.stringify({ error: 'usage_tracking_failed' }), { status: 500, headers: CORS });
+  }
+  const used = Number(newCount);
+  if (used > FAIR_USE_LIMIT) {
     return new Response(
-      JSON.stringify({ error: 'fair_use_exceeded', scansUsed: used, scansLimit: FAIR_USE_LIMIT }),
+      JSON.stringify({ error: 'fair_use_exceeded', scansUsed: FAIR_USE_LIMIT, scansLimit: FAIR_USE_LIMIT }),
       { status: 429, headers: CORS },
     );
   }
@@ -305,17 +324,12 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  await admin.from('scan_usage').upsert(
-    { user_id: userId, month, count: used + 1, updated_at: new Date().toISOString() },
-    { onConflict: 'user_id,month' },
-  );
-
   return new Response(
     JSON.stringify({
       mode,
       result,
       model: modelUsed,
-      scansUsed: used + 1,
+      scansUsed: used,
       scansLimit: FAIR_USE_LIMIT,
     }),
     { headers: { ...CORS, 'Content-Type': 'application/json' } },

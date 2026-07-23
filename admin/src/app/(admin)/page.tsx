@@ -18,7 +18,7 @@ async function count(
 export default async function DashboardPage() {
   const supabase = await supabaseServer();
 
-  const [profiles, recipes, draftRecipes, courses, lessons, questions, legacy, legacyClaimed] =
+  const [profiles, recipes, draftRecipes, courses, lessons, questions, legacy, legacyClaimed, subsActive, subsTrialing] =
     await Promise.all([
       count(supabase, 'profiles'),
       count(supabase, 'recipes'),
@@ -28,6 +28,8 @@ export default async function DashboardPage() {
       count(supabase, 'questions', (q) => q.eq('status', 'new')),
       count(supabase, 'legacy_customers'),
       count(supabase, 'legacy_customers', (q) => q.not('claimed_by', 'is', null)),
+      count(supabase, 'subscriptions', (q) => q.in('status', ['active', 'in_grace'])),
+      count(supabase, 'subscriptions', (q) => q.eq('status', 'trialing')),
     ]);
 
   const stats = [
@@ -36,6 +38,7 @@ export default async function DashboardPage() {
     { label: 'Kurse', value: courses, sub: `${lessons} Lektionen`, href: '/kurse' },
     { label: 'Offene Fragen', value: questions, sub: null, href: '/qa' },
     { label: 'Kurs-Käuferinnen', value: legacy, sub: `${legacyClaimed} angemeldet`, href: '/nutzerinnen' },
+    { label: 'Abos', value: subsActive, sub: `${subsTrialing} in Testphase`, href: '/nutzerinnen' },
   ];
 
   return (
@@ -69,9 +72,9 @@ export default async function DashboardPage() {
           Umsatz & Abos
         </div>
         <p className="hint">
-          Die Zahlen aus RevenueCat (Abos, Trials, Umsatz) erscheinen hier, sobald die
-          Abo-Integration steht — folgt nach Session 11. Bis dahin zeigen wir hier bewusst
-          nichts Geschätztes an.
+          Die Abo-Karte oben zählt live aus der Datenbank (RevenueCat-Webhook). Umsatz- und
+          Trial-Auswertungen mit Kaufpreisen siehst du im RevenueCat-Dashboard — eine eingebettete
+          Umsatzansicht hier ist bewusst verschoben, bis echte Zahlen auflaufen.
         </p>
       </div>
     </>

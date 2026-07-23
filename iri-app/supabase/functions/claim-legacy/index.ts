@@ -29,6 +29,9 @@ Deno.serve(async (req: Request) => {
   const { data: userData, error: userError } = await admin.auth.getUser(jwt);
   const user = userData?.user;
   if (userError || !user?.email) return json({ error: 'unauthorized' }, 401);
+  // S11-Sicherheitscheckliste (c): Claim nur mit bestätigter E-Mail — sonst
+  // könnte ein fremdes Konto mit unbestätigter Kauf-E-Mail den Zugang kapern
+  if (!user.email_confirmed_at) return json({ error: 'email_unconfirmed' }, 403);
 
   // citext-Spalte matcht case-insensitiv; eq reicht
   const { data: row, error: rowError } = await admin

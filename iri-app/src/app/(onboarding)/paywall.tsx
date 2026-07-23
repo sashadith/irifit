@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
@@ -7,36 +7,114 @@ import { IrinaCard } from '@/components/coaching/IrinaCard';
 import { GlassView } from '@/components/glass/GlassView';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
 import { GhostButton } from '@/components/ui/GhostButton';
+import { GlassInput } from '@/components/ui/GlassInput';
 import { IriAvatar } from '@/components/ui/IriAvatar';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { useAuth } from '@/features/auth/AuthProvider';
+import {
+  fetchOffers,
+  isExpoGo,
+  Offers,
+  purchasePlan,
+  redeemVoucher,
+  restorePurchases,
+  waitForSubscriptionRow,
+} from '@/features/subscription/purchases';
 import { t } from '@/i18n';
-import { supabase } from '@/lib/supabase';
 import { colors, font, radius, spacing, tintShadow, typography } from '@/theme';
 
 type Plan = 'yearly' | 'monthly';
 
 /**
- * Paywall (Prototyp s-paywall). Design final — der echte Kauf kommt in
- * Session 11 (RevenueCat). Bis dahin schließt der CTA das Onboarding ab,
- * damit Beta-Testerinnen die App nutzen können.
+ * Paywall (Prototyp s-paywall) — seit Session 11 mit echtem RevenueCat-Kauf.
+ * In Expo Go (kein natives Modul) zeigen wir statische Preise + Hinweis.
  */
 export default function PaywallScreen() {
-  const { completeOnboarding } = useAuth();
+  const { session, completeOnboarding } = useAuth();
   const [plan, setPlan] = useState<Plan>('yearly');
   const [busy, setBusy] = useState(false);
   const [showIrina, setShowIrina] = useState(false);
+  const [offers, setOffers] = useState<Offers | null>(null);
+  const [storeReady, setStoreReady] = useState<boolean | null>(isExpoGo ? false : null);
+  const [showVoucher, setShowVoucher] = useState(false);
+  const [voucherCode, setVoucherCode] = useState('');
 
-  const startTrial = async () => {
+  useEffect(() => {
+    if (isExpoGo) return;
+    let cancelled = false;
+    fetchOffers()
+      .then((o) => {
+        if (cancelled) return;
+        setOffers(o);
+        setStoreReady(o != null);
+      })
+      .catch(() => {
+        if (!cancelled) setStoreReady(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const finish = async () => {
+    if (session) await waitForSubscriptionRow(session.user.id);
+    await completeOnboarding();
+    // Navigation übernimmt der Guard im (onboarding)-Layout
+  };
+
+  const buy = async () => {
+    if (!storeReady) {
+      Alert.alert(t('onboarding.paywall.storeUnavailableTitle'), t('onboarding.paywall.storeUnavailableText'));
+      return;
+    }
     setBusy(true);
     try {
-      // Beta-Trial serverseitig anlegen (schaltet Rezepte/Kurse via RLS frei);
-      // ab Session 11 übernimmt hier RevenueCat.
-      await supabase.functions.invoke('grant-trial').catch(() => {});
-      await completeOnboarding();
-      // Navigation übernimmt der Guard im (onboarding)-Layout
-    } catch (e) {
-      Alert.alert(t('common.error'), e instanceof Error ? e.message : String(e));
+      const outcome = await purchasePlan(plan);
+      if (outcome === 'success') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        await finish();
+      } else if (outcome === 'failed') {
+        Alert.alert(t('common.error'), t('onboarding.paywall.purchaseFailed'));
+      }
+      // 'cancelled': Nutzerin hat den Store-Dialog geschlossen — kein Fehler
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const restore = async () => {
+    setBusy(true);
+    try {
+      if (await restorePurchases()) {
+        await finish();
+      } else {
+        Alert.alert(t('onboarding.paywall.restoreTitle'), t('onboarding.paywall.restoreNothing'));
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitVoucher = async () => {
+    setBusy(true);
+    try {
+      const result = await redeemVoucher(voucherCode);
+      if (result.ok) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        Alert.alert(
+          t('onboarding.paywall.voucherSuccessTitle'),
+          t('onboarding.paywall.voucherSuccessText', { months: result.months ?? 1 }),
+        );
+        await completeOnboarding();
+      } else {
+        const key =
+          result.error === 'already_redeemed'
+            ? 'onboarding.paywall.voucherUsed'
+            : result.error === 'exhausted'
+              ? 'onboarding.paywall.voucherExhausted'
+              : 'onboarding.paywall.voucherInvalid';
+        Alert.alert(t('common.error'), t(key));
+      }
     } finally {
       setBusy(false);
     }
@@ -46,6 +124,10 @@ export default function PaywallScreen() {
     Haptics.selectionAsync();
     setPlan(next);
   };
+
+  const yearlyPrice = offers?.yearly?.priceString ?? t('onboarding.paywall.yearlyFallbackPrice');
+  const monthlyPrice = offers?.monthly?.priceString ?? t('onboarding.paywall.monthlyFallbackPrice');
+  const hasTrial = offers ? (plan === 'yearly' ? offers.yearly?.hasFreeTrial : offers.monthly?.hasFreeTrial) : true;
 
   return (
     <ScreenScaffold withTabBarInset={false}>
@@ -66,7 +148,7 @@ export default function PaywallScreen() {
           style={styles.plan}
           contentStyle={[styles.planContent, plan === 'yearly' && styles.planSelected]}
         >
-          <Text style={styles.planTitle}>{t('onboarding.paywall.yearly')}</Text>
+          <Text style={styles.planTitle}>{t('onboarding.paywall.yearlyWithPrice', { price: yearlyPrice })}</Text>
           <Text style={styles.planHint}>{t('onboarding.paywall.yearlyHint')}</Text>
         </GlassView>
         <LinearGradient
@@ -86,25 +168,56 @@ export default function PaywallScreen() {
           style={styles.plan}
           contentStyle={[styles.planContent, plan === 'monthly' && styles.planSelected]}
         >
-          <Text style={styles.planTitle}>{t('onboarding.paywall.monthly')}</Text>
+          <Text style={styles.planTitle}>{t('onboarding.paywall.monthlyWithPrice', { price: monthlyPrice })}</Text>
           <Text style={styles.planHint}>{t('onboarding.paywall.monthlyHint')}</Text>
         </GlassView>
       </Pressable>
 
       <PrimaryButton
-        label={t('onboarding.paywall.cta')}
-        onPress={startTrial}
+        label={hasTrial ? t('onboarding.paywall.cta') : t('onboarding.paywall.ctaNoTrial')}
+        onPress={buy}
         loading={busy}
+        disabled={storeReady === null}
         style={styles.cta}
       />
       <Text style={styles.reminder}>{t('onboarding.paywall.reminder')}</Text>
+
+      {isExpoGo || storeReady === false ? (
+        <Text style={styles.testerNote}>{t('onboarding.paywall.expoGoNote')}</Text>
+      ) : null}
+
+      {showVoucher ? (
+        <View style={styles.voucherWrap}>
+          <GlassInput
+            label={t('onboarding.paywall.voucherLabel')}
+            value={voucherCode}
+            onChangeText={setVoucherCode}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            placeholder="IRINA3"
+          />
+          <PrimaryButton
+            label={t('onboarding.paywall.voucherRedeem')}
+            onPress={submitVoucher}
+            disabled={!voucherCode.trim()}
+            loading={busy}
+          />
+        </View>
+      ) : (
+        <GhostButton
+          label={t('onboarding.paywall.voucher')}
+          small
+          onPress={() => setShowVoucher(true)}
+          style={styles.voucher}
+        />
+      )}
+
       <GhostButton
-        label={t('onboarding.paywall.voucher')}
+        label={t('onboarding.paywall.restore')}
         small
-        onPress={() => Alert.alert(t('onboarding.paywall.voucher'), t('onboarding.paywall.voucherSoon'))}
-        style={styles.voucher}
+        onPress={restore}
+        style={styles.restore}
       />
-      <Text style={styles.testerNote}>{t('onboarding.paywall.testerNote')}</Text>
       <IrinaCard visible={showIrina} onClose={() => setShowIrina(false)} />
     </ScreenScaffold>
   );
@@ -172,6 +285,12 @@ const styles = StyleSheet.create({
   },
   voucher: {
     marginTop: 10,
+  },
+  voucherWrap: {
+    marginTop: 14,
+  },
+  restore: {
+    marginTop: 8,
   },
   testerNote: {
     fontFamily: font.regular,
