@@ -156,9 +156,10 @@ export default function CoachingScreen() {
               >
                 <IriAvatar size={40} />
               </Pressable>
-              <Text style={styles.broadcastEyebrow}>
-                {t('coaching.broadcastEyebrow', { time: formatBroadcastTime(latest.sent_at) })}
-              </Text>
+              <View>
+                <Text style={styles.broadcastEyebrow}>{t('coaching.broadcastLabel')}</Text>
+                <Text style={styles.broadcastTime}>{formatBroadcastTime(latest.sent_at)}</Text>
+              </View>
             </View>
             {latest.imageUrl ? (
               <Pressable
@@ -173,6 +174,7 @@ export default function CoachingScreen() {
                   contentFit="cover"
                   contentPosition="top center"
                 />
+                <Text style={styles.polaroidCaption}>{t('coaching.polaroidCaption')}</Text>
               </Pressable>
             ) : null}
             <Text style={[styles.broadcastBody, latest.imageUrl != null && styles.broadcastBodyBelowPolaroid]}>
@@ -396,13 +398,23 @@ export default function CoachingScreen() {
           onPress={() => setShowBroadcastImage(false)}
         >
           {latest?.imageUrl ? (
-            <Image
-              source={{ uri: latest.imageUrl }}
-              style={styles.imageViewerImage}
-              contentFit="contain"
-              accessibilityLabel={t('coaching.broadcastImage')}
-            />
+            <Pressable style={styles.imageViewerFrame} onPress={(e) => e.stopPropagation()}>
+              <Image
+                source={{ uri: latest.imageUrl }}
+                style={styles.imageViewerImage}
+                contentFit="contain"
+                accessibilityLabel={t('coaching.broadcastImage')}
+              />
+            </Pressable>
           ) : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('common.close')}
+            onPress={() => setShowBroadcastImage(false)}
+            style={({ pressed }) => [styles.imageViewerClose, pressed && styles.pressed]}
+          >
+            <Text style={styles.imageViewerCloseText}>{t('common.close')}</Text>
+          </Pressable>
         </Pressable>
       </Modal>
     </KeyboardAvoidingView>
@@ -441,13 +453,16 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     color: 'rgba(255,255,255,0.55)',
   },
-  // Polaroid-Thumbnail: überlappt die Kartenkante oben rechts (Karte lässt overflow sichtbar)
+  // Polaroid-Thumbnail: überlappt die Kartenkante oben rechts (Karte lässt overflow sichtbar);
+  // unterer Rand deutlich breiter (echtes Polaroid) mit Handschrift-Gruß
   polaroid: {
     position: 'absolute',
-    top: -12,
-    right: -12,
+    top: -18,
+    right: -6,
     backgroundColor: colors.white,
-    padding: 4,
+    paddingTop: 4,
+    paddingHorizontal: 4,
+    paddingBottom: 2,
     borderRadius: 4,
     transform: [{ rotate: '3deg' }],
     shadowColor: '#14161C',
@@ -462,9 +477,17 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: 'rgba(28,28,33,0.08)',
   },
+  polaroidCaption: {
+    fontFamily: 'DancingScript_600SemiBold',
+    fontSize: 13,
+    lineHeight: 16,
+    color: colors.tintDeep,
+    textAlign: 'center',
+    paddingVertical: 1,
+  },
   broadcastHeaderWithImage: {
-    // Platz fürs Polaroid rechts (104 breit, 12 überstehend)
-    paddingRight: 96,
+    // Platz fürs Polaroid rechts (104 breit, 6 überstehend)
+    paddingRight: 100,
   },
   broadcastBody: {
     fontFamily: font.regular,
@@ -475,17 +498,43 @@ const styles = StyleSheet.create({
   },
   // Text beginnt unterhalb des Polaroids in voller Breite (kein Umfluss in RN)
   broadcastBodyBelowPolaroid: {
-    marginTop: 42,
+    marginTop: 52,
   },
+  broadcastTime: {
+    fontFamily: font.semibold,
+    fontSize: 11.5,
+    color: 'rgba(255,255,255,0.75)',
+    marginTop: 2,
+  },
+  // App bleibt sichtbar, nur abgedunkelt
   imageViewer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.96)',
+    backgroundColor: 'rgba(0,0,0,0.65)',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  imageViewerFrame: {
+    width: '80%',
+    height: '58%',
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 6,
+  },
   imageViewerImage: {
-    width: '100%',
-    height: '100%',
+    flex: 1,
+    borderRadius: 11,
+  },
+  imageViewerClose: {
+    marginTop: 18,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderRadius: radius.pill,
+    paddingHorizontal: 26,
+    paddingVertical: 11,
+  },
+  imageViewerCloseText: {
+    fontFamily: font.bold,
+    fontSize: 14,
+    color: colors.ink,
   },
   reactions: {
     flexDirection: 'row',

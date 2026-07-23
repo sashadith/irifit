@@ -1,6 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Dancing_Script } from 'next/font/google';
+
+const dancingScript = Dancing_Script({ weight: '600', subsets: ['latin'] });
 
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { Broadcast, REACTION_EMOJIS } from '@/lib/types';
@@ -242,27 +245,40 @@ export default function BroadcastPage() {
             }}
           >
             <div className="glass" style={{ padding: 16, position: 'relative', overflow: 'visible' }}>
-              {/* Polaroid oben rechts, wie in der App (Feedback Sascha 22.07.) */}
+              {/* Polaroid oben rechts, wie in der App (Feinschliff 23.07.: breiter unterer Rand + Gruß) */}
               {imagePreview ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={imagePreview}
-                  alt=""
+                <div
                   style={{
                     position: 'absolute',
-                    top: -12,
-                    right: -12,
-                    width: 96,
-                    height: 96,
-                    objectFit: 'cover',
-                    objectPosition: 'top center',
+                    top: -18,
+                    right: -6,
                     background: '#fff',
-                    padding: 4,
+                    padding: '4px 4px 2px',
                     borderRadius: 4,
                     transform: 'rotate(3deg)',
                     boxShadow: '0 6px 14px rgba(20,22,28,0.35)',
                   }}
-                />
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={imagePreview}
+                    alt=""
+                    style={{
+                      width: 96,
+                      height: 96,
+                      objectFit: 'cover',
+                      objectPosition: 'top center',
+                      borderRadius: 2,
+                      display: 'block',
+                    }}
+                  />
+                  <div
+                    className={dancingScript.className}
+                    style={{ color: '#d25578', fontSize: 13, lineHeight: '16px', textAlign: 'center', padding: '1px 0' }}
+                  >
+                    Liebste Grüße!
+                  </div>
+                </div>
               ) : null}
               <div
                 style={{
@@ -301,7 +317,7 @@ export default function BroadcastPage() {
                   fontSize: 13.5,
                   lineHeight: 1.55,
                   whiteSpace: 'pre-wrap',
-                  marginTop: imagePreview ? 42 : 0,
+                  marginTop: imagePreview ? 52 : 0,
                 }}
               >
                 {body.trim() || 'Deine Nachricht erscheint hier …'}

@@ -11,7 +11,8 @@
     "back": "Zurück",
     "skip": "Überspringen",
     "error": "Ups, das hat nicht geklappt",
-    "loading": "Einen Moment …"
+    "loading": "Einen Moment …",
+    "close": "Schließen"
   },
   "onboarding": {
     "stepLabel": "Schritt {step} von 7",
@@ -233,7 +234,6 @@
   },
   "coaching": {
     "title": "Coaching mit Irina",
-    "broadcastEyebrow": "Broadcast · {time}",
     "broadcastToday": "heute {time}",
     "courseSection": "Dein Kurs",
     "courseProgress": "{done} von {total} Modulen",
@@ -266,7 +266,9 @@
     "irinaCardTiktok": "TikTok",
     "irinaCardWebsite": "Website",
     "broadcastImage": "Bild von Irina",
-    "qaAnswerLabel": "Irinas Antwort"
+    "qaAnswerLabel": "Irinas Antwort",
+    "broadcastLabel": "Broadcast",
+    "polaroidCaption": "Liebste Grüße!"
   },
   "profile": {
     "title": "Dein Profil",

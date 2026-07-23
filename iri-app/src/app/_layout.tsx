@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { DancingScript_600SemiBold } from '@expo-google-fonts/dancing-script';
 import { Italiana_400Regular } from '@expo-google-fonts/italiana';
 import {
   Manrope_400Regular,
@@ -18,6 +19,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
+    DancingScript_600SemiBold,
     Italiana_400Regular,
     Manrope_400Regular,
     Manrope_500Medium,
