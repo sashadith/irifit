@@ -48,11 +48,39 @@ import { colors, font, radius, spacing, typography } from '@/theme';
 /**
  * RN-Fake-Float (Feinschliff 23.07.): Der Broadcast-Text umfließt das Polaroid.
  * React Native kennt kein float — daher wird der Text unsichtbar in Spaltenbreite
- * vermessen (onTextLayout liefert die Zeilen) und an der exakten Zeilengrenze in
- * zwei Segmente geteilt: schmale Spalte neben dem Polaroid, Rest volle Breite.
+ * vermessen (onTextLayout liefert die Zeilen) und an der Zeilengrenze geteilt:
+ * schmale Spalte neben dem Polaroid, Rest volle Breite.
+ *
+ * WICHTIG (Mini-Fix 23.07.): Trennstelle und Layout speisen sich aus DERSELBEN
+ * Geometrie — alle abgeleiteten Werte hängen an den Konstanten hier. Position
+ * ändern = nur POLAROID_TOP/RIGHT anfassen, der Umfluss zieht automatisch mit.
  */
-const POLAROID_CLEARANCE = 112; // Platz, den das Polaroid rechts in der Karte belegt
-const BESIDE_HEIGHT = 36; // sichtbare Text-Höhe neben dem Polaroid (unterhalb des Avatars)
+const POLAROID_TOP = -40; // Überhang über die Kartenkante
+const POLAROID_RIGHT = 4;
+const POLAROID_IMG = 108; // quadratisches Foto
+const POLAROID_PAD = 4; // weißer Rahmen oben/seitlich
+const POLAROID_PAD_BOTTOM = 2;
+const POLAROID_CAPTION_H = 15 + 2; // lineHeight + paddingVertical der Handschrift-Zeile
+const POLAROID_ROTATION_DEG = 3;
+const POLAROID_W = POLAROID_IMG + 2 * POLAROID_PAD;
+const POLAROID_H = POLAROID_PAD + POLAROID_IMG + POLAROID_CAPTION_H + POLAROID_PAD_BOTTOM;
+// Rotierte Bounding-Box (Rotation um die Mitte): so weit reicht das Polaroid wirklich
+const POLAROID_RAD = (POLAROID_ROTATION_DEG * Math.PI) / 180;
+const POLAROID_BBOX_H = POLAROID_W * Math.sin(POLAROID_RAD) + POLAROID_H * Math.cos(POLAROID_RAD);
+const POLAROID_BOTTOM = POLAROID_TOP + POLAROID_H / 2 + POLAROID_BBOX_H / 2;
+
+// Karten-Geometrie (muss zu den Styles unten passen)
+const CARD_PAD = spacing.lg;
+const HEADER_H = 40; // Avatar-Durchmesser
+const BODY_TOP_MARGIN = 10; // marginTop von broadcastBody
+const TEXT_TOP = CARD_PAD + HEADER_H + BODY_TOP_MARGIN;
+const FLOAT_GAP = 8;
+
+/** Platz, den das Polaroid rechts im Karteninhalt belegt (inkl. Abstand) */
+const POLAROID_CLEARANCE = POLAROID_W + POLAROID_RIGHT - CARD_PAD + FLOAT_GAP;
+/** Zeilen, die OBERHALB dieser Höhe beginnen, bleiben in der schmalen Spalte —
+ * alles danach startet garantiert unterhalb der echten Polaroid-Unterkante */
+const BESIDE_HEIGHT = Math.max(0, POLAROID_BOTTOM + FLOAT_GAP - TEXT_TOP);
 
 function FloatedBroadcastText({ body }: { body: string }) {
   const [split, setSplit] = useState<{ first: string; rest: string } | null>(null);
@@ -66,9 +94,11 @@ function FloatedBroadcastText({ body }: { body: string }) {
 
   const onMeasure = (e: NativeSyntheticEvent<TextLayoutEventData>) => {
     const lines = e.nativeEvent.lines;
+    // Zeilen, die oberhalb der Polaroid-Unterkante BEGINNEN, gehören in die schmale
+    // Spalte — so startet das erste Vollbreiten-Segment sicher unter dem Polaroid
     let take = 0;
     for (const line of lines) {
-      if (line.y + line.height <= BESIDE_HEIGHT) take += 1;
+      if (line.y < BESIDE_HEIGHT) take += 1;
       else break;
     }
     if (take >= lines.length) {
@@ -556,14 +586,14 @@ const styles = StyleSheet.create({
   // unterer Rand deutlich breiter (echtes Polaroid) mit Handschrift-Gruß
   polaroid: {
     position: 'absolute',
-    top: -32,
-    right: 4,
+    top: POLAROID_TOP,
+    right: POLAROID_RIGHT,
     backgroundColor: colors.white,
-    paddingTop: 4,
-    paddingHorizontal: 4,
-    paddingBottom: 2,
+    paddingTop: POLAROID_PAD,
+    paddingHorizontal: POLAROID_PAD,
+    paddingBottom: POLAROID_PAD_BOTTOM,
     borderRadius: 4,
-    transform: [{ rotate: '3deg' }],
+    transform: [{ rotate: `${POLAROID_ROTATION_DEG}deg` }],
     shadowColor: '#14161C',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
@@ -571,8 +601,8 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   polaroidImage: {
-    width: 108,
-    height: 108,
+    width: POLAROID_IMG,
+    height: POLAROID_IMG,
     borderRadius: 2,
     backgroundColor: 'rgba(28,28,33,0.08)',
   },
@@ -585,7 +615,6 @@ const styles = StyleSheet.create({
     paddingVertical: 1,
   },
   broadcastHeaderWithImage: {
-    // Platz fürs Polaroid rechts (116 breit, 6 überstehend)
     paddingRight: POLAROID_CLEARANCE,
   },
   broadcastBody: {

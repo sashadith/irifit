@@ -250,7 +250,7 @@ export default function BroadcastPage() {
                 <div
                   style={{
                     position: 'absolute',
-                    top: -32,
+                    top: -40,
                     right: 4,
                     background: '#fff',
                     padding: '4px 4px 2px',
@@ -317,7 +317,7 @@ export default function BroadcastPage() {
                   fontSize: 13.5,
                   lineHeight: 1.55,
                   whiteSpace: 'pre-wrap',
-                  marginTop: imagePreview ? 52 : 0,
+                  marginTop: imagePreview ? 38 : 0,
                 }}
               >
                 {body.trim() || 'Deine Nachricht erscheint hier …'}
