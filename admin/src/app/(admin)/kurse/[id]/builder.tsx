@@ -96,12 +96,38 @@ export function CourseBuilder({ courseId }: { courseId: string }) {
 
   const deleteLesson = async () => {
     if (!selected) return;
-    if (!window.confirm(`Lektion „${selected.title}" wirklich löschen?`)) return;
+    if (
+      !window.confirm(
+        `Lektion „${selected.title}" löschen?\n\nDer Lernfortschritt der Nutzerinnen zu dieser Lektion wird mit gelöscht. Das Video bleibt bei Cloudflare erhalten.`,
+      )
+    )
+      return;
     const { error } = await supabaseBrowser().from('lessons').delete().eq('id', selected.id);
     if (error) setMessage({ kind: 'error', text: error.message });
     else {
       setLessons((ls) => ls.filter((l) => l.id !== selected.id));
       setSelectedId(null);
+    }
+  };
+
+  const deleteCourse = async () => {
+    if (!course) return;
+    // Legacy-Kurse sind gekaufter Inhalt der Digistore24-Kundinnen — nie löschbar
+    if (course.is_legacy) return;
+    const ok = window.confirm(
+      `Kurs „${course.title}" mit ${lessons.length} ${lessons.length === 1 ? 'Lektion' : 'Lektionen'} löschen?\n\n` +
+        'Alle Lektionen und der Lernfortschritt der Nutzerinnen (lesson_progress) werden mit gelöscht. ' +
+        'Die Videos bleiben bei Cloudflare erhalten (Aufräumen passiert bewusst manuell).\n\n' +
+        'Das lässt sich nicht rückgängig machen.',
+    );
+    if (!ok) return;
+    setBusy(true);
+    const { error } = await supabaseBrowser().from('courses').delete().eq('id', course.id);
+    if (error) {
+      setMessage({ kind: 'error', text: error.message });
+      setBusy(false);
+    } else {
+      router.push('/kurse');
     }
   };
 
@@ -356,6 +382,19 @@ export function CourseBuilder({ courseId }: { courseId: string }) {
           <div className="glass pad">
             <p className="hint">Wähle links eine Lektion aus oder lege eine neue an.</p>
           </div>
+        )}
+      </div>
+
+      {/* Kurs löschen — bewusst dezent ganz unten, weit weg von „Speichern" */}
+      <div style={{ marginTop: 28, display: 'flex', justifyContent: 'flex-end' }}>
+        {course.is_legacy ? (
+          <p className="hint">
+            Legacy-Kurs — gekaufter Inhalt der Digistore24-Kundinnen, kann nicht gelöscht werden.
+          </p>
+        ) : (
+          <button className="btn btn-danger btn-small" onClick={deleteCourse} disabled={busy}>
+            Kurs löschen …
+          </button>
         )}
       </div>
     </>
