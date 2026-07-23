@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase';
 
 export type MealSlot = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
+export type LogSource = 'scan' | 'barcode' | 'search' | 'recipe' | 'favorite' | 'manual';
+
 export interface FoodLog {
   id: string;
   logged_on: string;
@@ -14,6 +16,8 @@ export interface FoodLog {
   protein_g: number | null;
   carbs_g: number | null;
   fat_g: number | null;
+  source: LogSource;
+  created_at: string;
 }
 
 /** Lokales Datum als YYYY-MM-DD (bewusst nicht UTC — Tagebuch folgt der Gerätezeit) */
@@ -44,7 +48,7 @@ export function useDiaryDay() {
     const [logsRes, waterRes] = await Promise.all([
       supabase
         .from('food_logs')
-        .select('id, logged_on, slot, title, kcal, protein_g, carbs_g, fat_g')
+        .select('id, logged_on, slot, title, kcal, protein_g, carbs_g, fat_g, source, created_at')
         .eq('user_id', userId)
         .eq('logged_on', isoDate)
         .order('created_at'),

@@ -24,17 +24,18 @@ export interface MealSlotCardProps {
   readonly kcalGoal: number;
   readonly onAdd: () => void;
   readonly onDeleteLog: (id: string) => void;
+  /** Tap auf einen Eintrag → Detail-Sheet mit sichtbarem Löschen (Feedback 23.07.) */
+  readonly onSelectLog: (log: FoodLog) => void;
 }
 
 /** Mahlzeiten-Slot (Prototyp .meal): Icon-Bubble, Einträge bzw. Empfehlung, +/✓ */
-export function MealSlotCard({ slot, logs, kcalGoal, onAdd, onDeleteLog }: MealSlotCardProps) {
+export function MealSlotCard({ slot, logs, kcalGoal, onAdd, onDeleteLog, onSelectLog }: MealSlotCardProps) {
   const meta = SLOT_META[slot];
   const slotKcal = logs.reduce((sum, l) => sum + l.kcal, 0);
   const hasLogs = logs.length > 0;
 
-  const subtitle = hasLogs
-    ? logs.map((l) => t('home.entryKcal', { title: l.title, kcal: l.kcal })).join('\n')
-    : meta.range[0] === 0
+  const emptySubtitle =
+    meta.range[0] === 0
       ? t('home.recommendedUpTo', { max: roundTo10(kcalGoal * meta.range[1]) })
       : t('home.recommendedRange', {
           min: roundTo10(kcalGoal * meta.range[0]),
@@ -62,7 +63,26 @@ export function MealSlotCard({ slot, logs, kcalGoal, onAdd, onDeleteLog }: MealS
             <Text style={styles.title}>{t(meta.labelKey)}</Text>
             {hasLogs ? <Text style={styles.slotKcal}>{slotKcal} kcal</Text> : null}
           </View>
-          <Text style={styles.subtitle}>{subtitle}</Text>
+          {hasLogs ? (
+            logs.map((log) => (
+              <Pressable
+                key={log.id}
+                accessibilityRole="button"
+                accessibilityLabel={t('home.entryKcal', { title: log.title, kcal: log.kcal })}
+                accessibilityHint={t('home.entryTapHint')}
+                onPress={() => onSelectLog(log)}
+                hitSlop={4}
+              >
+                {({ pressed }) => (
+                  <Text style={[styles.subtitle, pressed && styles.entryPressed]}>
+                    {t('home.entryKcal', { title: log.title, kcal: log.kcal })}
+                  </Text>
+                )}
+              </Pressable>
+            ))
+          ) : (
+            <Text style={styles.subtitle}>{emptySubtitle}</Text>
+          )}
         </View>
         <Pressable
           accessibilityRole="button"
@@ -123,6 +143,9 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     color: colors.muted,
     marginTop: 2,
+  },
+  entryPressed: {
+    color: colors.tintDeep,
   },
   addButton: {
     width: 34,

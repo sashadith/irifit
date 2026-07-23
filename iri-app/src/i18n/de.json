@@ -160,7 +160,20 @@
     "progressNoData": "Noch kein Verlauf — trag dein erstes Gewicht ein.",
     "deleteEntryTitle": "Eintrag löschen?",
     "deleteEntryConfirm": "Löschen",
-    "deleteEntryCancel": "Abbrechen"
+    "deleteEntryCancel": "Abbrechen",
+    "entryKcalOnly": "{kcal} kcal",
+    "entryTapHint": "Öffnet Details und Löschen",
+    "logSheetTime": "Erfasst um {time} Uhr",
+    "deleteEntry": "Eintrag löschen",
+    "macroProteinShort": "Eiweiß {g} g",
+    "macroCarbsShort": "KH {g} g",
+    "macroFatShort": "Fett {g} g",
+    "sourceScan": "Foto-Scan",
+    "sourceBarcode": "Barcode",
+    "sourceSearch": "Suche",
+    "sourceRecipe": "Rezept",
+    "sourceFavorite": "Favorit",
+    "sourceManual": "Manuell"
   },
   "progress": {
     "eyebrow": "Fortschritt",
@@ -193,7 +206,10 @@
     "compareBefore": "Start",
     "compareAfter": "Aktuell",
     "deletePhotoTitle": "Foto löschen?",
-    "photoError": "Das Foto konnte nicht gespeichert werden. Versuch es noch einmal."
+    "photoError": "Das Foto konnte nicht gespeichert werden. Versuch es noch einmal.",
+    "recentEntries": "Letzte Wiegungen",
+    "deleteWeight": "Löschen",
+    "deleteWeightTitle": "Wiegung löschen?"
   },
   "recipes": {
     "title": "Irinas Rezepte",

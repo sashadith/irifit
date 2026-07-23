@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { DiaryHeader } from '@/components/diary/DiaryHeader';
+import { LogDetailSheet } from '@/components/diary/LogDetailSheet';
 import { MacroBars } from '@/components/diary/MacroBars';
 import { MealSlotCard } from '@/components/diary/MealSlotCard';
 import { ProgressCard } from '@/components/diary/ProgressCard';
@@ -13,7 +14,7 @@ import { CalorieRing } from '@/components/ui/CalorieRing';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { SattScoreDots } from '@/components/recipes/SattScoreDots';
 import { useAuth } from '@/features/auth/AuthProvider';
-import { MealSlot, toIsoDate, useDiaryDay } from '@/features/diary/useDiaryDay';
+import { FoodLog, MealSlot, toIsoDate, useDiaryDay } from '@/features/diary/useDiaryDay';
 import { updateStreak } from '@/features/progress/streak';
 import { fetchRecipes, RecipeListItem } from '@/features/recipes/recipesData';
 import { recipeSattScore } from '@/features/recipes/sattScore';
@@ -28,6 +29,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { session, profile, refreshProfile } = useAuth();
   const diary = useDiaryDay();
+  const [selectedLog, setSelectedLog] = useState<FoodLog | null>(null);
   const [latestWeight, setLatestWeight] = useState<number | null>(null);
   const [recipes, setRecipes] = useState<RecipeListItem[]>([]);
 
@@ -173,8 +175,11 @@ export default function HomeScreen() {
           kcalGoal={kcalGoal}
           onAdd={() => router.push('/scan')}
           onDeleteLog={diary.deleteLog}
+          onSelectLog={setSelectedLog}
         />
       ))}
+
+      <LogDetailSheet log={selectedLog} onClose={() => setSelectedLog(null)} onDelete={diary.deleteLog} />
 
       <ProgressCard
         deltaKg={deltaKg}

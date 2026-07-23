@@ -23,7 +23,7 @@ import { GhostButton } from '@/components/ui/GhostButton';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { deletePhoto, listPhotos, ProgressPhoto, uploadPhoto } from '@/features/progress/photos';
 import { fetchWeekStats, WeekStats } from '@/features/progress/stats';
-import { addWeightToday, fetchWeights, WeightEntry } from '@/features/progress/weights';
+import { addWeightToday, deleteWeight, fetchWeights, WeightEntry } from '@/features/progress/weights';
 import { t, TranslationKey } from '@/i18n';
 import { colors, font, radius, spacing, typography } from '@/theme';
 
@@ -122,6 +122,25 @@ export default function ProgressScreen() {
     ]);
   };
 
+  const confirmDeleteWeight = (entry: WeightEntry) => {
+    Alert.alert(
+      t('progress.deleteWeightTitle'),
+      `${formatDate(entry.measured_on)} · ${entry.weight_kg.toFixed(1).replace('.', ',')} kg`,
+      [
+        { text: t('home.deleteEntryCancel'), style: 'cancel' },
+        {
+          text: t('home.deleteEntryConfirm'),
+          style: 'destructive',
+          onPress: async () => {
+            if (!userId) return;
+            await deleteWeight(userId, entry.measured_on).catch(() => {});
+            await load();
+          },
+        },
+      ],
+    );
+  };
+
   const confirmDeletePhoto = (photo: ProgressPhoto) => {
     Alert.alert(t('progress.deletePhotoTitle'), undefined, [
       { text: t('home.deleteEntryCancel'), style: 'cancel' },
@@ -201,6 +220,32 @@ export default function ProgressScreen() {
               <Text style={styles.addWeightButtonText}>{t('progress.addWeightCta')}</Text>
             </Pressable>
           </View>
+
+          {/* Letzte Wiegungen mit sichtbarem Löschen (Feedback 23.07.) */}
+          {weights.length > 0 ? (
+            <View style={styles.recentWeights}>
+              <Text style={styles.recentWeightsTitle}>{t('progress.recentEntries')}</Text>
+              {[...weights].slice(-3).reverse().map((entry) => (
+                <View key={entry.measured_on} style={styles.recentWeightRow}>
+                  <Text style={styles.recentWeightText}>
+                    {formatDate(entry.measured_on)} · {entry.weight_kg.toFixed(1).replace('.', ',')} kg
+                  </Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('progress.deleteWeight')}
+                    hitSlop={8}
+                    onPress={() => confirmDeleteWeight(entry)}
+                  >
+                    {({ pressed }) => (
+                      <Text style={[styles.recentWeightDelete, pressed && styles.recentWeightDeletePressed]}>
+                        {t('progress.deleteWeight')}
+                      </Text>
+                    )}
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          ) : null}
         </GlassView>
 
         {/* Wochenstatistik */}
@@ -322,6 +367,39 @@ const styles = StyleSheet.create({
   },
   title: {
     marginTop: 8,
+  },
+  recentWeights: {
+    marginTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: colors.track,
+    paddingTop: 10,
+  },
+  recentWeightsTitle: {
+    fontFamily: font.bold,
+    fontSize: 11,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    color: colors.muted,
+    marginBottom: 4,
+  },
+  recentWeightRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+  },
+  recentWeightText: {
+    fontFamily: font.regular,
+    fontSize: 13,
+    color: colors.ink,
+  },
+  recentWeightDelete: {
+    fontFamily: font.bold,
+    fontSize: 12.5,
+    color: colors.tintDeep,
+  },
+  recentWeightDeletePressed: {
+    opacity: 0.6,
   },
   sectionLabel: {
     marginTop: 20,

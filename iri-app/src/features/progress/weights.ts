@@ -16,6 +16,16 @@ export async function fetchWeights(userId: string): Promise<WeightEntry[]> {
   return (data ?? []) as WeightEntry[];
 }
 
+/** Wiegung eines Tages löschen (Feedback 23.07.: Löschen sichtbar machen) */
+export async function deleteWeight(userId: string, measuredOn: string): Promise<void> {
+  const { error } = await supabase
+    .from('weights')
+    .delete()
+    .eq('user_id', userId)
+    .eq('measured_on', measuredOn);
+  if (error) throw error;
+}
+
 /** Heutiges Gewicht eintragen (1 Eintrag pro Tag — Upsert) */
 export async function addWeightToday(userId: string, weightKg: number): Promise<void> {
   const { error } = await supabase.from('weights').upsert(

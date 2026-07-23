@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Modal,
@@ -53,7 +52,7 @@ import { colors, font, radius, spacing, typography } from '@/theme';
  * zwei Segmente geteilt: schmale Spalte neben dem Polaroid, Rest volle Breite.
  */
 const POLAROID_CLEARANCE = 112; // Platz, den das Polaroid rechts in der Karte belegt
-const BESIDE_HEIGHT = 48; // sichtbare_Text_-Höhe neben dem Polaroid (unterhalb des Avatars)
+const BESIDE_HEIGHT = 36; // sichtbare Text-Höhe neben dem Polaroid (unterhalb des Avatars)
 
 function FloatedBroadcastText({ body }: { body: string }) {
   const [split, setSplit] = useState<{ first: string; rest: string } | null>(null);
@@ -474,31 +473,26 @@ export default function CoachingScreen() {
         >
           {latest?.imageUrl ? (
             (() => {
-              // Rahmen exakt ans Bildformat anpassen: gleiche Randbreite an allen Seiten
-              const frame = broadcastImageDims
-                ? (() => {
-                    const maxW = win.width * 0.8;
-                    const maxH = win.height * 0.58;
-                    const scale = Math.min(maxW / broadcastImageDims.w, maxH / broadcastImageDims.h);
-                    return {
-                      width: broadcastImageDims.w * scale + 12,
-                      height: broadcastImageDims.h * scale + 12,
-                    };
-                  })()
-                : null;
+              // Rahmen ans Bildformat anpassen (gleiche Randbreite ringsum).
+              // Bis onLoad die echten Maße liefert: Standard-Verhältnis 4:5 —
+              // NIE ein leerer Spinner (Bugfix 23.07.: 0-Pixel-Bild lud nie).
+              const dims = broadcastImageDims ?? { w: 4, h: 5 };
+              const maxW = win.width * 0.8;
+              const maxH = win.height * 0.58;
+              const scale = Math.min(maxW / dims.w, maxH / dims.h);
+              const frame = { width: dims.w * scale + 12, height: dims.h * scale + 12 };
               return (
-                <Pressable
-                  style={[styles.imageViewerFrame, frame]}
-                  onPress={(e) => e.stopPropagation()}
-                >
-                  {frame === null ? <ActivityIndicator color={colors.tintDeep} style={styles.flex} /> : null}
+                <Pressable style={[styles.imageViewerFrame, frame]} onPress={(e) => e.stopPropagation()}>
                   <Image
                     source={{ uri: latest.imageUrl }}
-                    style={[styles.imageViewerImage, frame === null && styles.measureHidden]}
+                    style={styles.imageViewerImage}
                     contentFit="cover"
-                    onLoad={(e) =>
-                      setBroadcastImageDims({ w: e.source.width, h: e.source.height })
-                    }
+                    transition={120}
+                    onLoad={(e) => {
+                      if (e.source.width > 0 && e.source.height > 0) {
+                        setBroadcastImageDims({ w: e.source.width, h: e.source.height });
+                      }
+                    }}
                     accessibilityLabel={t('coaching.broadcastImage')}
                   />
                 </Pressable>
@@ -562,8 +556,8 @@ const styles = StyleSheet.create({
   // unterer Rand deutlich breiter (echtes Polaroid) mit Handschrift-Gruß
   polaroid: {
     position: 'absolute',
-    top: -24,
-    right: -6,
+    top: -32,
+    right: 4,
     backgroundColor: colors.white,
     paddingTop: 4,
     paddingHorizontal: 4,

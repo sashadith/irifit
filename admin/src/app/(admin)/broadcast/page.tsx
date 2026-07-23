@@ -250,8 +250,8 @@ export default function BroadcastPage() {
                 <div
                   style={{
                     position: 'absolute',
-                    top: -24,
-                    right: -6,
+                    top: -32,
+                    right: 4,
                     background: '#fff',
                     padding: '4px 4px 2px',
                     borderRadius: 4,
