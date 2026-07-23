@@ -250,7 +250,7 @@ export default function BroadcastPage() {
                 <div
                   style={{
                     position: 'absolute',
-                    top: -18,
+                    top: -24,
                     right: -6,
                     background: '#fff',
                     padding: '4px 4px 2px',
@@ -264,8 +264,8 @@ export default function BroadcastPage() {
                     src={imagePreview}
                     alt=""
                     style={{
-                      width: 96,
-                      height: 96,
+                      width: 108,
+                      height: 108,
                       objectFit: 'cover',
                       objectPosition: 'top center',
                       borderRadius: 2,
@@ -274,7 +274,7 @@ export default function BroadcastPage() {
                   />
                   <div
                     className={dancingScript.className}
-                    style={{ color: '#d25578', fontSize: 13, lineHeight: '16px', textAlign: 'center', padding: '1px 0' }}
+                    style={{ color: '#d25578', fontSize: 12, lineHeight: '15px', textAlign: 'center', padding: '1px 0' }}
                   >
                     Liebste Grüße!
                   </div>

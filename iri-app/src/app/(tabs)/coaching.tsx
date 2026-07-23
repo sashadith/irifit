@@ -1,17 +1,22 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Modal,
+  NativeSyntheticEvent,
   Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
+  TextLayoutEventData,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { IrinaCard } from '@/components/coaching/IrinaCard';
@@ -41,6 +46,69 @@ import {
 import { t } from '@/i18n';
 import { colors, font, radius, spacing, typography } from '@/theme';
 
+/**
+ * RN-Fake-Float (Feinschliff 23.07.): Der Broadcast-Text umfließt das Polaroid.
+ * React Native kennt kein float — daher wird der Text unsichtbar in Spaltenbreite
+ * vermessen (onTextLayout liefert die Zeilen) und an der exakten Zeilengrenze in
+ * zwei Segmente geteilt: schmale Spalte neben dem Polaroid, Rest volle Breite.
+ */
+const POLAROID_CLEARANCE = 112; // Platz, den das Polaroid rechts in der Karte belegt
+const BESIDE_HEIGHT = 48; // sichtbare_Text_-Höhe neben dem Polaroid (unterhalb des Avatars)
+
+function FloatedBroadcastText({ body }: { body: string }) {
+  const [split, setSplit] = useState<{ first: string; rest: string } | null>(null);
+
+  // Bei neuem Text neu vermessen
+  const measuredBody = useRef(body);
+  if (measuredBody.current !== body) {
+    measuredBody.current = body;
+    if (split !== null) setSplit(null);
+  }
+
+  const onMeasure = (e: NativeSyntheticEvent<TextLayoutEventData>) => {
+    const lines = e.nativeEvent.lines;
+    let take = 0;
+    for (const line of lines) {
+      if (line.y + line.height <= BESIDE_HEIGHT) take += 1;
+      else break;
+    }
+    if (take >= lines.length) {
+      setSplit({ first: body, rest: '' });
+      return;
+    }
+    const first = lines
+      .slice(0, take)
+      .map((l) => l.text)
+      .join('');
+    // Rest aus dem Original schneiden (keine Whitespace-Verluste an der Trennstelle)
+    setSplit({ first, rest: body.slice(first.length).replace(/^[ \n]/, '') });
+  };
+
+  return (
+    <View>
+      {split === null ? (
+        <Text
+          style={[styles.broadcastBody, styles.broadcastBodyNarrow, styles.measureHidden]}
+          onTextLayout={onMeasure}
+        >
+          {body}
+        </Text>
+      ) : (
+        <>
+          {split.first ? (
+            <Text style={[styles.broadcastBody, styles.broadcastBodyNarrow]}>{split.first}</Text>
+          ) : null}
+          {split.rest ? (
+            <Text style={[styles.broadcastBody, split.first ? styles.broadcastBodyRest : null]}>
+              {split.rest}
+            </Text>
+          ) : null}
+        </>
+      )}
+    </View>
+  );
+}
+
 function formatBroadcastTime(iso: string): string {
   const d = new Date(iso);
   const time = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -66,6 +134,8 @@ export default function CoachingScreen() {
   const [qaBusy, setQaBusy] = useState(false);
   const [showIrina, setShowIrina] = useState(false);
   const [showBroadcastImage, setShowBroadcastImage] = useState(false);
+  const [broadcastImageDims, setBroadcastImageDims] = useState<{ w: number; h: number } | null>(null);
+  const win = useWindowDimensions();
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -165,7 +235,10 @@ export default function CoachingScreen() {
               <Pressable
                 accessibilityRole="imagebutton"
                 accessibilityLabel={t('coaching.broadcastImage')}
-                onPress={() => setShowBroadcastImage(true)}
+                onPress={() => {
+                  setBroadcastImageDims(null);
+                  setShowBroadcastImage(true);
+                }}
                 style={styles.polaroid}
               >
                 <Image
@@ -177,9 +250,11 @@ export default function CoachingScreen() {
                 <Text style={styles.polaroidCaption}>{t('coaching.polaroidCaption')}</Text>
               </Pressable>
             ) : null}
-            <Text style={[styles.broadcastBody, latest.imageUrl != null && styles.broadcastBodyBelowPolaroid]}>
-              {latest.body}
-            </Text>
+            {latest.imageUrl != null ? (
+              <FloatedBroadcastText body={latest.body} />
+            ) : (
+              <Text style={styles.broadcastBody}>{latest.body}</Text>
+            )}
             <View style={styles.reactions}>
               {REACTION_EMOJIS.map((emoji) => {
                 const active = latest.mine.has(emoji);
@@ -398,22 +473,52 @@ export default function CoachingScreen() {
           onPress={() => setShowBroadcastImage(false)}
         >
           {latest?.imageUrl ? (
-            <Pressable style={styles.imageViewerFrame} onPress={(e) => e.stopPropagation()}>
-              <Image
-                source={{ uri: latest.imageUrl }}
-                style={styles.imageViewerImage}
-                contentFit="contain"
-                accessibilityLabel={t('coaching.broadcastImage')}
-              />
-            </Pressable>
+            (() => {
+              // Rahmen exakt ans Bildformat anpassen: gleiche Randbreite an allen Seiten
+              const frame = broadcastImageDims
+                ? (() => {
+                    const maxW = win.width * 0.8;
+                    const maxH = win.height * 0.58;
+                    const scale = Math.min(maxW / broadcastImageDims.w, maxH / broadcastImageDims.h);
+                    return {
+                      width: broadcastImageDims.w * scale + 12,
+                      height: broadcastImageDims.h * scale + 12,
+                    };
+                  })()
+                : null;
+              return (
+                <Pressable
+                  style={[styles.imageViewerFrame, frame]}
+                  onPress={(e) => e.stopPropagation()}
+                >
+                  {frame === null ? <ActivityIndicator color={colors.tintDeep} style={styles.flex} /> : null}
+                  <Image
+                    source={{ uri: latest.imageUrl }}
+                    style={[styles.imageViewerImage, frame === null && styles.measureHidden]}
+                    contentFit="cover"
+                    onLoad={(e) =>
+                      setBroadcastImageDims({ w: e.source.width, h: e.source.height })
+                    }
+                    accessibilityLabel={t('coaching.broadcastImage')}
+                  />
+                </Pressable>
+              );
+            })()
           ) : null}
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('common.close')}
             onPress={() => setShowBroadcastImage(false)}
-            style={({ pressed }) => [styles.imageViewerClose, pressed && styles.pressed]}
+            style={({ pressed }) => pressed && styles.pressed}
           >
-            <Text style={styles.imageViewerCloseText}>{t('common.close')}</Text>
+            <LinearGradient
+              colors={colors.roseGradient}
+              start={{ x: 0.2, y: 0 }}
+              end={{ x: 0.8, y: 1 }}
+              style={styles.imageViewerClose}
+            >
+              <Text style={styles.imageViewerCloseText}>{t('common.close')}</Text>
+            </LinearGradient>
           </Pressable>
         </Pressable>
       </Modal>
@@ -457,7 +562,7 @@ const styles = StyleSheet.create({
   // unterer Rand deutlich breiter (echtes Polaroid) mit Handschrift-Gruß
   polaroid: {
     position: 'absolute',
-    top: -18,
+    top: -24,
     right: -6,
     backgroundColor: colors.white,
     paddingTop: 4,
@@ -472,22 +577,22 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   polaroidImage: {
-    width: 96,
-    height: 96,
+    width: 108,
+    height: 108,
     borderRadius: 2,
     backgroundColor: 'rgba(28,28,33,0.08)',
   },
   polaroidCaption: {
     fontFamily: 'DancingScript_600SemiBold',
-    fontSize: 13,
-    lineHeight: 16,
+    fontSize: 12,
+    lineHeight: 15,
     color: colors.tintDeep,
     textAlign: 'center',
     paddingVertical: 1,
   },
   broadcastHeaderWithImage: {
-    // Platz fürs Polaroid rechts (104 breit, 6 überstehend)
-    paddingRight: 100,
+    // Platz fürs Polaroid rechts (116 breit, 6 überstehend)
+    paddingRight: POLAROID_CLEARANCE,
   },
   broadcastBody: {
     fontFamily: font.regular,
@@ -496,9 +601,18 @@ const styles = StyleSheet.create({
     color: colors.white,
     marginTop: 10,
   },
-  // Text beginnt unterhalb des Polaroids in voller Breite (kein Umfluss in RN)
-  broadcastBodyBelowPolaroid: {
-    marginTop: 52,
+  // Fake-Float: schmale Spalte neben dem Polaroid, Rest volle Breite
+  broadcastBodyNarrow: {
+    marginRight: POLAROID_CLEARANCE,
+  },
+  broadcastBodyRest: {
+    marginTop: 0,
+  },
+  measureHidden: {
+    position: 'absolute',
+    opacity: 0,
+    left: 0,
+    right: 0,
   },
   broadcastTime: {
     fontFamily: font.semibold,
@@ -514,8 +628,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   imageViewerFrame: {
-    width: '80%',
-    height: '58%',
+    minWidth: 120,
+    minHeight: 120,
     backgroundColor: colors.white,
     borderRadius: 16,
     padding: 6,
@@ -526,7 +640,6 @@ const styles = StyleSheet.create({
   },
   imageViewerClose: {
     marginTop: 18,
-    backgroundColor: 'rgba(255,255,255,0.92)',
     borderRadius: radius.pill,
     paddingHorizontal: 26,
     paddingVertical: 11,
@@ -534,7 +647,7 @@ const styles = StyleSheet.create({
   imageViewerCloseText: {
     fontFamily: font.bold,
     fontSize: 14,
-    color: colors.ink,
+    color: colors.white,
   },
   reactions: {
     flexDirection: 'row',

@@ -86,6 +86,8 @@ export default function KurseListe() {
       </div>
       <p className="hint" style={{ marginTop: 12 }}>
         Alt-Kurse (BLEIB FIT) gehören den Digistore24-Käuferinnen — Inhalte dort nur mit Bedacht ändern.
+        Und: <strong>Kurse</strong> sind strukturierte Programme in Modulen — für einzelne neue
+        Hochformat-Videos ist die <strong>Trainings</strong>-Bibliothek der richtige Ort.
       </p>
     </>
   );

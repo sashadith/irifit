@@ -9,6 +9,7 @@ const LINKS = [
   { href: '/', label: 'Dashboard' },
   { href: '/rezepte', label: 'Rezepte' },
   { href: '/kurse', label: 'Kurse' },
+  { href: '/trainings', label: 'Trainings' },
   { href: '/broadcast', label: 'Broadcast' },
   { href: '/qa', label: 'Q&A' },
   { href: '/gutscheine', label: 'Gutscheine' },
