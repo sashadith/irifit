@@ -37,8 +37,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   chipSelected: {
-    backgroundColor: colors.ink,
-    borderColor: colors.ink,
+    backgroundColor: colors.tintDeep,
+    borderColor: colors.tintDeep,
   },
   label: {
     fontFamily: font.semibold,

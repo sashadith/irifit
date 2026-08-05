@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   linkButton: {
-    backgroundColor: colors.ink,
+    backgroundColor: colors.tintDeep,
     borderRadius: radius.pill,
     paddingHorizontal: 18,
     paddingVertical: 10,

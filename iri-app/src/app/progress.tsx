@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
   addWeightButton: {
-    backgroundColor: colors.ink,
+    backgroundColor: colors.tintDeep,
     borderRadius: radius.pill,
     paddingHorizontal: 18,
     justifyContent: 'center',

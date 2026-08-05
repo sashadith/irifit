@@ -801,7 +801,7 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   recalcButton: {
-    backgroundColor: colors.ink,
+    backgroundColor: colors.tintDeep,
     borderRadius: radius.pill,
     paddingHorizontal: 14,
     paddingVertical: 10,
