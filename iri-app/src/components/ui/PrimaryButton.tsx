@@ -11,7 +11,7 @@ export interface PrimaryButtonProps {
   readonly style?: ViewStyle;
 }
 
-/** Dunkler Pill-CTA (.btn im Prototyp) */
+/** Pill-CTA im Rosé-Verlauf (Design-Entscheidung Sascha 05.08.: ein Akzent statt dunkler Buttons) */
 export function PrimaryButton({ label, onPress, disabled, loading, style }: PrimaryButtonProps) {
   const inactive = disabled || loading;
   return (
@@ -24,9 +24,9 @@ export function PrimaryButton({ label, onPress, disabled, loading, style }: Prim
       style={({ pressed }) => [styles.shadow, pressed && styles.pressed, inactive && styles.disabled, style]}
     >
       <LinearGradient
-        colors={colors.buttonDark}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
+        colors={colors.roseGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={styles.inner}
       >
         {loading ? (
@@ -42,7 +42,7 @@ export function PrimaryButton({ label, onPress, disabled, loading, style }: Prim
 const styles = StyleSheet.create({
   shadow: {
     borderRadius: radius.pill,
-    shadowColor: '#1C1C21',
+    shadowColor: '#D25578',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.35,
     shadowRadius: 13,

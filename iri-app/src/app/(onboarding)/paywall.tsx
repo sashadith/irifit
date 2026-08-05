@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   planSelected: {
-    borderColor: colors.ink,
+    borderColor: colors.tintDeep,
   },
   planTitle: {
     fontFamily: font.bold,
