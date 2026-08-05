@@ -19,7 +19,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.irinadith.irifit",
-      "versionCode": 3,
+      "versionCode": 4,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
