@@ -24,6 +24,9 @@ export interface PlanOffer {
   identifier: string;
   /** Lokalisierter Store-Preis, z. B. "6,99 €" */
   priceString: string;
+  /** Numerischer Preis + Währung — für abgeleitete Anzeigen (Monats-Äquivalent, Spar-Badge) */
+  price: number;
+  currencyCode: string;
   hasFreeTrial: boolean;
 }
 
@@ -37,6 +40,8 @@ interface RcPackage {
   identifier: string;
   product: {
     priceString: string;
+    price: number;
+    currencyCode: string;
     defaultOption?: { freePhase?: unknown } | null;
     introPrice?: unknown | null;
   };
@@ -64,6 +69,8 @@ function toPlanOffer(pkg: RcPackage | null | undefined): PlanOffer | null {
   return {
     identifier: pkg.identifier,
     priceString: pkg.product.priceString,
+    price: pkg.product.price,
+    currencyCode: pkg.product.currencyCode,
     hasFreeTrial: pkg.product.defaultOption?.freePhase != null || pkg.product.introPrice != null,
   };
 }

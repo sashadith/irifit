@@ -129,6 +129,23 @@ export default function PaywallScreen() {
   const monthlyPrice = offers?.monthly?.priceString ?? t('onboarding.paywall.monthlyFallbackPrice');
   const hasTrial = offers ? (plan === 'yearly' ? offers.yearly?.hasFreeTrial : offers.monthly?.hasFreeTrial) : true;
 
+  // Monats-Äquivalent + Spar-Badge aus den echten Store-Preisen ableiten —
+  // statische Texte würden bei Preisänderungen im Store lügen (Befund Sandbox-Test 05.08.).
+  const perMonth =
+    offers?.yearly != null
+      ? formatCurrency(Math.floor((offers.yearly.price / 12) * 100) / 100, offers.yearly.currencyCode)
+      : null;
+  const savingsPercent =
+    offers?.yearly != null && offers?.monthly != null && offers.monthly.price > 0
+      ? Math.round((1 - offers.yearly.price / (offers.monthly.price * 12)) * 100)
+      : null;
+  const yearlyHint =
+    perMonth != null ? t('onboarding.paywall.yearlyHint', { price: perMonth }) : t('onboarding.paywall.yearlyHintFallback');
+  const yearlyBadge =
+    savingsPercent != null && savingsPercent > 0
+      ? t('onboarding.paywall.yearlyBadge', { percent: savingsPercent })
+      : t('onboarding.paywall.yearlyBadgeFallback');
+
   return (
     <ScreenScaffold withTabBarInset={false}>
       <View style={styles.top}>
@@ -149,7 +166,7 @@ export default function PaywallScreen() {
           contentStyle={[styles.planContent, plan === 'yearly' && styles.planSelected]}
         >
           <Text style={styles.planTitle}>{t('onboarding.paywall.yearlyWithPrice', { price: yearlyPrice })}</Text>
-          <Text style={styles.planHint}>{t('onboarding.paywall.yearlyHint')}</Text>
+          <Text style={styles.planHint}>{yearlyHint}</Text>
         </GlassView>
         <LinearGradient
           colors={colors.roseGradient}
@@ -157,7 +174,7 @@ export default function PaywallScreen() {
           end={{ x: 1, y: 1 }}
           style={[styles.badge, tintShadow]}
         >
-          <Text style={styles.badgeText}>{t('onboarding.paywall.yearlyBadge')}</Text>
+          <Text style={styles.badgeText}>{yearlyBadge}</Text>
         </LinearGradient>
       </Pressable>
 
@@ -221,6 +238,14 @@ export default function PaywallScreen() {
       <IrinaCard visible={showIrina} onClose={() => setShowIrina(false)} />
     </ScreenScaffold>
   );
+}
+
+function formatCurrency(amount: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount);
+  } catch {
+    return `${amount.toFixed(2)} ${currency}`;
+  }
 }
 
 const styles = StyleSheet.create({
