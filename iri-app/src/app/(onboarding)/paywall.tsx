@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Keyboard, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 
@@ -38,6 +38,17 @@ export default function PaywallScreen() {
   const [storeReady, setStoreReady] = useState<boolean | null>(isExpoGo ? false : null);
   const [showVoucher, setShowVoucher] = useState(false);
   const [voucherCode, setVoucherCode] = useState('');
+  const scrollRef = useRef<ScrollView>(null);
+
+  // Das Gutschein-Feld liegt unter dem Falz — ohne Nachscrollen verdeckt es die Tastatur
+  // komplett. Erst NACH dem Resize durch die Tastatur (keyboardDidShow) ans Ende scrollen.
+  useEffect(() => {
+    if (!showVoucher) return;
+    const scrollToEnd = () => scrollRef.current?.scrollToEnd({ animated: true });
+    const sub = Keyboard.addListener('keyboardDidShow', scrollToEnd);
+    scrollToEnd();
+    return () => sub.remove();
+  }, [showVoucher]);
 
   useEffect(() => {
     if (isExpoGo) return;
@@ -147,7 +158,7 @@ export default function PaywallScreen() {
       : t('onboarding.paywall.yearlyBadgeFallback');
 
   return (
-    <ScreenScaffold withTabBarInset={false}>
+    <ScreenScaffold withTabBarInset={false} scrollRef={scrollRef}>
       <View style={styles.top}>
         <Pressable accessibilityRole="button" accessibilityLabel="Irina" onPress={() => setShowIrina(true)}>
           <IriAvatar size={74} />
@@ -212,6 +223,7 @@ export default function PaywallScreen() {
             autoCapitalize="characters"
             autoCorrect={false}
             placeholder="IRINA3"
+            autoFocus
           />
           <PrimaryButton
             label={t('onboarding.paywall.voucherRedeem')}

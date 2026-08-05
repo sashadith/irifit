@@ -1,5 +1,5 @@
-import { PropsWithChildren } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { PropsWithChildren, RefObject } from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,12 +11,15 @@ export interface ScreenScaffoldProps {
   readonly withTabBarInset?: boolean;
   /** Scrollbar (Standard) oder statischer Screen */
   readonly scroll?: boolean;
+  /** Zugriff auf die ScrollView, z. B. um Eingabefelder über die Tastatur zu scrollen */
+  readonly scrollRef?: RefObject<ScrollView | null>;
 }
 
 /** Wallpaper + Safe-Area-Padding — Grundgerüst jedes Screens */
 export function ScreenScaffold({
   withTabBarInset = true,
   scroll = true,
+  scrollRef,
   children,
 }: PropsWithChildren<ScreenScaffoldProps>) {
   const insets = useSafeAreaInsets();
@@ -32,9 +35,22 @@ export function ScreenScaffold({
     <View style={styles.root}>
       <Wallpaper />
       {scroll ? (
-        <ScrollView contentContainerStyle={contentStyle} showsVerticalScrollIndicator={false}>
-          {children}
-        </ScrollView>
+        // Android rendert edge-to-edge (SDK 54): adjustResize greift nicht mehr,
+        // deshalb schafft das KeyboardAvoidingView den Platz über der Tastatur.
+        <KeyboardAvoidingView
+          style={styles.fill}
+          behavior="padding"
+          enabled={Platform.OS === 'android'}
+        >
+          <ScrollView
+            ref={scrollRef}
+            contentContainerStyle={contentStyle}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {children}
+          </ScrollView>
+        </KeyboardAvoidingView>
       ) : (
         <View style={[styles.fill, contentStyle]}>{children}</View>
       )}
