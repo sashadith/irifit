@@ -16,9 +16,15 @@ export const colors = {
   white: '#FFFFFF',
   glass: 'rgba(255,255,255,0.58)',
   glassStrong: 'rgba(255,255,255,0.78)',
-  /** Android-Fallback: solider, da kein Backdrop-Blur */
-  glassAndroid: 'rgba(255,255,255,0.84)',
-  glassStrongAndroid: 'rgba(255,255,255,0.92)',
+  /**
+   * Android-Fallback: DECKENDE, vorberechnete Töne aus dem Wallpaper-Pastell —
+   * semitransparentes Weiß stapelt bei Karte-in-Karte sichtbar Alpha (Farbstufen).
+   * Je Verschachtelungsebene ein fester Ton, Auswahl übernimmt GlassView per Context.
+   */
+  glassAndroid: '#FBF6F8',
+  glassStrongAndroid: '#FDFAFB',
+  glassNestedAndroid: '#FDFBFC',
+  glassNestedStrongAndroid: '#FFFFFF',
   stroke: 'rgba(255,255,255,0.75)',
   track: 'rgba(120,120,128,0.16)',
   buttonDark: ['#2A2A30', '#1C1C21'] as const,

@@ -1,4 +1,4 @@
-import { PropsWithChildren } from 'react';
+import { createContext, PropsWithChildren, useContext } from 'react';
 import { Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 
@@ -18,8 +18,21 @@ export interface GlassViewProps {
 }
 
 /**
+ * Android-Fallback: Verschachtelungstiefe der Glas-Panels. Semitransparente
+ * Flächen würden ihre Alpha-Werte bei Karte-in-Karte stapeln (sichtbare
+ * Farbstufen), deshalb bekommt jede Ebene einen festen, deckenden Ton.
+ */
+const GlassDepth = createContext(0);
+
+function androidFill(depth: number, strong: boolean): string {
+  if (depth === 0) return strong ? colors.glassStrongAndroid : colors.glassAndroid;
+  return strong ? colors.glassNestedStrongAndroid : colors.glassNestedAndroid;
+}
+
+/**
  * Liquid-Glass-Panel: echtes Blur-Material auf iOS (expo-blur),
- * soliderer weißer Fallback auf Android (kein performantes Backdrop-Blur).
+ * auf Android deckende Pastell-Flächen (kein performantes Backdrop-Blur)
+ * ohne Border — die weiße Stroke wirkt auf deckendem Grund wie eine Kante.
  * Schatten liegt auf dem äußeren View, das Clipping (overflow hidden)
  * auf dem inneren — sonst schneidet overflow den Schatten ab.
  */
@@ -31,23 +44,24 @@ export function GlassView({
   shadow = true,
   children,
 }: PropsWithChildren<GlassViewProps>) {
+  const depth = useContext(GlassDepth);
   const isIOS = Platform.OS === 'ios';
   const fill = isIOS
     ? strong
       ? colors.glassStrong
       : colors.glass
-    : strong
-      ? colors.glassStrongAndroid
-      : colors.glassAndroid;
+    : androidFill(depth, strong);
 
   return (
     <View style={[shadow && glassShadow, { borderRadius }, style]}>
-      <View style={[styles.clip, { borderRadius }]}>
+      <View style={[styles.clip, isIOS && styles.clipIOS, { borderRadius }]}>
         {isIOS && (
           <BlurView tint="light" intensity={blurIntensity} style={StyleSheet.absoluteFill} />
         )}
         <View style={[StyleSheet.absoluteFill, { backgroundColor: fill }]} />
-        <View style={contentStyle}>{children}</View>
+        <GlassDepth.Provider value={depth + 1}>
+          <View style={contentStyle}>{children}</View>
+        </GlassDepth.Provider>
       </View>
     </View>
   );
@@ -56,6 +70,8 @@ export function GlassView({
 const styles = StyleSheet.create({
   clip: {
     overflow: 'hidden',
+  },
+  clipIOS: {
     borderWidth: 1,
     borderColor: colors.stroke,
   },
