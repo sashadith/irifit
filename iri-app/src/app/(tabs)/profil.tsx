@@ -1,4 +1,5 @@
 import { StyleSheet, Text } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { GlassView } from '@/components/glass/GlassView';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
@@ -8,6 +9,7 @@ import { t } from '@/i18n';
 import { spacing, typography } from '@/theme';
 
 export default function ProfilScreen() {
+  const router = useRouter();
   const { signOut, session } = useAuth();
 
   return (
@@ -17,6 +19,11 @@ export default function ProfilScreen() {
         <Text style={typography.bodyMuted}>{session?.user.email}</Text>
         <Text style={[typography.bodyMuted, styles.placeholder]}>{t('profile.placeholder')}</Text>
       </GlassView>
+      <GhostButton
+        label={t('profile.reminders')}
+        onPress={() => router.push('/reminders')}
+        style={styles.signOut}
+      />
       <GhostButton label={t('profile.signOut')} onPress={signOut} style={styles.signOut} />
     </ScreenScaffold>
   );

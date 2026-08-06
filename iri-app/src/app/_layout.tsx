@@ -14,6 +14,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 
 import { AuthProvider } from '@/features/auth/AuthProvider';
+import { NotificationObserver } from '@/features/notifications/NotificationObserver';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -40,6 +41,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
+      <NotificationObserver />
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
@@ -47,6 +49,7 @@ export default function RootLayout() {
         <Stack.Screen name="scan" options={{ presentation: 'modal' }} />
         <Stack.Screen name="food-search" options={{ presentation: 'modal' }} />
         <Stack.Screen name="progress" />
+        <Stack.Screen name="reminders" />
         <Stack.Screen name="recipe/[id]" />
         <Stack.Screen name="shopping-list" options={{ presentation: 'modal' }} />
         <Stack.Screen name="legacy" />

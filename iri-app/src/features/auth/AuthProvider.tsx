@@ -34,6 +34,13 @@ export interface Profile {
   start_weight_kg: number | null;
   target_weight_kg: number | null;
   onboarding_completed_at: string | null;
+  timezone: string;
+  push_broadcast: boolean;
+  push_streak: boolean;
+  push_meal_evening: boolean;
+  push_water: boolean;
+  push_weekly: boolean;
+  reminder_evening_time: string | null;
 }
 
 interface AuthContextValue {
@@ -52,7 +59,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const PROFILE_COLUMNS =
-  'id, display_name, kcal_goal, protein_goal_g, carbs_goal_g, fat_goal_g, water_goal_ml, water_glass_ml, streak_count, streak_longest, allergies, diet_preference, start_weight_kg, target_weight_kg, onboarding_completed_at';
+  'id, display_name, kcal_goal, protein_goal_g, carbs_goal_g, fat_goal_g, water_goal_ml, water_glass_ml, streak_count, streak_longest, allergies, diet_preference, start_weight_kg, target_weight_kg, onboarding_completed_at, timezone, push_broadcast, push_streak, push_meal_evening, push_water, push_weekly, reminder_evening_time';
 
 /** Profilzeile anlegen, falls sie fehlt — aus den lokal gespiegelten Quiz-Antworten */
 async function ensureProfile(userId: string): Promise<Profile | null> {

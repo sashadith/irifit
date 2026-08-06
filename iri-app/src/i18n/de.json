@@ -303,9 +303,32 @@
     "broadcastLabel": "Broadcast",
     "polaroidCaption": "Liebste Grüße!"
   },
+  "reminders": {
+    "title": "Erinnerungen",
+    "intro": "Ich melde mich nur, wenn es dir hilft — und nie mit Druck. Du entscheidest, was ankommt.",
+    "permissionTitle": "Mitteilungen sind aus",
+    "permissionBody": "Damit Erinnerungen ankommen, brauche ich einmal dein Okay vom System.",
+    "permissionCta": "Mitteilungen aktivieren",
+    "sectionDaily": "Dein Tag",
+    "mealEvening": "Abend-Erinnerung bei Rest-Budget",
+    "mealEveningHint": "Nur wenn du noch Kalorien übrig hast — mit passenden Rezeptideen.",
+    "water": "Wasser-Erinnerung",
+    "waterHint": "Ein sanfter Stups, wenn du gegen Abend unter deinem Ziel liegst.",
+    "streak": "Streak-Schutz",
+    "streakHint": "Bevor deine Serie reißt: eine kurze Erinnerung am Abend.",
+    "sectionNews": "Von Irina",
+    "broadcast": "Irinas Neuigkeiten",
+    "broadcastHint": "Broadcasts und Antworten auf deine Fragen.",
+    "weekly": "Wochenrückblick",
+    "weeklyHint": "Sonntagabend: deine Woche auf einen Blick.",
+    "sectionTime": "Abendzeit",
+    "timeHint": "Wann die Abend-Erinnerung kommt. „Automatisch\" lernt aus deinem Rhythmus.",
+    "timeAuto": "Automatisch"
+  },
   "profile": {
     "title": "Dein Profil",
     "placeholder": "Einstellungen & Konto folgen in Session 15.",
+    "reminders": "Erinnerungen",
     "signOut": "Abmelden"
   },
   "scan": {

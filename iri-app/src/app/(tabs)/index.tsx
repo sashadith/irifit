@@ -15,6 +15,7 @@ import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { SattScoreDots } from '@/components/recipes/SattScoreDots';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { FoodLog, MealSlot, toIsoDate, useDiaryDay } from '@/features/diary/useDiaryDay';
+import { markPushOffered, registerForPush, shouldOfferPush } from '@/features/notifications/push';
 import { updateStreak } from '@/features/progress/streak';
 import { fetchRecipes, RecipeListItem } from '@/features/recipes/recipesData';
 import { recipeSattScore } from '@/features/recipes/sattScore';
@@ -36,6 +37,21 @@ export default function HomeScreen() {
   useEffect(() => {
     fetchRecipes().then(setRecipes).catch(() => {});
   }, []);
+
+  // Push (S12): beim ersten Home-Besuch einmalig den System-Dialog anbieten,
+  // danach bei jedem Start nur noch still Token + Zeitzone synchronisieren.
+  useEffect(() => {
+    const userId = session?.user.id;
+    if (!userId) return;
+    shouldOfferPush().then((firstTime) => {
+      if (firstTime) {
+        markPushOffered();
+        registerForPush(userId).catch(() => {});
+      } else {
+        registerForPush(userId, { silent: true }).catch(() => {});
+      }
+    });
+  }, [session?.user.id]);
 
   const kcalGoal = profile?.kcal_goal ?? 1600;
   const remaining = Math.max(0, kcalGoal - diary.totals.kcal);
