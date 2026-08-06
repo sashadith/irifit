@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "598309152776",
+    "project_id": "irifit-bdb80",
+    "storage_bucket": "irifit-bdb80.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:598309152776:android:531f91c3f2cf2845bfc9bd",
+        "android_client_info": {
+          "package_name": "com.irinadith.irifit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxC0Q5bOkKQPRZdfwVGp2CHjEz6zNq1EM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
