@@ -3,10 +3,12 @@ import { Alert, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'r
 import { useRouter } from 'expo-router';
 
 import { ScreenScaffold } from '@/components/ScreenScaffold';
+import { GoogleLogo } from '@/components/icons/GoogleLogo';
 import { GhostButton } from '@/components/ui/GhostButton';
 import { GlassInput } from '@/components/ui/GlassInput';
 import { IriAvatar } from '@/components/ui/IriAvatar';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { RoseHeart } from '@/components/ui/RoseHeart';
 import { signInWithApple, signInWithGoogle } from '@/features/auth/oauth';
 import { t } from '@/i18n';
 import { supabase } from '@/lib/supabase';
@@ -22,14 +24,26 @@ export default function LoginScreen() {
   const signIn = async () => {
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
       if (error) {
         Alert.alert(t('common.error'), t('onboarding.login.invalidCredentials'));
+        return;
       }
-      // Erfolg: Auth-Guards leiten automatisch weiter (Tabs bzw. Onboarding-Rest)
+      // Ohne abgeschlossenes Onboarding greift kein Guard (der Onboarding-Guard
+      // redirectet nur bei onboarding_completed_at) — die Session käme an, aber
+      // der Login-Screen bliebe stehen. Darum hier selbst zum Quiz-Start routen;
+      // abgeschlossene Profile leiten die Guards wie bisher zu den Tabs.
+      const { data: profileRow } = await supabase
+        .from('profiles')
+        .select('onboarding_completed_at')
+        .eq('id', data.user.id)
+        .maybeSingle();
+      if (!profileRow?.onboarding_completed_at) {
+        router.replace('/(onboarding)/welcome');
+      }
     } finally {
       setBusy(false);
     }
@@ -51,7 +65,9 @@ export default function LoginScreen() {
       <ScreenScaffold withTabBarInset={false}>
         <View style={styles.top}>
           <IriAvatar size={74} />
-          <Text style={[typography.displayLg, styles.title]}>{t('onboarding.login.title')}</Text>
+          <Text style={[typography.displayLg, styles.title]}>
+            {t('onboarding.login.title')} <RoseHeart />
+          </Text>
         </View>
         <GlassInput
           label={t('onboarding.account.email')}
@@ -82,6 +98,7 @@ export default function LoginScreen() {
         ) : null}
         <GhostButton
           label={t('onboarding.account.google')}
+          icon={<GoogleLogo />}
           onPress={() => oauth('google')}
           style={styles.smallGap}
         />

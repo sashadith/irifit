@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics';
 
 import { GlassView } from '@/components/glass/GlassView';
 import { IriIcon } from '@/components/icons/IriIcon';
+import { RoseHeart } from '@/components/ui/RoseHeart';
 import { t } from '@/i18n';
 import { colors, font, radius, typography } from '@/theme';
 
@@ -52,7 +53,9 @@ export function DiaryHeader({ date, isToday, greeting, streakCount, onShiftDate 
             <Text style={styles.chevron}>›</Text>
           </Pressable>
         </View>
-        <Text style={[typography.displayMd, styles.greeting]}>{greeting}</Text>
+        <Text style={[typography.displayMd, styles.greeting]}>
+          {greeting} <RoseHeart />
+        </Text>
       </View>
       <GlassView borderRadius={radius.pill} contentStyle={styles.streak}>
         <IriIcon

@@ -2,6 +2,7 @@ import { Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { GlassView } from '@/components/glass/GlassView';
 import { IriAvatar } from '@/components/ui/IriAvatar';
+import { RoseHeart } from '@/components/ui/RoseHeart';
 import { t } from '@/i18n';
 import { colors, font, radius, spacing, typography } from '@/theme';
 
@@ -54,7 +55,9 @@ export function IrinaCard({ visible, onClose }: IrinaCardProps) {
             <View style={styles.handle} />
             <IriAvatar size={84} style={styles.avatar} />
             <Text style={[typography.displayLg, styles.name]}>Irina Dith</Text>
-            <Text style={styles.bio}>{t('coaching.irinaCardBio')}</Text>
+            <Text style={styles.bio}>
+              {t('coaching.irinaCardBio')} <RoseHeart />
+            </Text>
             <View style={styles.links}>
               {LINKS.map((link) => (
                 <Pressable

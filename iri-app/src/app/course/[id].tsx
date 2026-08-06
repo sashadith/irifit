@@ -119,8 +119,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   numberDone: {
-    backgroundColor: colors.ink,
-    borderColor: colors.ink,
+    backgroundColor: colors.tintDeep,
+    borderColor: colors.tintDeep,
   },
   numberText: {
     fontFamily: font.bold,

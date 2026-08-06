@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 
 import { GlassView } from '@/components/glass/GlassView';
+import { GoogleLogo } from '@/components/icons/GoogleLogo';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
 import { GhostButton } from '@/components/ui/GhostButton';
 import { GlassInput } from '@/components/ui/GlassInput';
@@ -182,6 +183,7 @@ export default function AccountScreen() {
         ) : null}
         <GhostButton
           label={t('onboarding.account.google')}
+          icon={<GoogleLogo />}
           onPress={() => oauth('google')}
           style={styles.smallGap}
         />

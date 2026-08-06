@@ -20,6 +20,7 @@ import { ScreenScaffold } from '@/components/ScreenScaffold';
 import { WeightChart } from '@/components/progress/WeightChart';
 import { Chip } from '@/components/ui/Chip';
 import { GhostButton } from '@/components/ui/GhostButton';
+import { RoseHeart } from '@/components/ui/RoseHeart';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { deletePhoto, listPhotos, ProgressPhoto, uploadPhoto } from '@/features/progress/photos';
 import { fetchWeekStats, WeekStats } from '@/features/progress/stats';
@@ -270,7 +271,9 @@ export default function ProgressScreen() {
                 <Text style={styles.macroLegendText}>C {Math.round(stats.carbsShare * 100)} %</Text>
                 <Text style={styles.macroLegendText}>F {Math.round(stats.fatShare * 100)} %</Text>
               </View>
-              <Text style={styles.consistency}>{t('progress.consistency')}</Text>
+              <Text style={styles.consistency}>
+                {t('progress.consistency')} <RoseHeart />
+              </Text>
             </>
           )}
         </GlassView>

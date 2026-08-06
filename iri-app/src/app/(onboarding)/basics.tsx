@@ -178,8 +178,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkboxChecked: {
-    backgroundColor: colors.ink,
-    borderColor: colors.ink,
+    backgroundColor: colors.tintDeep,
+    borderColor: colors.tintDeep,
   },
   checkmark: {
     color: colors.white,

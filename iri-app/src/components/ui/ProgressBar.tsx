@@ -26,6 +26,6 @@ const styles = StyleSheet.create({
   fill: {
     height: '100%',
     borderRadius: 2,
-    backgroundColor: colors.ink,
+    backgroundColor: colors.tintDeep,
   },
 });

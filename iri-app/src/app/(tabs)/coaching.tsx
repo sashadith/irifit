@@ -23,6 +23,7 @@ import { GlassView } from '@/components/glass/GlassView';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
 import { IriAvatar } from '@/components/ui/IriAvatar';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { RoseHeart } from '@/components/ui/RoseHeart';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { Chip } from '@/components/ui/Chip';
 import {
@@ -316,7 +317,9 @@ export default function CoachingScreen() {
         </Text>
         {courses.length === 0 ? (
           <GlassView contentStyle={styles.cardPad}>
-            <Text style={typography.bodyMuted}>{t('coaching.noCourses')}</Text>
+            <Text style={typography.bodyMuted}>
+              {t('coaching.noCourses')} <RoseHeart />
+            </Text>
           </GlassView>
         ) : (
           moduleStats.map(({ course, doneCount, total }, index) => {
@@ -392,7 +395,9 @@ export default function CoachingScreen() {
               ) : null}
               {shown.length === 0 ? (
                 <GlassView contentStyle={styles.cardPad}>
-                  <Text style={typography.bodyMuted}>{t('coaching.trainingsEmpty')}</Text>
+                  <Text style={typography.bodyMuted}>
+                    {t('coaching.trainingsEmpty')} <RoseHeart />
+                  </Text>
                 </GlassView>
               ) : (
                 shown.map((video) => (
@@ -732,8 +737,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   moduleNumberDone: {
-    backgroundColor: colors.ink,
-    borderColor: colors.ink,
+    backgroundColor: colors.tintDeep,
+    borderColor: colors.tintDeep,
   },
   moduleNumberText: {
     fontFamily: font.bold,

@@ -8,6 +8,7 @@ import { ScreenScaffold } from '@/components/ScreenScaffold';
 import { GhostButton } from '@/components/ui/GhostButton';
 import { IriAvatar } from '@/components/ui/IriAvatar';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { RoseHeart } from '@/components/ui/RoseHeart';
 import { t } from '@/i18n';
 import { colors, font, spacing, typography } from '@/theme';
 
@@ -23,7 +24,9 @@ export default function WelcomeScreen() {
           <IriAvatar size={110} />
         </Pressable>
         <Text style={[typography.eyebrow, styles.eyebrow]}>{t('onboarding.welcome.eyebrow')}</Text>
-        <Text style={[typography.displayXl, styles.title]}>{t('onboarding.welcome.title')}</Text>
+        <Text style={[typography.displayXl, styles.title]}>
+          {t('onboarding.welcome.title')} <RoseHeart />
+        </Text>
       </View>
       <GlassView contentStyle={styles.cardContent}>
         <Text style={styles.intro}>{t('onboarding.welcome.intro')}</Text>

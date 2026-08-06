@@ -18,7 +18,7 @@
     "stepLabel": "Schritt {step} von 7",
     "welcome": {
       "eyebrow": "Willkommen bei IriFit",
-      "title": "Schön, dass\ndu da bist. 🤍",
+      "title": "Schön, dass\ndu da bist.",
       "intro": "Ich bin Irina. Hier zählst du keine Kalorien-Tabellen und hungerst dich durch keine Diät — wir finden gemeinsam heraus, wie du satt wirst und dich trotzdem leichter fühlst. Ein paar kurze Fragen, dann bauen wir deinen Plan.",
       "start": "Los geht's — 7 kurze Fragen",
       "haveAccount": "Ich habe schon einen Account",
@@ -97,7 +97,7 @@
       "alreadySignedInText": "Du bist schon angemeldet als {email}. Verrate uns noch deinen Vornamen, dann geht es weiter."
     },
     "login": {
-      "title": "Willkommen zurück 🤍",
+      "title": "Willkommen zurück",
       "signIn": "Anmelden",
       "noAccount": "Neu hier? Starte mit den 7 Fragen",
       "invalidCredentials": "E-Mail oder Passwort stimmen nicht."
@@ -149,8 +149,8 @@
     }
   },
   "home": {
-    "greeting": "Hallo 🤍",
-    "greetingName": "Hallo {name} 🤍",
+    "greeting": "Hallo",
+    "greetingName": "Hallo {name}",
     "streak": "{count} Tage",
     "streakOne": "1 Tag",
     "streakStart": "Starte deine Serie",
@@ -212,7 +212,7 @@
     "avgKcal": "Ø {kcal} kcal an Tagen mit Einträgen",
     "macroSplit": "Makro-Verteilung",
     "weekEmpty": "Diese Woche noch keine Einträge — dein Überblick entsteht hier.",
-    "consistency": "Konsistenz schlägt Perfektion 🤍",
+    "consistency": "Konsistenz schlägt Perfektion",
     "photosSection": "Progress-Fotos",
     "photosPrivate": "Nur für dich sichtbar — niemand sonst kann sie sehen. Tippen vergrößert, langes Drücken löscht ein Foto.",
     "addPhoto": "Foto hinzufügen",
@@ -275,9 +275,9 @@
     "moduleDone": "abgeschlossen",
     "moduleLocked": "öffnet nach dem vorherigen Modul",
     "moduleContinue": "weiter →",
-    "noCourses": "Dein Kurs erscheint hier, sobald Irina die ersten Module veröffentlicht. 🤍",
+    "noCourses": "Dein Kurs erscheint hier, sobald Irina die ersten Module veröffentlicht.",
     "trainingsSection": "Trainings",
-    "trainingsEmpty": "Irinas neue Trainings erscheinen hier — als Erste erfährst du es per Broadcast. 🤍",
+    "trainingsEmpty": "Irinas neue Trainings erscheinen hier — als Erste erfährst du es per Broadcast.",
     "trainingNew": "NEU",
     "trainingMinutes": "{min} min",
     "qaSection": "Frag Irina",
@@ -294,7 +294,7 @@
     "lessonCompleted": "Abgeschlossen ✓",
     "videoLoading": "Video wird geladen …",
     "videoError": "Das Video konnte nicht geladen werden. Versuch es gleich noch einmal.",
-    "irinaCardBio": "Hallo, ich bin Irina — Mama von zwei Jungs und überzeugt davon, dass Abnehmen nichts mit Hungern zu tun hat. Seit Jahren teile ich meine Rezepte, meine Trainings und meinen Alltag mit hunderttausenden Frauen — und diese App ist mein Weg, dich dabei jeden Tag persönlich zu begleiten. Schön, dass du hier bist. 🤍",
+    "irinaCardBio": "Hallo, ich bin Irina — Mama von zwei Jungs und überzeugt davon, dass Abnehmen nichts mit Hungern zu tun hat. Seit Jahren teile ich meine Rezepte, meine Trainings und meinen Alltag mit hunderttausenden Frauen — und diese App ist mein Weg, dich dabei jeden Tag persönlich zu begleiten. Schön, dass du hier bist.",
     "irinaCardInstagram": "Instagram",
     "irinaCardTiktok": "TikTok",
     "irinaCardWebsite": "Website",
