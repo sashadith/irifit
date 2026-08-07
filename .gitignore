@@ -19,3 +19,4 @@ data/legacy-import.sql
 .DS_Store
 .~lock.*
 fcm-key-temp.json
+iri-app/supabase/.temp/
