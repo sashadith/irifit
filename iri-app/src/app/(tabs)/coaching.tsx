@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -317,9 +318,11 @@ export default function CoachingScreen() {
         </Text>
         {courses.length === 0 ? (
           <GlassView contentStyle={styles.cardPad}>
-            <Text style={typography.bodyMuted}>
-              {t('coaching.noCourses')} <RoseHeart />
-            </Text>
+            <Animated.View entering={FadeInUp.duration(400)}>
+              <Text style={typography.bodyMuted}>
+                {t('coaching.noCourses')} <RoseHeart />
+              </Text>
+            </Animated.View>
           </GlassView>
         ) : (
           moduleStats.map(({ course, doneCount, total }, index) => {
@@ -395,9 +398,11 @@ export default function CoachingScreen() {
               ) : null}
               {shown.length === 0 ? (
                 <GlassView contentStyle={styles.cardPad}>
-                  <Text style={typography.bodyMuted}>
-                    {t('coaching.trainingsEmpty')} <RoseHeart />
-                  </Text>
+                  <Animated.View entering={FadeInUp.duration(400)}>
+                    <Text style={typography.bodyMuted}>
+                      {t('coaching.trainingsEmpty')} <RoseHeart />
+                    </Text>
+                  </Animated.View>
                 </GlassView>
               ) : (
                 shown.map((video) => (

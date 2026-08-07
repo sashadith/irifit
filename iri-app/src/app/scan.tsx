@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import {
   ActivityIndicator,
   Alert,
@@ -459,6 +460,7 @@ export default function ScanScreen() {
             ) : null}
           </View>
 
+          <Animated.View entering={FadeInDown.springify().damping(16).mass(0.9)}>
           <GlassView style={styles.resultCard} contentStyle={styles.cardPad}>
             {noFood ? (
               <Text style={typography.bodyMuted}>{t('scan.noFood')}</Text>
@@ -474,6 +476,7 @@ export default function ScanScreen() {
                 <View style={styles.sattRow}>
                   <SattScoreDots
                     withLabel
+                    animated
                     size={7}
                     score={sattScore({
                       kcal: totals.kcal,
@@ -537,6 +540,7 @@ export default function ScanScreen() {
               </>
             )}
           </GlassView>
+          </Animated.View>
 
           {!noFood ? (
             <>

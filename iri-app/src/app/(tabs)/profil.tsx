@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
+import * as Haptics from 'expo-haptics';
+
 import { IrinaCard } from '@/components/coaching/IrinaCard';
 import { GlassView } from '@/components/glass/GlassView';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
+import { Chip } from '@/components/ui/Chip';
 import { GhostButton } from '@/components/ui/GhostButton';
 import { GlassInput } from '@/components/ui/GlassInput';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
@@ -46,6 +49,47 @@ export default function ProfilScreen() {
     } finally {
       setSaving(false);
     }
+  };
+
+  // S16: Makro-Voreinstellungen — Anteile von kcal, umgerechnet in Gramm (4/4/9 kcal je g).
+  // „Ausgewogen" = exakt der Onboarding-Startwert (calorieGoal.ts: 23/47/30).
+  const MACRO_PRESETS = [
+    { key: 'balanced', labelKey: 'profile.macroBalanced', p: 0.23, c: 0.47, f: 0.3 },
+    { key: 'protein', labelKey: 'profile.macroProtein', p: 0.32, c: 0.38, f: 0.3 },
+    { key: 'lowcarb', labelKey: 'profile.macroLowCarb', p: 0.28, c: 0.3, f: 0.42 },
+  ] as const;
+
+  const presetGrams = (preset: (typeof MACRO_PRESETS)[number]) => {
+    const base = profile?.kcal_goal ?? 1600;
+    const round5 = (n: number) => Math.max(5, Math.round(n / 5) * 5);
+    return {
+      protein_goal_g: round5((base * preset.p) / 4),
+      carbs_goal_g: round5((base * preset.c) / 4),
+      fat_goal_g: round5((base * preset.f) / 9),
+    };
+  };
+
+  const presetActive = (preset: (typeof MACRO_PRESETS)[number]) => {
+    const g = presetGrams(preset);
+    return (
+      profile?.protein_goal_g === g.protein_goal_g &&
+      profile?.carbs_goal_g === g.carbs_goal_g &&
+      profile?.fat_goal_g === g.fat_goal_g
+    );
+  };
+
+  const applyPreset = async (preset: (typeof MACRO_PRESETS)[number]) => {
+    if (!session) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const { error } = await supabase
+      .from('profiles')
+      .update(presetGrams(preset))
+      .eq('id', session.user.id);
+    if (error) {
+      Alert.alert(t('common.error'), t('profile.saveFailed'));
+      return;
+    }
+    await refreshProfile();
   };
 
   const confirmDelete = () => {
@@ -96,6 +140,18 @@ export default function ProfilScreen() {
         />
         {!kcalValid ? <Text style={styles.hintError}>{t('profile.kcalMin')}</Text> : null}
         <Text style={styles.hint}>{t('profile.kcalHint')}</Text>
+        <Text style={styles.macroLabel}>{t('profile.macroSection')}</Text>
+        <View style={styles.macroChips}>
+          {MACRO_PRESETS.map((preset) => (
+            <Chip
+              key={preset.key}
+              label={t(preset.labelKey)}
+              selected={presetActive(preset)}
+              onPress={() => applyPreset(preset)}
+            />
+          ))}
+        </View>
+        <Text style={styles.hint}>{t('profile.macroHint')}</Text>
         {dirty ? (
           <PrimaryButton
             label={t('common.save')}
@@ -181,6 +237,20 @@ const styles = StyleSheet.create({
   },
   saveGap: {
     marginTop: 14,
+  },
+  macroLabel: {
+    fontFamily: font.bold,
+    fontSize: 11,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    color: colors.muted,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  macroChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   gap: {
     marginTop: spacing.md,

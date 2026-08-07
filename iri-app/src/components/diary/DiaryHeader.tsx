@@ -1,11 +1,52 @@
+import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import Animated, {
+  cancelAnimation,
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { GlassView } from '@/components/glass/GlassView';
 import { IriIcon } from '@/components/icons/IriIcon';
 import { RoseHeart } from '@/components/ui/RoseHeart';
 import { t } from '@/i18n';
 import { colors, font, radius, typography } from '@/theme';
+
+/** S16: Flamme atmet (Scale 1,0→1,04) — NUR bei aktiver Serie, die 0er bleibt still */
+function BreathingFlame({ active }: { active: boolean }) {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    if (active) {
+      scale.value = withRepeat(
+        withTiming(1.04, { duration: 1400, easing: Easing.inOut(Easing.sin) }),
+        -1,
+        true,
+      );
+    } else {
+      cancelAnimation(scale);
+      scale.value = 1;
+    }
+    return () => cancelAnimation(scale);
+  }, [active, scale]);
+
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  return (
+    <Animated.View style={style}>
+      <IriIcon
+        name="flame"
+        size={16}
+        color={active ? colors.tintDeep : colors.muted}
+        opacity={active ? 1 : 0.7}
+      />
+    </Animated.View>
+  );
+}
 
 const WEEKDAYS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
 const MONTHS = [
@@ -58,12 +99,7 @@ export function DiaryHeader({ date, isToday, greeting, streakCount, onShiftDate 
         </Text>
       </View>
       <GlassView borderRadius={radius.pill} contentStyle={styles.streak}>
-        <IriIcon
-          name="flame"
-          size={16}
-          color={streakCount > 0 ? colors.tintDeep : colors.muted}
-          opacity={streakCount > 0 ? 1 : 0.7}
-        />
+        <BreathingFlame active={streakCount > 0} />
         <Text style={[styles.streakText, streakCount === 0 && styles.streakStart]}>
           {streakCount === 0
             ? t('home.streakStart')

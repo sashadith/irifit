@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, { ZoomIn } from 'react-native-reanimated';
 
 import { t } from '@/i18n';
 import { colors, font } from '@/theme';
@@ -8,10 +9,12 @@ export interface SattScoreDotsProps {
   /** Mit Label „Satt-Score" davor (Detail/Scan) oder nackt (Grid-Karte) */
   readonly withLabel?: boolean;
   readonly size?: number;
+  /** S16: Punkte füllen sich nacheinander (nur im Scan-Ergebnis — Listen bleiben ruhig) */
+  readonly animated?: boolean;
 }
 
 /** ●●●●○ — Sättigung pro Kalorie (USP) */
-export function SattScoreDots({ score, withLabel = false, size = 6 }: SattScoreDotsProps) {
+export function SattScoreDots({ score, withLabel = false, size = 6, animated = false }: SattScoreDotsProps) {
   return (
     <View
       style={styles.row}
@@ -19,19 +22,17 @@ export function SattScoreDots({ score, withLabel = false, size = 6 }: SattScoreD
     >
       {withLabel ? <Text style={styles.label}>{t('recipes.sattScore')}</Text> : null}
       <View style={styles.dots}>
-        {[1, 2, 3, 4, 5].map((i) => (
-          <View
-            key={i}
-            style={[
-              {
-                width: size,
-                height: size,
-                borderRadius: size / 2,
-              },
-              i <= score ? styles.filled : styles.empty,
-            ]}
-          />
-        ))}
+        {[1, 2, 3, 4, 5].map((i) => {
+          const dotStyle = [
+            { width: size, height: size, borderRadius: size / 2 },
+            i <= score ? styles.filled : styles.empty,
+          ];
+          return animated && i <= score ? (
+            <Animated.View key={i} entering={ZoomIn.delay(200 + i * 120).springify().damping(12)} style={dotStyle} />
+          ) : (
+            <View key={i} style={dotStyle} />
+          );
+        })}
       </View>
     </View>
   );

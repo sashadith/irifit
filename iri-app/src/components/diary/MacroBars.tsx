@@ -1,4 +1,12 @@
+import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { GlassView } from '@/components/glass/GlassView';
 import { t } from '@/i18n';
@@ -17,6 +25,22 @@ export interface MacroBarsProps {
   readonly fat: { current: number; goal: number };
 }
 
+/** S16: Balken wächst von links, je Karte ~100 ms versetzt */
+function MacroFill({ ratio, color, index }: { ratio: number; color: string; index: number }) {
+  const width = useSharedValue(0);
+
+  useEffect(() => {
+    width.value = withDelay(
+      index * 100,
+      withTiming(ratio, { duration: 500, easing: Easing.out(Easing.cubic) }),
+    );
+  }, [ratio, index, width]);
+
+  const style = useAnimatedStyle(() => ({ width: `${width.value * 100}%` }));
+
+  return <Animated.View style={[styles.fill, { backgroundColor: color }, style]} />;
+}
+
 /** Drei Makro-Balken (Prototyp .macros): Carbs Gelb · Protein Rosé · Fett Türkis */
 export function MacroBars({ protein, carbs, fat }: MacroBarsProps) {
   const macros: Macro[] = [
@@ -27,7 +51,7 @@ export function MacroBars({ protein, carbs, fat }: MacroBarsProps) {
 
   return (
     <View style={styles.row}>
-      {macros.map((macro) => {
+      {macros.map((macro, index) => {
         const ratio = macro.goal > 0 ? Math.min(1, macro.current / macro.goal) : 0;
         return (
           <GlassView key={macro.label} borderRadius={radius.md} style={styles.card} contentStyle={styles.content}>
@@ -36,7 +60,7 @@ export function MacroBars({ protein, carbs, fat }: MacroBarsProps) {
               {t('home.macroValue', { current: Math.round(macro.current), goal: macro.goal })}
             </Text>
             <View style={styles.track}>
-              <View style={[styles.fill, { width: `${ratio * 100}%`, backgroundColor: macro.color }]} />
+              <MacroFill ratio={ratio} color={macro.color} index={index} />
             </View>
           </GlassView>
         );
@@ -73,6 +97,7 @@ const styles = StyleSheet.create({
     height: 5,
     borderRadius: 3,
     backgroundColor: colors.track,
+    overflow: 'hidden',
   },
   fill: {
     height: '100%',

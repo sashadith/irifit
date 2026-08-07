@@ -1,6 +1,14 @@
+import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedProps,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { colors, font, typography } from '@/theme';
 
 export interface CalorieRingProps {
@@ -14,12 +22,26 @@ export interface CalorieRingProps {
 }
 
 const STROKE = 14;
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-/** Kalorien-Ring mit Rosé-Verlauf (Prototyp: .ring) — Zahl in Italiana */
+/**
+ * Kalorien-Ring mit Rosé-Verlauf (Prototyp: .ring) — Zahl in Italiana.
+ * S16: Bogen füllt sich in ~800 ms mit Ease-out, die Zahl zählt mit;
+ * spätere Wertänderungen (Loggen) animieren vom alten Stand weiter.
+ */
 export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingProps) {
   const r = (size - STROKE * 2) / 2 + STROKE / 2 - 1;
   const c = 2 * Math.PI * r;
   const clamped = Math.min(1, Math.max(0, progress));
+  const animated = useSharedValue(0);
+
+  useEffect(() => {
+    animated.value = withTiming(clamped, { duration: 800, easing: Easing.out(Easing.cubic) });
+  }, [clamped, animated]);
+
+  const arcProps = useAnimatedProps(() => ({
+    strokeDashoffset: c * (1 - animated.value),
+  }));
 
   return (
     <View style={{ width: size, height: size }}>
@@ -38,7 +60,7 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
           </LinearGradient>
         </Defs>
         <Circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={colors.track} strokeWidth={STROKE} />
-        <Circle
+        <AnimatedCircle
           cx={size / 2}
           cy={size / 2}
           r={r}
@@ -47,11 +69,11 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
           strokeWidth={STROKE}
           strokeLinecap="round"
           strokeDasharray={c}
-          strokeDashoffset={c * (1 - clamped)}
+          animatedProps={arcProps}
         />
       </Svg>
       <View style={styles.center} pointerEvents="none">
-        <Text style={typography.displayNum}>{value.toLocaleString('de-DE')}</Text>
+        <AnimatedNumber value={value} from={0} style={typography.displayNum} />
         <Text style={styles.label}>{label}</Text>
       </View>
     </View>

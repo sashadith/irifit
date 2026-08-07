@@ -19,6 +19,9 @@ import { GlassView } from '@/components/glass/GlassView';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
 import { WeightChart } from '@/components/progress/WeightChart';
 import { Chip } from '@/components/ui/Chip';
+import Animated, { FadeInUp } from 'react-native-reanimated';
+
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { GhostButton } from '@/components/ui/GhostButton';
 import { RoseHeart } from '@/components/ui/RoseHeart';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -179,16 +182,19 @@ export default function ProgressScreen() {
             ))}
           </View>
           {weights.length === 0 ? (
-            <Text style={[typography.bodyMuted, styles.emptyText]}>{t('progress.chartEmpty')}</Text>
+            <Animated.View entering={FadeInUp.duration(400)}>
+              <Text style={[typography.bodyMuted, styles.emptyText]}>{t('progress.chartEmpty')}</Text>
+            </Animated.View>
           ) : (
             <>
               <WeightChart entries={visibleWeights} targetKg={profile?.target_weight_kg ?? null} />
               <View style={styles.weightMetaRow}>
                 {deltaKg !== null ? (
                   <Text style={styles.weightMeta}>
-                    {t('progress.sinceStart', {
-                      delta: `${deltaKg > 0 ? '+' : deltaKg < 0 ? '−' : '±'}${Math.abs(deltaKg).toLocaleString('de-DE', { minimumFractionDigits: 1 })}`,
-                    })}
+                    {t('progress.sinceStart', { delta: '\u0000' }).split('\u0000')[0]}
+                    {deltaKg > 0 ? '+' : deltaKg < 0 ? '−' : '±'}
+                    <AnimatedNumber value={Math.abs(deltaKg)} decimals={1} duration={700} style={styles.weightMeta} />
+                    {t('progress.sinceStart', { delta: '\u0000' }).split('\u0000')[1]}
                   </Text>
                 ) : <View />}
                 <Text style={styles.weightMeta}>

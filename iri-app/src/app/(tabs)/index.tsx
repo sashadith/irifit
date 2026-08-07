@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 
@@ -172,6 +173,7 @@ export default function HomeScreen() {
       ) : null}
 
       {showEmptyHint ? (
+        <Animated.View entering={FadeInUp.duration(400)}>
         <GlassView style={styles.emptyCard} contentStyle={styles.emptyContent}>
           <Text style={styles.emptyTitle}>{t('home.emptyTitle')}</Text>
           <Text style={styles.emptyText}>{t('home.emptyText')}</Text>
@@ -181,6 +183,7 @@ export default function HomeScreen() {
             style={styles.emptyCta}
           />
         </GlassView>
+        </Animated.View>
       ) : null}
 
       {SLOTS.map((slot) => (
