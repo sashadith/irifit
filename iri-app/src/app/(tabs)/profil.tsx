@@ -14,11 +14,12 @@ import { t } from '@/i18n';
 import { supabase } from '@/lib/supabase';
 import { colors, font, radius, spacing, typography } from '@/theme';
 
-// Rechtstexte — Interims-Hosting im öffentlichen legal-Bucket (Quelle: data/legal/).
+// Rechtstexte — Interims-Hosting: legal-Edge-Function serviert die Seiten aus dem
+// legal-Bucket (Storage direkt erzwingt text/plain für HTML). Quelle: data/legal/.
 // Nach juristischer Prüfung ziehen die Texte auf irinaskorik.com um → nur diese
 // beiden Konstanten + die URL in der Play Console anpassen.
-const PRIVACY_URL = 'https://mzzonwvbacxlpwsmefrn.supabase.co/storage/v1/object/public/legal/datenschutz.html';
-const TERMS_URL = 'https://mzzonwvbacxlpwsmefrn.supabase.co/storage/v1/object/public/legal/agb.html';
+const PRIVACY_URL = 'https://mzzonwvbacxlpwsmefrn.supabase.co/functions/v1/legal/datenschutz';
+const TERMS_URL = 'https://mzzonwvbacxlpwsmefrn.supabase.co/functions/v1/legal/agb';
 
 /** Profil & Einstellungen (Session 15): Konto, Erinnerungen, Irinas Ecke, Recht */
 export default function ProfilScreen() {
