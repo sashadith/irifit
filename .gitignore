@@ -18,3 +18,4 @@ data/legacy-import.sql
 # System & Editor
 .DS_Store
 .~lock.*
+fcm-key-temp.json

@@ -12,7 +12,9 @@
     "skip": "Überspringen",
     "error": "Ups, das hat nicht geklappt",
     "loading": "Einen Moment …",
-    "close": "Schließen"
+    "close": "Schließen",
+    "save": "Speichern",
+    "cancel": "Abbrechen"
   },
   "onboarding": {
     "stepLabel": "Schritt {step} von 7",
@@ -327,9 +329,28 @@
   },
   "profile": {
     "title": "Dein Profil",
-    "placeholder": "Einstellungen & Konto folgen in Session 15.",
+    "accountSection": "Dein Konto",
+    "firstName": "Vorname",
+    "kcalGoal": "Kalorienziel pro Tag",
+    "kcalHint": "Dein Ziel gehört dir — du kannst es jederzeit anpassen. Unter 1.200 kcal gehen wir nicht, dein Körper braucht seine Basis.",
+    "kcalMin": "Bitte mindestens 1.200 kcal — weniger wäre keine gute Idee.",
+    "saveFailed": "Speichern hat nicht geklappt — probier es gleich nochmal.",
     "reminders": "Erinnerungen",
-    "signOut": "Abmelden"
+    "irinaSection": "Irinas Ecke",
+    "aboutIrina": "Über Irina",
+    "askIrina": "Frag Irina — deine Frage stellen",
+    "legalSection": "Rechtliches",
+    "privacy": "Datenschutzerklärung",
+    "terms": "AGB",
+    "signOut": "Abmelden",
+    "deleteAccount": "Konto endgültig löschen",
+    "deleteTitle": "Konto löschen?",
+    "deleteBody": "Damit werden dein Konto und alle deine Daten dauerhaft gelöscht — Tagebuch, Gewichtsverlauf, Fotos, alles. Das lässt sich nicht rückgängig machen. Ein laufendes Abo kündigst du zusätzlich im Play Store bzw. App Store.",
+    "deleteConfirm1": "Weiter zur Löschung",
+    "deleteTitle2": "Ganz sicher?",
+    "deleteBody2": "Letzte Frage, versprochen: Sollen wirklich alle deine Daten unwiderruflich gelöscht werden?",
+    "deleteConfirm2": "Ja, alles löschen",
+    "deleteFailed": "Löschen hat nicht geklappt — probier es gleich nochmal oder melde dich bei uns."
   },
   "scan": {
     "eyebrow": "AI-Scan",
