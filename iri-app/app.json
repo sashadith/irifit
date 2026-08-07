@@ -8,6 +8,7 @@
     "scheme": "iri",
     "userInterfaceStyle": "light",
     "ios": {
+      "bundleIdentifier": "com.irinadith.irifit",
       "icon": "./assets/expo.icon"
     },
     "android": {
