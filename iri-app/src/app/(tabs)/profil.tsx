@@ -14,9 +14,11 @@ import { t } from '@/i18n';
 import { supabase } from '@/lib/supabase';
 import { colors, font, radius, spacing, typography } from '@/theme';
 
-// Rechtstexte — gehostet auf Irinas Website (Sascha pflegt die Seiten dort)
-const PRIVACY_URL = 'https://irinaskorik.com/irifit/datenschutz';
-const TERMS_URL = 'https://irinaskorik.com/irifit/agb';
+// Rechtstexte — Interims-Hosting im öffentlichen legal-Bucket (Quelle: data/legal/).
+// Nach juristischer Prüfung ziehen die Texte auf irinaskorik.com um → nur diese
+// beiden Konstanten + die URL in der Play Console anpassen.
+const PRIVACY_URL = 'https://mzzonwvbacxlpwsmefrn.supabase.co/storage/v1/object/public/legal/datenschutz.html';
+const TERMS_URL = 'https://mzzonwvbacxlpwsmefrn.supabase.co/storage/v1/object/public/legal/agb.html';
 
 /** Profil & Einstellungen (Session 15): Konto, Erinnerungen, Irinas Ecke, Recht */
 export default function ProfilScreen() {
