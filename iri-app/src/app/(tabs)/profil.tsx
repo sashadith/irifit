@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
 import { useRouter } from 'expo-router';
 
 import { IrinaCard } from '@/components/coaching/IrinaCard';
@@ -13,13 +12,6 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { t } from '@/i18n';
 import { supabase } from '@/lib/supabase';
 import { colors, font, radius, spacing, typography } from '@/theme';
-
-// Rechtstexte — Interims-Hosting: legal-Edge-Function serviert die Seiten aus dem
-// legal-Bucket (Storage direkt erzwingt text/plain für HTML). Quelle: data/legal/.
-// Nach juristischer Prüfung ziehen die Texte auf irinaskorik.com um → nur diese
-// beiden Konstanten + die URL in der Play Console anpassen.
-const PRIVACY_URL = 'https://mzzonwvbacxlpwsmefrn.supabase.co/functions/v1/legal/datenschutz';
-const TERMS_URL = 'https://mzzonwvbacxlpwsmefrn.supabase.co/functions/v1/legal/agb';
 
 /** Profil & Einstellungen (Session 15): Konto, Erinnerungen, Irinas Ecke, Recht */
 export default function ProfilScreen() {
@@ -136,12 +128,12 @@ export default function ProfilScreen() {
         <GhostButton
           label={t('profile.privacy')}
           small
-          onPress={() => WebBrowser.openBrowserAsync(PRIVACY_URL)}
+          onPress={() => router.push('/legal?doc=privacy')}
         />
         <GhostButton
           label={t('profile.terms')}
           small
-          onPress={() => WebBrowser.openBrowserAsync(TERMS_URL)}
+          onPress={() => router.push('/legal?doc=terms')}
           style={styles.smallGap}
         />
       </GlassView>

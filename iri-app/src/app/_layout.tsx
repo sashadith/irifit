@@ -50,6 +50,7 @@ export default function RootLayout() {
         <Stack.Screen name="food-search" options={{ presentation: 'modal' }} />
         <Stack.Screen name="progress" />
         <Stack.Screen name="reminders" />
+        <Stack.Screen name="legal" />
         <Stack.Screen name="recipe/[id]" />
         <Stack.Screen name="shopping-list" options={{ presentation: 'modal' }} />
         <Stack.Screen name="legacy" />
