@@ -10,7 +10,10 @@
     "ios": {
       "bundleIdentifier": "com.irinadith.irifit",
       "buildNumber": "1",
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "googleServicesFile": "./google-services.json",
