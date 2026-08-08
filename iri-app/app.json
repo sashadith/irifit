@@ -9,6 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.irinadith.irifit",
+      "buildNumber": "1",
       "icon": "./assets/expo.icon"
     },
     "android": {
