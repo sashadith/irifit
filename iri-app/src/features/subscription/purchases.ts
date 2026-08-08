@@ -13,8 +13,7 @@ import { supabase } from '@/lib/supabase';
  */
 
 const ANDROID_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY;
-// iOS folgt nach der Apple-Freischaltung (S17): EXPO_PUBLIC_REVENUECAT_IOS_KEY
-const IOS_KEY: string | undefined = undefined;
+const IOS_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY;
 
 export const ENTITLEMENT_ID = 'pro';
 
