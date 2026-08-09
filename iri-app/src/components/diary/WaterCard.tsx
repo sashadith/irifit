@@ -36,11 +36,14 @@ const WATER_TOP = 9; // Wasseroberfläche (≈ 76 % gefüllt)
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-/** S18: aufsteigende Bläschen — Position/Größe fix, damit sie nicht zappeln */
+/**
+ * S18: aufsteigende Bläschen — Position/Größe fix, damit sie nicht zappeln.
+ * Bewusst nur ZWEI und nur im zuletzt gefüllten Glas (siehe WaterCard): 3 Bläschen
+ * mal 8 Gläser waren 24 Dauer-Animationen und haben die App spürbar ausgebremst.
+ */
 const BUBBLES = [
-  { x: 10, r: 1.6, delay: 0, duration: 4200 },
-  { x: 20, r: 1.1, delay: 1600, duration: 5200 },
-  { x: 26, r: 1.4, delay: 3000, duration: 4600 },
+  { x: 11, r: 1.5, delay: 0, duration: 4600 },
+  { x: 23, r: 1.1, delay: 2100, duration: 5400 },
 ] as const;
 
 /** Ein Bläschen: steigt von der Glasunterkante zur Wasseroberfläche und verblasst */
@@ -63,40 +66,49 @@ function Bubble({ x, r, delay, duration }: { x: number; r: number; delay: number
   return <AnimatedCircle cx={x} r={r} fill="rgba(255,255,255,0.75)" animatedProps={props} />;
 }
 
+/** Stützpunkte der Welle — 6 reichen für die Optik, jeder kostet Rechenzeit pro Bild */
+const WAVE_STEPS = 6;
+
 /**
  * S16: Wasseroberfläche als langsam schwappende Sinus-Welle (3,5-s-Loop).
- * amplitude ist je Karte geteilt — ein Tap lässt ALLE Gläser kurz nachschwappen.
+ * amplitude UND phase kommen von der Karte — ein Tap lässt ALLE Gläser
+ * nachschwappen, und es läuft nur EIN Zeitgeber statt einem pro Glas
+ * (Befund 09.08.: acht parallele Loops waren spürbare Dauerlast).
  */
-function WaveGlass({ amplitude, index }: { amplitude: SharedValue<number>; index: number }) {
-  const phase = useSharedValue(0);
-
-  useEffect(() => {
-    // 0→2π linear wiederholt = nahtloser Loop (Sinus ist periodisch)
-    phase.value = withRepeat(
-      withTiming(Math.PI * 2, { duration: 3500, easing: Easing.linear }),
-      -1,
-    );
-  }, [phase]);
-
+function WaveGlass({
+  amplitude,
+  phase,
+  index,
+  withBubbles,
+}: {
+  amplitude: SharedValue<number>;
+  phase: SharedValue<number>;
+  index: number;
+  withBubbles: boolean;
+}) {
   const pathProps = useAnimatedProps(() => {
     'worklet';
-    const points: string[] = [];
-    for (let i = 0; i <= 10; i += 1) {
-      const x = (GLASS_W / 10) * i;
+    let d = `M0,${GLASS_H}`;
+    for (let i = 0; i <= WAVE_STEPS; i += 1) {
+      const x = (GLASS_W / WAVE_STEPS) * i;
       // Nachbargläser leicht versetzt (index*0.9) — wirkt natürlicher als Gleichtakt
-      const y = WATER_TOP + Math.sin(phase.value + (x / GLASS_W) * Math.PI * 1.6 + index * 0.9) * amplitude.value;
-      points.push(`L${x.toFixed(1)},${y.toFixed(1)}`);
+      const y =
+        WATER_TOP +
+        Math.sin(phase.value + (x / GLASS_W) * Math.PI * 1.6 + index * 0.9) * amplitude.value;
+      d += ` L${x.toFixed(1)},${y.toFixed(1)}`;
     }
-    return { d: `M0,${GLASS_H} ${points.join(' ')} L${GLASS_W},${GLASS_H} Z` };
+    return { d: `${d} L${GLASS_W},${GLASS_H} Z` };
   });
 
   return (
     <View style={[styles.glass, styles.glassWater]}>
       <Svg width="100%" height="100%" viewBox={`0 0 ${GLASS_W} ${GLASS_H}`} preserveAspectRatio="none">
         <AnimatedPath animatedProps={pathProps} fill="rgba(98,186,208,0.88)" />
-        {BUBBLES.map((b, i) => (
-          <Bubble key={i} x={b.x} r={b.r} delay={b.delay + index * 400} duration={b.duration} />
-        ))}
+        {withBubbles
+          ? BUBBLES.map((b, i) => (
+              <Bubble key={i} x={b.x} r={b.r} delay={b.delay} duration={b.duration} />
+            ))
+          : null}
       </Svg>
     </View>
   );
@@ -110,6 +122,16 @@ export function WaterCard({ currentMl, goalMl, glassMl, onSetAmount }: WaterCard
   const glassCount = Math.max(1, Math.round(goalMl / glassMl));
   const filled = Math.round(currentMl / glassMl);
   const amplitude = useSharedValue(1.6);
+  const phase = useSharedValue(0);
+
+  // EIN Zeitgeber für alle Gläser: 0→2π linear wiederholt = nahtloser Loop
+  useEffect(() => {
+    phase.value = withRepeat(
+      withTiming(Math.PI * 2, { duration: 3500, easing: Easing.linear }),
+      -1,
+    );
+    return () => cancelAnimation(phase);
+  }, [phase]);
 
   const tapGlass = (index: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -147,7 +169,12 @@ export function WaterCard({ currentMl, goalMl, glassMl, onSetAmount }: WaterCard
               style={styles.glassSlot}
             >
               {isFull ? (
-                <WaveGlass amplitude={amplitude} index={i} />
+                <WaveGlass
+                  amplitude={amplitude}
+                  phase={phase}
+                  index={i}
+                  withBubbles={i === filled - 1}
+                />
               ) : (
                 <View style={[styles.glass, styles.glassEmpty]} />
               )}
