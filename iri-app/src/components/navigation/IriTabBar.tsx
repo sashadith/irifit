@@ -1,8 +1,9 @@
-import { ComponentProps, Fragment } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { ComponentProps, Fragment, useEffect, useRef, useState } from 'react';
+import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { Tabs, useRouter } from 'expo-router';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassView } from '@/components/glass/GlassView';
@@ -21,10 +22,47 @@ const TAB_META: Record<string, { icon: IriIconName; labelKey: TranslationKey }> 
 type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 
 /** Schwebende Glas-Pill mit zentralem Rosé-Plus (öffnet den Eintragen-Flow) */
+const BUBBLE_W = 62;
+const BUBBLE_H = 54;
+
 export function IriTabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const centerIndex = Math.ceil(state.routes.length / 2);
+
+  // Liquid-Glass-Blase gleitet zum aktiven Tab (Wunsch Sascha 09.08.).
+  // Tab-Positionen kommen aus onLayout; erster Stand ohne Animation.
+  const tabX = useRef<Record<number, number>>({});
+  const bubbleX = useSharedValue(-999);
+  const placed = useRef(false);
+  const [, forceRender] = useState(0);
+
+  const placeBubble = (index: number) => {
+    const x = tabX.current[index];
+    if (x == null) return;
+    const target = x - (BUBBLE_W - 56) / 2;
+    if (!placed.current) {
+      bubbleX.value = target;
+      placed.current = true;
+    } else {
+      bubbleX.value = withSpring(target, { damping: 16, stiffness: 180 });
+    }
+  };
+
+  const onTabLayout = (index: number) => (e: LayoutChangeEvent) => {
+    tabX.current[index] = e.nativeEvent.layout.x;
+    if (index === state.index) placeBubble(index);
+    forceRender((n) => n + 1);
+  };
+
+  useEffect(() => {
+    placeBubble(state.index);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.index]);
+
+  const bubbleStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: bubbleX.value }],
+  }));
 
   const onPlus = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -37,6 +75,13 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
       style={[styles.bar, { bottom: Math.max(22, insets.bottom + 6) }]}
       contentStyle={styles.row}
     >
+      {/* Gleitende Glas-Blase hinter dem aktiven Tab */}
+      {/* Kein natives Glas IN Glas — Apple rendert verschachtelte
+          UIGlassEffects nicht (Befund 09.08.). Die Blase ist deshalb eine
+          klassische Rose-Linse mit Lichtkante, wirkt auf der Glas-Bar identisch. */}
+      <Animated.View pointerEvents="none" style={[styles.bubble, bubbleStyle]}>
+        <View style={[styles.bubbleFill, styles.bubbleFallback]} />
+      </Animated.View>
       {state.routes.map((route, index) => {
         const meta = TAB_META[route.name];
         if (!meta) return null;
@@ -77,6 +122,7 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
               accessibilityLabel={t(meta.labelKey)}
               accessibilityState={{ selected: focused }}
               onPress={onPress}
+              onLayout={onTabLayout(index)}
               style={styles.tab}
             >
               <IriIcon
@@ -119,6 +165,23 @@ const styles = StyleSheet.create({
     width: 56,
     alignItems: 'center',
     gap: 2,
+  },
+  bubble: {
+    position: 'absolute',
+    left: 0,
+    top: (70 - BUBBLE_H) / 2,
+    width: BUBBLE_W,
+    height: BUBBLE_H,
+  },
+  bubbleFill: {
+    flex: 1,
+    borderRadius: BUBBLE_H / 2,
+    overflow: 'hidden',
+  },
+  bubbleFallback: {
+    backgroundColor: 'rgba(232,127,156,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.8)',
   },
   plusWrap: {
     ...tintShadow,

@@ -14,7 +14,7 @@ import { blurIntensity, colors, glassShadow, radius } from '@/theme';
  * Android/aelterem iOS liefert isLiquidGlassAvailable() false — dann greift
  * der bisherige Blur- bzw. Pastell-Fallback. Einmal beim Start ausgewertet.
  */
-const APPLE_GLASS = (() => {
+export const appleGlassAvailable = (() => {
   try {
     return isLiquidGlassAvailable();
   } catch {
@@ -70,14 +70,14 @@ export function GlassView({
       : colors.glass
     : androidFill(depth, strong);
 
-  if (APPLE_GLASS) {
+  if (appleGlassAvailable) {
     // Echtes UIGlassEffect: kein eigenes Blur/Fill noetig — nur ein hauchduenner
     // Rose-Schleier, damit die Panels im IriFit-Ton bleiben statt neutralgrau.
     return (
       <View style={[shadow && glassShadow, { borderRadius }, style]}>
         <AppleGlassView
           glassEffectStyle={strong ? 'regular' : 'clear'}
-          tintColor={strong ? 'rgba(255,252,253,0.72)' : 'rgba(255,250,252,0.45)'}
+          tintColor={strong ? 'rgba(255,252,253,0.82)' : 'rgba(255,250,252,0.62)'} // milchiger (Sascha 09.08.)
           colorScheme="light"
           style={[styles.clip, { borderRadius }]}
         >
