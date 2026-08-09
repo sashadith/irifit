@@ -727,7 +727,7 @@ const styles = StyleSheet.create({
     color: colors.tintDeep,
   },
   shareBrandFit: {
-    color: colors.muted,
+    color: '#675C6C', // Marken-Grau (dunkler als muted — Sascha 09.08.)
   },
   shareBrandLine: {
     alignSelf: 'stretch',
@@ -737,9 +737,10 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   shareSlogan: {
-    fontFamily: font.semibold,
-    fontSize: 9.5,
-    color: colors.muted,
+    fontFamily: font.display,
+    fontSize: 10,
+    letterSpacing: 0.3,
+    color: '#675C6C', // Marken-Grau wie „Fit"
     marginTop: 1,
   },
   shareButton: {
