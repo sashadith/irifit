@@ -20,7 +20,7 @@ import { initSounds } from '@/features/sound/sounds';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     DancingScript_600SemiBold,
     Italiana_400Regular,
     Manrope_400Regular,
@@ -31,17 +31,25 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
+    if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, fontError]);
+
+  // Failsafe (Befund 09.08., iOS hing im Splash): Egal was beim Start klemmt —
+  // nach 5 s wird der Splash zwangsweise entfernt, damit ein Fehler sichtbar
+  // wird statt als eingefrorenes Startbild zu erscheinen.
+  useEffect(() => {
+    const timer = setTimeout(() => SplashScreen.hideAsync(), 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Ton-Einstellung einmal laden (S18)
   useEffect(() => {
     initSounds();
   }, []);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded && !fontError) {
     return null;
   }
 
