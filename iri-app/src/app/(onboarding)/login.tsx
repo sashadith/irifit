@@ -3,6 +3,7 @@ import { Alert, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'r
 import { useRouter } from 'expo-router';
 
 import { ScreenScaffold } from '@/components/ScreenScaffold';
+import { AppleLogo } from '@/components/icons/AppleLogo';
 import { GoogleLogo } from '@/components/icons/GoogleLogo';
 import { GhostButton } from '@/components/ui/GhostButton';
 import { GlassInput } from '@/components/ui/GlassInput';
@@ -96,7 +97,11 @@ export default function LoginScreen() {
         />
         <Text style={styles.divider}>{t('onboarding.account.orWith')}</Text>
         {Platform.OS === 'ios' ? (
-          <GhostButton label={t('onboarding.account.apple')} onPress={() => oauth('apple')} />
+          <GhostButton
+            label={t('onboarding.account.apple')}
+            icon={<AppleLogo />}
+            onPress={() => oauth('apple')}
+          />
         ) : null}
         <GhostButton
           label={t('onboarding.account.google')}

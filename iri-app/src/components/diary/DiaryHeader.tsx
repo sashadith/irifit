@@ -64,7 +64,6 @@ export interface DiaryHeaderProps {
 
 /** Kopfbereich: blätterbares Datum, Begrüßung, Streak-Flamme (Prototyp s-home) */
 export function DiaryHeader({ date, isToday, greeting, streakCount, onShiftDate }: DiaryHeaderProps) {
-  const dateLabel = `${WEEKDAYS[date.getDay()]}, ${date.getDate()}. ${MONTHS[date.getMonth()]}`;
 
   const shift = (days: number) => {
     Haptics.selectionAsync();
@@ -83,7 +82,13 @@ export function DiaryHeader({ date, isToday, greeting, streakCount, onShiftDate 
           >
             <Text style={styles.chevron}>‹</Text>
           </Pressable>
-          <Text style={typography.eyebrow}>{dateLabel}</Text>
+          {/* S18: Datum als kleines Glas-Kästchen — der Tag in Italiana wie die
+              großen Zahlen der App, statt anonymer Versalien-Zeile */}
+          <GlassView borderRadius={radius.md} contentStyle={styles.dateCard}>
+            <Text style={styles.weekday}>{WEEKDAYS[date.getDay()].slice(0, 2).toUpperCase()}</Text>
+            <Text style={styles.dayNumber}>{date.getDate()}</Text>
+            <Text style={styles.month}>{MONTHS[date.getMonth()]}</Text>
+          </GlassView>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('common.next')}
@@ -126,6 +131,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  dateCard: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  weekday: {
+    fontFamily: font.bold,
+    fontSize: 10,
+    letterSpacing: 1,
+    color: colors.muted,
+  },
+  dayNumber: {
+    fontFamily: font.display,
+    fontSize: 22,
+    lineHeight: 26,
+    color: colors.ink,
+  },
+  month: {
+    fontFamily: font.semibold,
+    fontSize: 12.5,
+    color: colors.muted,
   },
   chevron: {
     fontFamily: font.bold,

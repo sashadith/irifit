@@ -28,6 +28,7 @@ import { IriIcon } from '@/components/icons/IriIcon';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { FoodSheet } from '@/components/food/FoodSheet';
 import { SattScoreDots } from '@/components/recipes/SattScoreDots';
+import { playSound } from '@/features/sound/sounds';
 import { sattScore } from '@/features/recipes/sattScore';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { MealSlot } from '@/features/diary/useDiaryDay';
@@ -119,6 +120,7 @@ export default function ScanScreen() {
       setIngredients(response.result.ingredients);
       setPhase('result');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      playSound('scan');
     } catch (e) {
       const code = e instanceof ScanError ? e.code : 'unknown';
       if (code === 'fair_use_exceeded') {

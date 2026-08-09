@@ -23,13 +23,24 @@ export default function ProfilScreen() {
   const [showIrina, setShowIrina] = useState(false);
   const [name, setName] = useState(profile?.display_name ?? '');
   const [kcal, setKcal] = useState(profile?.kcal_goal ? String(profile.kcal_goal) : '');
+  const [birthYear, setBirthYear] = useState(profile?.birth_year ? String(profile.birth_year) : '');
+  const [startWeight, setStartWeight] = useState(
+    profile?.start_weight_kg != null ? String(profile.start_weight_kg) : '',
+  );
+  const [targetWeight, setTargetWeight] = useState(
+    profile?.target_weight_kg != null ? String(profile.target_weight_kg) : '',
+  );
   const [saving, setSaving] = useState(false);
 
   const kcalNum = Number.parseInt(kcal, 10);
   const kcalValid = !kcal || (Number.isFinite(kcalNum) && kcalNum >= 1200 && kcalNum <= 10000);
+  const num = (v: string) => (v.trim() === '' ? null : Number(v.replace(',', '.')));
   const dirty =
     name.trim() !== (profile?.display_name ?? '') ||
-    (kcal !== '' && kcalNum !== profile?.kcal_goal);
+    (kcal !== '' && kcalNum !== profile?.kcal_goal) ||
+    num(birthYear) !== (profile?.birth_year ?? null) ||
+    num(startWeight) !== (profile?.start_weight_kg ?? null) ||
+    num(targetWeight) !== (profile?.target_weight_kg ?? null);
 
   const save = async () => {
     if (!session || !kcalValid) return;
@@ -40,6 +51,9 @@ export default function ProfilScreen() {
         .update({
           display_name: name.trim() || null,
           ...(kcal !== '' ? { kcal_goal: kcalNum } : {}),
+          birth_year: num(birthYear),
+          start_weight_kg: num(startWeight),
+          target_weight_kg: num(targetWeight),
         })
         .eq('id', session.user.id);
       if (error) throw error;
@@ -140,6 +154,37 @@ export default function ProfilScreen() {
         />
         {!kcalValid ? <Text style={styles.hintError}>{t('profile.kcalMin')}</Text> : null}
         <Text style={styles.hint}>{t('profile.kcalHint')}</Text>
+
+        <View style={styles.twoCol}>
+          <View style={styles.col}>
+            <GlassInput
+              label={t('profile.birthYear')}
+              value={birthYear}
+              onChangeText={setBirthYear}
+              keyboardType="number-pad"
+              placeholder="1990"
+            />
+          </View>
+          <View style={styles.col}>
+            <GlassInput
+              label={t('profile.startWeight')}
+              value={startWeight}
+              onChangeText={setStartWeight}
+              keyboardType="decimal-pad"
+              unit="kg"
+              placeholder="74"
+            />
+          </View>
+        </View>
+        <GlassInput
+          label={t('profile.targetWeight')}
+          value={targetWeight}
+          onChangeText={setTargetWeight}
+          keyboardType="decimal-pad"
+          unit="kg"
+          placeholder="68"
+        />
+        <Text style={styles.hint}>{t('profile.bodyHint')}</Text>
         <Text style={styles.macroLabel}>{t('profile.macroSection')}</Text>
         <View style={styles.macroChips}>
           {MACRO_PRESETS.map((preset) => (
@@ -163,6 +208,11 @@ export default function ProfilScreen() {
         ) : null}
       </GlassView>
 
+      <GlassView borderRadius={radius.md} contentStyle={styles.card} style={styles.gap}>
+        <Text style={styles.sectionTitle}>{t('profile.kcalExplainTitle')}</Text>
+        <Text style={[typography.bodyMuted, styles.explain]}>{t('profile.kcalExplain')}</Text>
+      </GlassView>
+
       <GhostButton
         label={t('profile.reminders')}
         onPress={() => router.push('/reminders')}
@@ -180,7 +230,10 @@ export default function ProfilScreen() {
       </GlassView>
 
       <GlassView borderRadius={radius.md} contentStyle={styles.card} style={styles.gap}>
-        <Text style={styles.sectionTitle}>{t('profile.legalSection')}</Text>
+        <View style={styles.legalHead}>
+          <Text style={styles.paragraph}>§</Text>
+          <Text style={[styles.sectionTitle, styles.noGap]}>{t('profile.legalSection')}</Text>
+        </View>
         <GhostButton
           label={t('profile.privacy')}
           small
@@ -249,8 +302,34 @@ const styles = StyleSheet.create({
   },
   macroChips: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 8,
+  },
+  twoCol: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 4,
+  },
+  col: {
+    flex: 1,
+  },
+  explain: {
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  noGap: {
+    marginBottom: 0,
+  },
+  legalHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  paragraph: {
+    fontFamily: font.display,
+    fontSize: 26,
+    lineHeight: 30,
+    color: colors.tintDeep,
   },
   gap: {
     marginTop: spacing.md,

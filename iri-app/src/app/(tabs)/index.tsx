@@ -17,6 +17,7 @@ import { SattScoreDots } from '@/components/recipes/SattScoreDots';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { FoodLog, MealSlot, toIsoDate, useDiaryDay } from '@/features/diary/useDiaryDay';
 import { markPushOffered, registerForPush, shouldOfferPush } from '@/features/notifications/push';
+import { playSound } from '@/features/sound/sounds';
 import { updateStreak } from '@/features/progress/streak';
 import { fetchRecipes, RecipeListItem } from '@/features/recipes/recipesData';
 import { recipeSattScore } from '@/features/recipes/sattScore';
@@ -82,7 +83,10 @@ export default function HomeScreen() {
       loadWeight();
       if (session) {
         updateStreak(session.user.id).then((changed) => {
-          if (changed) refreshProfile().catch(() => {});
+          if (changed) {
+            playSound('streak'); // Serie gewachsen — kleiner Moment der Freude
+            refreshProfile().catch(() => {});
+          }
         });
       }
     }, [diary.refresh, loadWeight, session?.user.id, refreshProfile]),

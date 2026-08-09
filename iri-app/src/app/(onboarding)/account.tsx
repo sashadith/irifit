@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 
 import { GlassView } from '@/components/glass/GlassView';
+import { AppleLogo } from '@/components/icons/AppleLogo';
 import { GoogleLogo } from '@/components/icons/GoogleLogo';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
 import { GhostButton } from '@/components/ui/GhostButton';
@@ -179,7 +180,11 @@ export default function AccountScreen() {
 
         <Text style={styles.divider}>{t('onboarding.account.orWith')}</Text>
         {Platform.OS === 'ios' ? (
-          <GhostButton label={t('onboarding.account.apple')} onPress={() => oauth('apple')} />
+          <GhostButton
+            label={t('onboarding.account.apple')}
+            icon={<AppleLogo />}
+            onPress={() => oauth('apple')}
+          />
         ) : null}
         <GhostButton
           label={t('onboarding.account.google')}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Image,
@@ -13,6 +13,8 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
+import * as Sharing from 'expo-sharing';
+import ViewShot from 'react-native-view-shot';
 import { useRouter } from 'expo-router';
 
 import { GlassView } from '@/components/glass/GlassView';
@@ -164,6 +166,22 @@ export default function ProgressScreen() {
     latestWeight !== null && profile?.start_weight_kg != null
       ? Math.round((latestWeight - profile.start_weight_kg) * 10) / 10
       : null;
+  const shotRef = useRef<ViewShot>(null);
+
+  const shareProgress = async () => {
+    try {
+      const uri = await shotRef.current?.capture?.();
+      if (!uri) return;
+      if (!(await Sharing.isAvailableAsync())) return;
+      await Sharing.shareAsync(uri, {
+        mimeType: 'image/png',
+        dialogTitle: t('progress.shareTitle'),
+      });
+    } catch {
+      Alert.alert(t('common.error'), t('progress.shareFailed'));
+    }
+  };
+
   const first = photos[0];
   const last = photos.length > 1 ? photos[photos.length - 1] : null;
 
@@ -289,20 +307,44 @@ export default function ProgressScreen() {
         <GlassView contentStyle={styles.cardPad}>
           <Text style={[typography.bodyMuted, styles.privateHint]}>{t('progress.photosPrivate')}</Text>
           {first && last ? (
-            <View style={styles.compareRow}>
-              <View style={styles.compareCol}>
-                <Image source={{ uri: first.signedUrl }} style={styles.comparePhoto} />
-                <Text style={styles.compareLabel}>
-                  {t('progress.compareBefore')} · {formatDate(first.taken_on)}
-                </Text>
-              </View>
-              <View style={styles.compareCol}>
-                <Image source={{ uri: last.signedUrl }} style={styles.comparePhoto} />
-                <Text style={styles.compareLabel}>
-                  {t('progress.compareAfter')} · {formatDate(last.taken_on)}
-                </Text>
-              </View>
-            </View>
+            <>
+              {/* Aufnahmefläche fürs Teilen: eigene Marken-Karte, nicht der Screen */}
+              <ViewShot ref={shotRef} options={{ format: 'png', quality: 0.95 }}>
+                <View style={styles.shareCard}>
+                  <View style={styles.compareRow}>
+                    <View style={styles.compareCol}>
+                      <Image source={{ uri: first.signedUrl }} style={styles.comparePhoto} />
+                      <Text style={styles.compareLabel}>
+                        {t('progress.compareBefore')} · {formatDate(first.taken_on)}
+                      </Text>
+                    </View>
+                    <View style={styles.compareCol}>
+                      <Image source={{ uri: last.signedUrl }} style={styles.comparePhoto} />
+                      <Text style={styles.compareLabel}>
+                        {t('progress.compareAfter')} · {formatDate(last.taken_on)}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.shareFooter}>
+                    <View>
+                      {deltaKg !== null ? (
+                        <Text style={styles.shareDelta}>
+                          {deltaKg > 0 ? '+' : deltaKg < 0 ? '−' : '±'}
+                          {Math.abs(deltaKg).toLocaleString('de-DE', { minimumFractionDigits: 1 })} kg
+                        </Text>
+                      ) : null}
+                      <Text style={styles.shareSince}>{t('progress.shareSince')}</Text>
+                    </View>
+                    <Text style={styles.shareBrand}>IriFit</Text>
+                  </View>
+                </View>
+              </ViewShot>
+              <GhostButton
+                label={t('progress.share')}
+                onPress={shareProgress}
+                style={styles.shareButton}
+              />
+            </>
           ) : null}
           <View style={styles.photoGrid}>
             {photos.map((photo) => (
@@ -579,6 +621,36 @@ const styles = StyleSheet.create({
     fontFamily: font.bold,
     fontSize: 13,
     color: '#FF7A8F',
+  },
+  shareCard: {
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    padding: 14,
+  },
+  shareFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginTop: 12,
+  },
+  shareDelta: {
+    fontFamily: font.display,
+    fontSize: 30,
+    lineHeight: 34,
+    color: colors.tintDeep,
+  },
+  shareSince: {
+    fontFamily: font.semibold,
+    fontSize: 11,
+    color: colors.muted,
+  },
+  shareBrand: {
+    fontFamily: font.display,
+    fontSize: 22,
+    color: colors.ink,
+  },
+  shareButton: {
+    marginTop: 12,
   },
   compareRow: {
     flexDirection: 'row',

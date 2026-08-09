@@ -15,6 +15,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import { AuthProvider } from '@/features/auth/AuthProvider';
 import { NotificationObserver } from '@/features/notifications/NotificationObserver';
+import { initSounds } from '@/features/sound/sounds';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,6 +35,11 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
+
+  // Ton-Einstellung einmal laden (S18)
+  useEffect(() => {
+    initSounds();
+  }, []);
 
   if (!fontsLoaded) {
     return null;

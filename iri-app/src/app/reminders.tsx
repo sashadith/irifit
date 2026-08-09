@@ -9,6 +9,7 @@ import { Chip } from '@/components/ui/Chip';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Profile, useAuth } from '@/features/auth/AuthProvider';
 import { registerForPush } from '@/features/notifications/push';
+import { isSoundEnabled, playSound, setSoundEnabled } from '@/features/sound/sounds';
 import { t } from '@/i18n';
 import { supabase } from '@/lib/supabase';
 import { colors, font, radius, spacing, typography } from '@/theme';
@@ -25,6 +26,7 @@ const EVENING_PRESETS: (string | null)[] = [null, '17:30', '18:00', '18:30', '19
 export default function RemindersScreen() {
   const { session, profile, refreshProfile } = useAuth();
   const [granted, setGranted] = useState<boolean | null>(null);
+  const [soundOn, setSoundOn] = useState(true);
   const [prefs, setPrefs] = useState<Record<PrefKey, boolean>>({
     push_meal_evening: profile?.push_meal_evening ?? true,
     push_water: profile?.push_water ?? true,
@@ -38,6 +40,7 @@ export default function RemindersScreen() {
 
   useEffect(() => {
     Notifications.getPermissionsAsync().then(({ status }) => setGranted(status === 'granted'));
+    isSoundEnabled().then(setSoundOn);
   }, []);
 
   const save = async (patch: Partial<Record<string, unknown>>) => {
@@ -113,6 +116,28 @@ export default function RemindersScreen() {
               onPress={() => pickTime(preset)}
             />
           ))}
+        </View>
+      </GlassView>
+
+      <GlassView borderRadius={radius.md} contentStyle={styles.card} style={styles.cardGap}>
+        <Text style={styles.sectionTitle}>{t('reminders.sectionSound')}</Text>
+        <View style={styles.row}>
+          <View style={styles.rowText}>
+            <Text style={styles.rowLabel}>{t('reminders.sound')}</Text>
+            <Text style={styles.rowHint}>{t('reminders.soundHint')}</Text>
+          </View>
+          <Switch
+            value={soundOn}
+            onValueChange={(v) => {
+              Haptics.selectionAsync();
+              setSoundOn(v);
+              setSoundEnabled(v);
+              if (v) playSound('water');
+            }}
+            trackColor={{ false: colors.track, true: colors.tintDeep }}
+            thumbColor={colors.white}
+            accessibilityLabel={t('reminders.sound')}
+          />
         </View>
       </GlassView>
 

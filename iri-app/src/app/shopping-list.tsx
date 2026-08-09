@@ -30,7 +30,8 @@ export default function ShoppingListScreen() {
   };
 
   const toggle = (id: string) => {
-    Haptics.selectionAsync();
+    // Abhaken ist der Kern-Moment der Liste → spürbarer Impact statt leiser Selection
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     persist(items.map((i) => (i.id === id ? { ...i, checked: !i.checked } : i)));
   };
 

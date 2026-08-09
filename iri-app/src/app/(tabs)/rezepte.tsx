@@ -15,6 +15,7 @@ import {
   RecipeListItem,
   violatesAllergies,
 } from '@/features/recipes/recipesData';
+import { fetchRecipeFavoriteIds } from '@/features/recipes/recipesData';
 import { suggestRecipes } from '@/features/recipes/suggest';
 import { loadShoppingList } from '@/features/shopping/shoppingList';
 import { t } from '@/i18n';
@@ -36,12 +37,19 @@ export default function RezepteScreen() {
   const [remainingKcal, setRemainingKcal] = useState<number | null>(null);
   const [remainingProtein, setRemainingProtein] = useState(0);
   const [shoppingCount, setShoppingCount] = useState(0);
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
 
   // Badge-Zahl bei jedem Tab-Fokus aktualisieren (Liste ist lokal)
   useFocusEffect(
     useCallback(() => {
       loadShoppingList().then((items) => setShoppingCount(items.length));
-    }, []),
+      // Favoriten bei jedem Tab-Fokus frisch — sie können auf der Detailseite
+      // oder im FoodSheet geändert worden sein
+      if (session) {
+        fetchRecipeFavoriteIds(session.user.id).then(setFavoriteIds).catch(() => {});
+      }
+    }, [session?.user.id]),
   );
 
   const [loadFailed, setLoadFailed] = useState(false);
@@ -92,9 +100,10 @@ export default function RezepteScreen() {
       if (kcalMax && r.kcal_per_serving > kcalMax) return false;
       if (veggie && !isVegetarian(r)) return false;
       if (forMe && violatesAllergies(r, allergies)) return false;
+      if (onlyFavorites && !favoriteIds.has(r.id)) return false;
       return true;
     });
-  }, [recipes, query, category, kcalMax, veggie, forMe, profile]);
+  }, [recipes, query, category, kcalMax, veggie, forMe, profile, onlyFavorites, favoriteIds]);
 
   const suggestions = useMemo(() => {
     if (remainingKcal === null || remainingKcal < 120 || query || category) return [];
@@ -144,6 +153,11 @@ export default function RezepteScreen() {
         ))}
       </View>
       <View style={styles.chipsRow}>
+        <Chip
+          label={t('recipes.filterFavorites')}
+          selected={onlyFavorites}
+          onPress={() => setOnlyFavorites(!onlyFavorites)}
+        />
         <Chip label={t('recipes.filterForMe')} selected={forMe} onPress={() => setForMe(!forMe)} />
         <Chip label={t('recipes.filterVeggie')} selected={veggie} onPress={() => setVeggie(!veggie)} />
         <Chip

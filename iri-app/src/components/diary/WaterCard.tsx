@@ -2,18 +2,21 @@ import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, {
+  cancelAnimation,
   Easing,
   SharedValue,
   useAnimatedProps,
   useSharedValue,
+  withDelay,
   withRepeat,
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 import { GlassView } from '@/components/glass/GlassView';
 import { IriIcon } from '@/components/icons/IriIcon';
+import { playSound } from '@/features/sound/sounds';
 import { t } from '@/i18n';
 import { colors, font, radius } from '@/theme';
 
@@ -31,6 +34,34 @@ const GLASS_W = 34;
 const GLASS_H = 38;
 const WATER_TOP = 9; // Wasseroberfläche (≈ 76 % gefüllt)
 const AnimatedPath = Animated.createAnimatedComponent(Path);
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+/** S18: aufsteigende Bläschen — Position/Größe fix, damit sie nicht zappeln */
+const BUBBLES = [
+  { x: 10, r: 1.6, delay: 0, duration: 4200 },
+  { x: 20, r: 1.1, delay: 1600, duration: 5200 },
+  { x: 26, r: 1.4, delay: 3000, duration: 4600 },
+] as const;
+
+/** Ein Bläschen: steigt von der Glasunterkante zur Wasseroberfläche und verblasst */
+function Bubble({ x, r, delay, duration }: { x: number; r: number; delay: number; duration: number }) {
+  const t = useSharedValue(0);
+
+  useEffect(() => {
+    t.value = withDelay(
+      delay,
+      withRepeat(withTiming(1, { duration, easing: Easing.out(Easing.quad) }), -1, false),
+    );
+    return () => cancelAnimation(t);
+  }, [delay, duration, t]);
+
+  const props = useAnimatedProps(() => ({
+    cy: GLASS_H - 3 - (GLASS_H - WATER_TOP - 6) * t.value,
+    opacity: t.value < 0.15 ? t.value / 0.15 : 1 - t.value,
+  }));
+
+  return <AnimatedCircle cx={x} r={r} fill="rgba(255,255,255,0.75)" animatedProps={props} />;
+}
 
 /**
  * S16: Wasseroberfläche als langsam schwappende Sinus-Welle (3,5-s-Loop).
@@ -63,6 +94,9 @@ function WaveGlass({ amplitude, index }: { amplitude: SharedValue<number>; index
     <View style={[styles.glass, styles.glassWater]}>
       <Svg width="100%" height="100%" viewBox={`0 0 ${GLASS_W} ${GLASS_H}`} preserveAspectRatio="none">
         <AnimatedPath animatedProps={pathProps} fill="rgba(98,186,208,0.88)" />
+        {BUBBLES.map((b, i) => (
+          <Bubble key={i} x={b.x} r={b.r} delay={b.delay + index * 400} duration={b.duration} />
+        ))}
       </Svg>
     </View>
   );
@@ -79,6 +113,7 @@ export function WaterCard({ currentMl, goalMl, glassMl, onSetAmount }: WaterCard
 
   const tapGlass = (index: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    playSound('water');
     // Nachschwappen: kurz hoch, dann gemütlich zurück zur Ruhe-Welle
     amplitude.value = withSequence(
       withTiming(5, { duration: 130, easing: Easing.out(Easing.quad) }),

@@ -228,7 +228,11 @@
     "photoError": "Das Foto konnte nicht gespeichert werden. Versuch es noch einmal.",
     "recentEntries": "Letzte Wiegungen",
     "deleteWeight": "Löschen",
-    "deleteWeightTitle": "Wiegung löschen?"
+    "deleteWeightTitle": "Wiegung löschen?",
+    "share": "Fortschritt teilen",
+    "shareTitle": "Mein Fortschritt mit IriFit",
+    "shareSince": "seit dem Start",
+    "shareFailed": "Das Teilen hat nicht geklappt — probier es gleich nochmal."
   },
   "recipes": {
     "title": "Irinas Rezepte",
@@ -257,7 +261,8 @@
     "shoppingAdd": "Auf die Einkaufsliste",
     "shoppingAdded": "{count} Zutaten auf der Liste ✓",
     "notFound": "Dieses Rezept konnte nicht geladen werden.",
-    "macroShort": "{protein} P · {carbs} C · {fat} F"
+    "macroShort": "{protein} P · {carbs} C · {fat} F",
+    "filterFavorites": "Favoriten"
   },
   "shopping": {
     "title": "Einkaufsliste",
@@ -325,13 +330,24 @@
     "weeklyHint": "Sonntagabend: deine Woche auf einen Blick.",
     "sectionTime": "Abendzeit",
     "timeHint": "Wann die Abend-Erinnerung kommt. „Automatisch\" lernt aus deinem Rhythmus.",
-    "timeAuto": "Automatisch"
+    "timeAuto": "Automatisch",
+    "sectionSound": "Töne",
+    "sound": "Töne in der App",
+    "soundHint": "Wassertropfen beim Trinken, ein kurzer Klang nach dem Scan und bei neuer Serie."
   },
   "profile": {
     "title": "Dein Profil",
     "accountSection": "Dein Konto",
     "firstName": "Vorname",
     "kcalGoal": "Kalorienziel pro Tag",
+    "birthYear": "Geburtsjahr",
+    "startWeight": "Startgewicht",
+    "targetWeight": "Zielgewicht",
+    "bodyHint": "Diese Werte gehen in dein Kalorienziel ein. Änderst du sie, kannst du dein Ziel neu berechnen lassen.",
+    "recalc": "Ziel neu berechnen",
+    "recalcDone": "Dein neues Ziel: {kcal} kcal pro Tag.",
+    "kcalExplainTitle": "Wie dein Ziel entsteht",
+    "kcalExplain": "Wir rechnen deinen Grundumsatz aus Alter, Größe, Gewicht und deinem Alltag (Mifflin-St-Jeor) — und ziehen fürs Abnehmen einen sanften Puffer ab. Kein Hungern: Irinas Ansatz ist, satt zu werden und trotzdem leichter. Deshalb gehen wir nie unter 1.200 kcal, und du darfst das Ziel jederzeit selbst anpassen.",
     "kcalHint": "Dein Ziel gehört dir — du kannst es jederzeit anpassen. Unter 1.200 kcal gehen wir nicht, dein Körper braucht seine Basis.",
     "kcalMin": "Bitte mindestens 1.200 kcal — weniger wäre keine gute Idee.",
     "saveFailed": "Speichern hat nicht geklappt — probier es gleich nochmal.",
@@ -342,7 +358,7 @@
     "macroHint": "Ein Tap verteilt dein Kalorienziel neu auf Protein, Carbs und Fett — kein Rechnen nötig.",
     "macroApplied": "Deine Makros sind angepasst.",
     "reminders": "Erinnerungen",
-    "irinaSection": "Irinas Ecke",
+    "irinaSection": "Über Irina",
     "aboutIrina": "Über Irina",
     "askIrina": "Frag Irina — deine Frage stellen",
     "legalSection": "Rechtliches",
