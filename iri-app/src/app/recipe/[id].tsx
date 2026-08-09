@@ -175,7 +175,11 @@ export default function RecipeDetailScreen() {
       </View>
 
       <GlassView style={styles.card} contentStyle={styles.cardPad}>
-        <Text style={styles.category}>{recipe.category}</Text>
+        {/* Als gefuellte Mini-Pille — auf dem klaren Glas ueber dem Foto war
+            der blosse Text unlesbar (Befund Sascha 09.08.) */}
+        <View style={styles.categoryPill}>
+          <Text style={styles.category}>{recipe.category}</Text>
+        </View>
         <Text style={[typography.displayLg, styles.title]}>{recipe.title}</Text>
         <Text style={styles.macroLine}>
           {recipe.kcal_per_serving} kcal {t('recipes.perServing')} ·{' '}
@@ -314,12 +318,20 @@ const styles = StyleSheet.create({
   cardPad: {
     padding: spacing.lg,
   },
+  categoryPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginBottom: 6,
+  },
   category: {
     fontFamily: font.bold,
     fontSize: 11,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
-    color: colors.muted,
+    color: colors.tintDeep,
   },
   title: {
     fontSize: 22,
