@@ -300,6 +300,15 @@ export default function ProgressScreen() {
               <View style={styles.statRow}>
                 <Text style={styles.statBig}>{t('progress.loggedDays', { count: stats.loggedDays })}</Text>
                 <Text style={styles.statSub}>{t('progress.avgKcal', { kcal: stats.avgKcal.toLocaleString('de-DE') })}</Text>
+                {stats.avgWaterMl !== null ? (
+                  <Text style={styles.statSub}>
+                    {t('progress.avgWater', {
+                      liters: (stats.avgWaterMl / 1000).toLocaleString('de-DE', {
+                        maximumFractionDigits: 2,
+                      }),
+                    })}
+                  </Text>
+                ) : null}
               </View>
               <Text style={styles.macroLabel}>{t('progress.macroSplit')}</Text>
               {/* Beta-Feedback 09.08.: Ist UND Ziel — erst der Vergleich macht

@@ -135,17 +135,19 @@ function TumblerGlass({
         </>
       ) : null}
       {/* Kontur zuletzt, damit sie über dem Wasser liegt */}
+      {/* v5-Feinschliff (Sascha): auch leere Glaeser mit weissem Rand —
+          der graue liess sie optisch groesser wirken */}
       <Path
         d={GLASS_OUTLINE}
         fill="none"
-        stroke={filled ? 'rgba(255,255,255,0.85)' : 'rgba(28,28,33,0.14)'}
+        stroke="rgba(255,255,255,0.9)"
         strokeWidth={1.4}
       />
     </Svg>
   );
 }
 
-const GAP = 4; // v5: engere Reihe (Sascha 09.08.)
+const GAP = 1; // v7: minimale Luecke (Sascha 09.08.)
 const MAX_GLASS_W = 46;
 
 /**
@@ -259,5 +261,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: GAP,
     marginTop: 10,
+    // v7: Reihe darf naeher an den Kartenrand als der uebrige Inhalt
+    marginHorizontal: -8,
   },
 });

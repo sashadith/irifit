@@ -237,7 +237,8 @@
     "shareFailed": "Das Teilen hat nicht geklappt — probier es gleich nochmal.",
     "macroActual": "IST",
     "macroTarget": "DEIN ZIEL",
-    "shareSlogan": "Abnehmen ohne zu hungern."
+    "shareSlogan": "Abnehmen ohne zu hungern.",
+    "avgWater": "Ø {liters} L Wasser am Tag"
   },
   "recipes": {
     "title": "Irinas Rezepte",
