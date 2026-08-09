@@ -82,7 +82,7 @@ export function DiaryHeader({ date, isToday, greeting, streakCount, onShiftDate 
           >
             <Text style={styles.chevron}>‹</Text>
           </Pressable>
-          {/* S18: Datum als kleines Glas-Kästchen — der Tag in Italiana wie die
+          {/* S18: Datum als kleines Glas-Kästchen — der Tag in der Display-Schrift wie die
               großen Zahlen der App, statt anonymer Versalien-Zeile */}
           <GlassView borderRadius={radius.md} contentStyle={styles.dateCard}>
             <Text style={styles.weekday}>{WEEKDAYS[date.getDay()].slice(0, 2).toUpperCase()}</Text>

@@ -25,7 +25,7 @@ const STROKE = 14;
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 /**
- * Kalorien-Ring mit Rosé-Verlauf (Prototyp: .ring) — Zahl in Italiana.
+ * Kalorien-Ring mit Rosé-Verlauf (Prototyp: .ring) — Zahl in der Display-Schrift (font.display).
  * S16: Bogen füllt sich in ~800 ms mit Ease-out, die Zahl zählt mit;
  * spätere Wertänderungen (Loggen) animieren vom alten Stand weiter.
  */

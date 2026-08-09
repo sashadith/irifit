@@ -53,9 +53,9 @@ export const spacing = {
   screenX: 20,
 } as const;
 
-/** Headlines + große Zahlen: Italiana · ALLER UI-Text inkl. Buttons: Manrope */
+/** Headlines + große Zahlen: Tenor Sans (Entscheidung Sascha 09.08., vorher Italiana) · ALLER UI-Text inkl. Buttons: Manrope */
 export const font = {
-  display: 'Italiana_400Regular',
+  display: 'TenorSans_400Regular',
   regular: 'Manrope_400Regular',
   medium: 'Manrope_500Medium',
   semibold: 'Manrope_600SemiBold',
