@@ -7,6 +7,17 @@ import { colors } from '@/theme';
  * dadurch ist das Herz per color färbbar (Emoji ignorieren Textfarbe).
  * Als verschachtelter <Text> erbt es Schriftgröße/Baseline vom Eltern-Text.
  */
-export function RoseHeart({ style }: { readonly style?: StyleProp<TextStyle> }) {
-  return <Text style={[{ color: colors.tint }, style]}>{'♥︎'}</Text>;
+export function RoseHeart({
+  style,
+  wide = false,
+}: {
+  readonly style?: StyleProp<TextStyle>;
+  /** 20 % breiter — Wunsch Sascha 09.08. für die Begrüßung */
+  readonly wide?: boolean;
+}) {
+  return (
+    <Text style={[{ color: colors.tint }, wide && { transform: [{ scaleX: 1.2 }] }, style]}>
+      {'♥︎'}
+    </Text>
+  );
 }

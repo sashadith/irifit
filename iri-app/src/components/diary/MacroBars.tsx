@@ -80,12 +80,14 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 12,
+    alignItems: 'center', // Beta-Feedback 09.08.: Inhalte zentriert
   },
   label: {
     fontFamily: font.bold,
-    fontSize: 10,
-    letterSpacing: 0.5,
+    fontSize: 9,
+    letterSpacing: 0.4,
     color: colors.muted,
+    textAlign: 'center',
   },
   value: {
     fontFamily: font.bold,
@@ -94,6 +96,7 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   track: {
+    alignSelf: 'stretch',
     height: 5,
     borderRadius: 3,
     backgroundColor: colors.track,

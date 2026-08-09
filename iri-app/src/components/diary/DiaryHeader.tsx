@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, {
   cancelAnimation,
@@ -48,10 +48,9 @@ function BreathingFlame({ active }: { active: boolean }) {
   );
 }
 
-const WEEKDAYS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
-const MONTHS = [
-  'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-  'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
+const MONTHS_SHORT = [
+  'Jan.', 'Feb.', 'März', 'Apr.', 'Mai', 'Juni',
+  'Juli', 'Aug.', 'Sep.', 'Okt.', 'Nov.', 'Dez.',
 ];
 
 export interface DiaryHeaderProps {
@@ -62,18 +61,27 @@ export interface DiaryHeaderProps {
   readonly onShiftDate: (days: number) => void;
 }
 
-/** Kopfbereich: blätterbares Datum, Begrüßung, Streak-Flamme (Prototyp s-home) */
+/**
+ * Kopfbereich (Umbau 09.08. nach Beta-Feedback Sascha): Datum-Chip und
+ * Streak-Chip als GLEICHE Pillen auf einer Höhe — beide mit Icon; die
+ * Blätter-Pfeile sitzen dezent IN der Datum-Pille. Die Flamme erklärt sich
+ * auf Tipp selbst (vorher: totes Element).
+ */
 export function DiaryHeader({ date, isToday, greeting, streakCount, onShiftDate }: DiaryHeaderProps) {
-
   const shift = (days: number) => {
     Haptics.selectionAsync();
     onShiftDate(days);
   };
 
+  const explainStreak = () => {
+    Haptics.selectionAsync();
+    Alert.alert(t('home.streakInfoTitle'), t('home.streakInfoBody'));
+  };
+
   return (
-    <View style={styles.row}>
-      <View style={styles.left}>
-        <View style={styles.dateRow}>
+    <View>
+      <View style={styles.chipRow}>
+        <GlassView borderRadius={radius.pill} contentStyle={styles.dateChip}>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('common.back')}
@@ -82,91 +90,89 @@ export function DiaryHeader({ date, isToday, greeting, streakCount, onShiftDate 
           >
             <Text style={styles.chevron}>‹</Text>
           </Pressable>
-          {/* S18: Datum als kleines Glas-Kästchen — der Tag in der Display-Schrift wie die
-              großen Zahlen der App, statt anonymer Versalien-Zeile */}
-          <GlassView borderRadius={radius.md} contentStyle={styles.dateCard}>
-            <Text style={styles.weekday}>{WEEKDAYS[date.getDay()].slice(0, 2).toUpperCase()}</Text>
-            <Text style={styles.dayNumber}>{date.getDate()}</Text>
-            <Text style={styles.month}>{MONTHS[date.getMonth()]}</Text>
-          </GlassView>
+          <IriIcon name="calendar" size={15} color={colors.tintDeep} />
+          <Text style={styles.dateText}>
+            {date.getDate()}. {MONTHS_SHORT[date.getMonth()]}
+          </Text>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('common.next')}
             onPress={() => shift(1)}
             hitSlop={10}
-            style={!isToday ? undefined : styles.hidden}
+            style={isToday ? styles.hidden : undefined}
+            disabled={isToday}
           >
             <Text style={styles.chevron}>›</Text>
           </Pressable>
-        </View>
-        <Text style={[typography.displayMd, styles.greeting]}>
-          {greeting} <RoseHeart />
-        </Text>
+        </GlassView>
+
+        <Pressable accessibilityRole="button" accessibilityLabel={t('home.streakInfoTitle')} onPress={explainStreak}>
+          <GlassView borderRadius={radius.pill} contentStyle={styles.streak}>
+            <BreathingFlame active={streakCount > 0} />
+            <Text style={[styles.streakText, streakCount === 0 && styles.streakStart]}>
+              {streakCount === 0
+                ? t('home.streakStart')
+                : streakCount === 1
+                  ? t('home.streakOne')
+                  : t('home.streak', { count: streakCount })}
+            </Text>
+          </GlassView>
+        </Pressable>
       </View>
-      <GlassView borderRadius={radius.pill} contentStyle={styles.streak}>
-        <BreathingFlame active={streakCount > 0} />
-        <Text style={[styles.streakText, streakCount === 0 && styles.streakStart]}>
-          {streakCount === 0
-            ? t('home.streakStart')
-            : streakCount === 1
-              ? t('home.streakOne')
-              : t('home.streak', { count: streakCount })}
+
+      {/* Eigene Zeile statt verschachteltem Text: Transforms (Herz-Breite)
+          wirken in RN nicht auf Text-Spans, wohl aber auf eigenstaendige Texte */}
+      <View style={styles.greetingRow}>
+        <Text style={[typography.displayLg, styles.greeting]} numberOfLines={1}>
+          {greeting}
         </Text>
-      </GlassView>
+        <RoseHeart style={styles.heart} wide />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
+  chipRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 10,
   },
-  left: {
-    flex: 1,
-  },
-  dateRow: {
+  dateChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  dateCard: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
+    gap: 7,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
   },
-  weekday: {
+  dateText: {
     fontFamily: font.bold,
-    fontSize: 10,
-    letterSpacing: 1,
-    color: colors.muted,
-  },
-  dayNumber: {
-    fontFamily: font.display,
-    fontSize: 22,
-    lineHeight: 26,
+    fontSize: 13,
     color: colors.ink,
-  },
-  month: {
-    fontFamily: font.semibold,
-    fontSize: 12.5,
-    color: colors.muted,
   },
   chevron: {
     fontFamily: font.bold,
-    fontSize: 18,
+    fontSize: 16,
+    lineHeight: 18,
     color: colors.muted,
     paddingHorizontal: 2,
   },
   hidden: {
     opacity: 0,
   },
+  greetingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 6,
+  },
   greeting: {
-    marginTop: 4,
+    flexShrink: 1,
+  },
+  heart: {
+    fontSize: 24,
+    lineHeight: 28,
   },
   streak: {
     flexDirection: 'row',

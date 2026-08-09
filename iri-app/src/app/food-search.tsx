@@ -120,15 +120,15 @@ export default function FoodSearchScreen() {
   const showSearch = query.trim().length >= 2;
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={styles.flex}>
-        <Wallpaper />
+    <View style={styles.flex}>
+      <Wallpaper />
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={typography.eyebrow}>{t('scan.eyebrow')}</Text>
+          <Text style={typography.eyebrow}>{t('food.searchEyebrow')}</Text>
           <Text style={[typography.displayMd, styles.title]}>{t('food.searchTitle')}</Text>
 
           <View style={styles.searchField}>
@@ -218,8 +218,8 @@ export default function FoodSearchScreen() {
 
           <GhostButton label={t('scan.close')} small onPress={() => router.back()} style={styles.closeButton} />
         </ScrollView>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 

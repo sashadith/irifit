@@ -13,8 +13,8 @@ import { colors, font, radius, spacing, typography } from '@/theme';
  * später im Admin pflegbar (S13).
  */
 
-// Links aus data/irina-bio.md (FINAL, 20.07.2026)
-const LINKS: { labelKey: 'coaching.irinaCardInstagram' | 'coaching.irinaCardTiktok' | 'coaching.irinaCardWebsite'; app: string | null; web: string }[] = [
+// Links aus data/irina-bio.md (FINAL, 20.07.2026) — exportiert für die Profil-Karte (09.08.)
+export const IRINA_LINKS: { labelKey: 'coaching.irinaCardInstagram' | 'coaching.irinaCardTiktok' | 'coaching.irinaCardWebsite'; app: string | null; web: string }[] = [
   {
     labelKey: 'coaching.irinaCardInstagram',
     app: 'instagram://user?username=iri.fitnessmum',
@@ -33,7 +33,7 @@ const LINKS: { labelKey: 'coaching.irinaCardInstagram' | 'coaching.irinaCardTikt
   },
 ];
 
-async function openLink(app: string | null, web: string) {
+export async function openIrinaLink(app: string | null, web: string) {
   if (app && (await Linking.canOpenURL(app).catch(() => false))) {
     await Linking.openURL(app);
     return;
@@ -59,12 +59,12 @@ export function IrinaCard({ visible, onClose }: IrinaCardProps) {
               {t('coaching.irinaCardBio')} <RoseHeart />
             </Text>
             <View style={styles.links}>
-              {LINKS.map((link) => (
+              {IRINA_LINKS.map((link) => (
                 <Pressable
                   key={link.labelKey}
                   accessibilityRole="link"
                   accessibilityLabel={t(link.labelKey)}
-                  onPress={() => openLink(link.app, link.web)}
+                  onPress={() => openIrinaLink(link.app, link.web)}
                   style={({ pressed }) => [styles.linkButton, pressed && styles.pressed]}
                 >
                   <Text style={styles.linkText}>{t(link.labelKey)}</Text>

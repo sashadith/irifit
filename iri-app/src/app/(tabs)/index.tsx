@@ -34,6 +34,7 @@ export default function HomeScreen() {
   const diary = useDiaryDay();
   const [selectedLog, setSelectedLog] = useState<FoodLog | null>(null);
   const [latestWeight, setLatestWeight] = useState<number | null>(null);
+  const [firstWeight, setFirstWeight] = useState<number | null>(null);
   const [recipes, setRecipes] = useState<RecipeListItem[]>([]);
 
   useEffect(() => {
@@ -65,10 +66,10 @@ export default function HomeScreen() {
       .from('weights')
       .select('weight_kg')
       .eq('user_id', session.user.id)
-      .order('measured_on', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    setLatestWeight(data?.weight_kg ?? null);
+      .order('measured_on', { ascending: true });
+    const rows = data ?? [];
+    setFirstWeight(rows.length > 1 ? rows[0].weight_kg : null);
+    setLatestWeight(rows.length > 0 ? rows[rows.length - 1].weight_kg : null);
   }, [session?.user.id]);
 
   useEffect(() => {
@@ -96,11 +97,10 @@ export default function HomeScreen() {
     ? t('home.greetingName', { name: profile.display_name })
     : t('home.greeting');
 
-  // Delta nur zeigen, wenn wirklich schon gewogen wurde — sonst „Noch kein Verlauf"
+  // Delta = seit der ERSTEN Wiegung (Beta-Befund 09.08.) — erst ab zwei
+  // Messungen, sonst „Noch kein Verlauf"
   const deltaKg =
-    latestWeight !== null && profile?.start_weight_kg != null
-      ? latestWeight - profile.start_weight_kg
-      : null;
+    latestWeight !== null && firstWeight !== null ? latestWeight - firstWeight : null;
 
   const showEmptyHint = !diary.loading && diary.isToday && diary.logs.length === 0;
 

@@ -1,15 +1,18 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import * as Haptics from 'expo-haptics';
 
-import { IrinaCard } from '@/components/coaching/IrinaCard';
+import { IrinaCard, IRINA_LINKS, openIrinaLink } from '@/components/coaching/IrinaCard';
 import { GlassView } from '@/components/glass/GlassView';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
 import { Chip } from '@/components/ui/Chip';
 import { GhostButton } from '@/components/ui/GhostButton';
 import { GlassInput } from '@/components/ui/GlassInput';
+import { IriAvatar } from '@/components/ui/IriAvatar';
+import { IriIcon } from '@/components/icons/IriIcon';
+import { RoseHeart } from '@/components/ui/RoseHeart';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { t } from '@/i18n';
@@ -30,20 +33,28 @@ export default function ProfilScreen() {
   const [targetWeight, setTargetWeight] = useState(
     profile?.target_weight_kg != null ? String(profile.target_weight_kg) : '',
   );
+  const [waterGoal, setWaterGoal] = useState(
+    profile?.water_goal_ml != null ? (profile.water_goal_ml / 1000).toLocaleString('de-DE') : '',
+  );
   const [saving, setSaving] = useState(false);
 
   const kcalNum = Number.parseInt(kcal, 10);
   const kcalValid = !kcal || (Number.isFinite(kcalNum) && kcalNum >= 1200 && kcalNum <= 10000);
   const num = (v: string) => (v.trim() === '' ? null : Number(v.replace(',', '.')));
+  // Wasserziel in Litern eingegeben, in ml gespeichert; 0,5–6 L sind plausibel
+  const waterGoalL = num(waterGoal);
+  const waterGoalMl = waterGoalL != null ? Math.round(waterGoalL * 1000) : null;
+  const waterValid = waterGoalMl == null || (waterGoalMl >= 500 && waterGoalMl <= 6000);
   const dirty =
     name.trim() !== (profile?.display_name ?? '') ||
     (kcal !== '' && kcalNum !== profile?.kcal_goal) ||
     num(birthYear) !== (profile?.birth_year ?? null) ||
     num(startWeight) !== (profile?.start_weight_kg ?? null) ||
-    num(targetWeight) !== (profile?.target_weight_kg ?? null);
+    num(targetWeight) !== (profile?.target_weight_kg ?? null) ||
+    waterGoalMl !== (profile?.water_goal_ml ?? null);
 
   const save = async () => {
-    if (!session || !kcalValid) return;
+    if (!session || !kcalValid || !waterValid) return;
     setSaving(true);
     try {
       const { error } = await supabase
@@ -54,6 +65,7 @@ export default function ProfilScreen() {
           birth_year: num(birthYear),
           start_weight_kg: num(startWeight),
           target_weight_kg: num(targetWeight),
+          ...(waterGoalMl != null ? { water_goal_ml: waterGoalMl } : {}),
         })
         .eq('id', session.user.id);
       if (error) throw error;
@@ -135,8 +147,16 @@ export default function ProfilScreen() {
       <Text style={[typography.displayLg, styles.title]}>{t('profile.title')}</Text>
 
       <GlassView borderRadius={radius.md} contentStyle={styles.card}>
-        <Text style={styles.sectionTitle}>{t('profile.accountSection')}</Text>
-        <Text style={[typography.bodyMuted, styles.email]}>{session?.user.email}</Text>
+        <View style={styles.sectionHead}>
+          <IriIcon name="user" size={18} color={colors.tintDeep} />
+          <Text style={[styles.sectionTitle, styles.noGap]}>{t('profile.accountSection')}</Text>
+        </View>
+        <View style={styles.emailRow}>
+          <Text style={styles.emailAt}>@</Text>
+          <Text style={[typography.bodyMuted, styles.emailText]} numberOfLines={1}>
+            {session?.user.email}
+          </Text>
+        </View>
         <GlassInput
           label={t('profile.firstName')}
           value={name}
@@ -176,25 +196,54 @@ export default function ProfilScreen() {
             />
           </View>
         </View>
-        <GlassInput
-          label={t('profile.targetWeight')}
-          value={targetWeight}
-          onChangeText={setTargetWeight}
-          keyboardType="decimal-pad"
-          unit="kg"
-          placeholder="68"
-        />
+        <View style={styles.twoCol}>
+          <View style={styles.col}>
+            <GlassInput
+              label={t('profile.targetWeight')}
+              value={targetWeight}
+              onChangeText={setTargetWeight}
+              keyboardType="decimal-pad"
+              unit="kg"
+              placeholder="68"
+            />
+          </View>
+          <View style={styles.col}>
+            <GlassInput
+              label={t('profile.waterGoal')}
+              value={waterGoal}
+              onChangeText={setWaterGoal}
+              keyboardType="decimal-pad"
+              unit="L"
+              placeholder="2"
+            />
+          </View>
+        </View>
+        {!waterValid ? <Text style={styles.hintError}>{t('profile.waterRange')}</Text> : null}
         <Text style={styles.hint}>{t('profile.bodyHint')}</Text>
         <Text style={styles.macroLabel}>{t('profile.macroSection')}</Text>
-        <View style={styles.macroChips}>
-          {MACRO_PRESETS.map((preset) => (
-            <Chip
-              key={preset.key}
-              label={t(preset.labelKey)}
-              selected={presetActive(preset)}
-              onPress={() => applyPreset(preset)}
-            />
-          ))}
+        {/* Beta-Feedback 09.08.: Chips ragten über den Rand — jetzt ein
+            Segmentregler mit drei gleich breiten Positionen in Kartenbreite */}
+        <View style={styles.segment}>
+          {MACRO_PRESETS.map((preset) => {
+            const active = presetActive(preset);
+            return (
+              <Pressable
+                key={preset.key}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                onPress={() => applyPreset(preset)}
+                style={[styles.segmentItem, active && styles.segmentActive]}
+              >
+                <Text
+                  style={[styles.segmentText, active && styles.segmentTextActive]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                >
+                  {t(preset.labelKey)}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
         <Text style={styles.hint}>{t('profile.macroHint')}</Text>
         {dirty ? (
@@ -202,7 +251,7 @@ export default function ProfilScreen() {
             label={t('common.save')}
             onPress={save}
             loading={saving}
-            disabled={!kcalValid}
+            disabled={!kcalValid || !waterValid}
             style={styles.saveGap}
           />
         ) : null}
@@ -220,10 +269,31 @@ export default function ProfilScreen() {
       />
 
       <GlassView borderRadius={radius.md} contentStyle={styles.card} style={styles.gap}>
-        <Text style={styles.sectionTitle}>{t('profile.irinaSection')}</Text>
-        <GhostButton label={t('profile.aboutIrina')} onPress={() => setShowIrina(true)} />
+        {/* Beta-Feedback 09.08.: Inhalt direkt in der Karte statt hinter einem Tap */}
+        <View style={styles.sectionHead}>
+          <RoseHeart style={styles.irinaHeart} />
+          <Text style={[styles.sectionTitle, styles.noGap]}>{t('profile.irinaSection')}</Text>
+        </View>
+        <View style={styles.irinaRow}>
+          <IriAvatar size={64} />
+          <View style={styles.irinaText}>
+            <Text style={styles.irinaName}>Irina Dith</Text>
+            <Text style={styles.irinaBio}>{t('coaching.irinaCardBio')}</Text>
+          </View>
+        </View>
+        <View style={styles.irinaLinks}>
+          {IRINA_LINKS.map((link) => (
+            <Chip
+              key={link.labelKey}
+              label={t(link.labelKey)}
+              selected={false}
+              onPress={() => openIrinaLink(link.app, link.web)}
+            />
+          ))}
+        </View>
         <GhostButton
           label={t('profile.askIrina')}
+          small
           onPress={() => router.push('/(tabs)/coaching')}
           style={styles.smallGap}
         />
@@ -300,9 +370,83 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 8,
   },
-  macroChips: {
+  sectionHead: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
+    marginBottom: 12,
+  },
+  emailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    marginBottom: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.45)',
+  },
+  emailAt: {
+    fontFamily: font.bold,
+    fontSize: 14,
+    color: colors.tintDeep,
+  },
+  emailText: {
+    flexShrink: 1,
+  },
+  segment: {
+    flexDirection: 'row',
+    backgroundColor: colors.track,
+    borderRadius: radius.pill,
+    padding: 3,
+  },
+  segmentItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderRadius: radius.pill,
+  },
+  segmentActive: {
+    backgroundColor: colors.tintDeep,
+  },
+  segmentText: {
+    fontFamily: font.semibold,
+    fontSize: 12,
+    color: colors.muted,
+  },
+  segmentTextActive: {
+    color: colors.white,
+    fontFamily: font.bold,
+  },
+  irinaHeart: {
+    fontSize: 18,
+  },
+  irinaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  irinaText: {
+    flex: 1,
+  },
+  irinaName: {
+    fontFamily: font.display,
+    fontSize: 19,
+    color: colors.ink,
+  },
+  irinaBio: {
+    fontFamily: font.regular,
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: colors.muted,
+    marginTop: 3,
+  },
+  irinaLinks: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
   },
   twoCol: {
     flexDirection: 'row',

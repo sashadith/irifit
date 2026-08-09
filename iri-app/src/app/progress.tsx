@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Sharing from 'expo-sharing';
 import ViewShot from 'react-native-view-shot';
 import { useRouter } from 'expo-router';
@@ -162,9 +163,12 @@ export default function ProgressScreen() {
   };
 
   const latestWeight = weights.length > 0 ? weights[weights.length - 1].weight_kg : null;
+  // „Seit Start" = seit der ERSTEN Wiegung (Beta-Befund 09.08.: das im Quiz
+  // geschaetzte Startgewicht als Basis ergab absurde Deltas)
+  const firstWeight = weights.length > 1 ? weights[0].weight_kg : null;
   const deltaKg =
-    latestWeight !== null && profile?.start_weight_kg != null
-      ? Math.round((latestWeight - profile.start_weight_kg) * 10) / 10
+    latestWeight !== null && firstWeight !== null
+      ? Math.round((latestWeight - firstWeight) * 10) / 10
       : null;
   const shotRef = useRef<ViewShot>(null);
 
@@ -184,6 +188,15 @@ export default function ProgressScreen() {
 
   const first = photos[0];
   const last = photos.length > 1 ? photos[photos.length - 1] : null;
+
+  // Soll-Verteilung aus den Profil-Zielen (4/4/9 kcal je Gramm)
+  const goalShares = (() => {
+    const p = (profile?.protein_goal_g ?? 0) * 4;
+    const c = (profile?.carbs_goal_g ?? 0) * 4;
+    const f = (profile?.fat_goal_g ?? 0) * 9;
+    const sum = p + c + f;
+    return sum > 0 ? { p: p / sum, c: c / sum, f: f / sum } : null;
+  })();
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -285,6 +298,9 @@ export default function ProgressScreen() {
                 <Text style={styles.statSub}>{t('progress.avgKcal', { kcal: stats.avgKcal.toLocaleString('de-DE') })}</Text>
               </View>
               <Text style={styles.macroLabel}>{t('progress.macroSplit')}</Text>
+              {/* Beta-Feedback 09.08.: Ist UND Ziel — erst der Vergleich macht
+                  die Abweichung sichtbar */}
+              <Text style={styles.macroRowLabel}>{t('progress.macroActual')}</Text>
               <View style={styles.macroBar}>
                 <View style={[styles.macroSegment, { flex: Math.max(stats.proteinShare, 0.02), backgroundColor: colors.tintDeep }]} />
                 <View style={[styles.macroSegment, { flex: Math.max(stats.carbsShare, 0.02), backgroundColor: colors.carbs }]} />
@@ -295,6 +311,21 @@ export default function ProgressScreen() {
                 <Text style={styles.macroLegendText}>C {Math.round(stats.carbsShare * 100)} %</Text>
                 <Text style={styles.macroLegendText}>F {Math.round(stats.fatShare * 100)} %</Text>
               </View>
+              {goalShares ? (
+                <>
+                  <Text style={styles.macroRowLabel}>{t('progress.macroTarget')}</Text>
+                  <View style={[styles.macroBar, styles.macroBarTarget]}>
+                    <View style={[styles.macroSegment, { flex: Math.max(goalShares.p, 0.02), backgroundColor: colors.tintDeep, opacity: 0.45 }]} />
+                    <View style={[styles.macroSegment, { flex: Math.max(goalShares.c, 0.02), backgroundColor: colors.carbs, opacity: 0.45 }]} />
+                    <View style={[styles.macroSegment, { flex: Math.max(goalShares.f, 0.02), backgroundColor: colors.water, opacity: 0.45 }]} />
+                  </View>
+                  <View style={styles.macroLegend}>
+                    <Text style={styles.macroLegendText}>P {Math.round(goalShares.p * 100)} %</Text>
+                    <Text style={styles.macroLegendText}>C {Math.round(goalShares.c * 100)} %</Text>
+                    <Text style={styles.macroLegendText}>F {Math.round(goalShares.f * 100)} %</Text>
+                  </View>
+                </>
+              ) : null}
               <Text style={styles.consistency}>
                 {t('progress.consistency')} <RoseHeart />
               </Text>
@@ -310,19 +341,32 @@ export default function ProgressScreen() {
             <>
               {/* Aufnahmefläche fürs Teilen: eigene Marken-Karte, nicht der Screen */}
               <ViewShot ref={shotRef} options={{ format: 'png', quality: 0.95 }}>
-                <View style={styles.shareCard}>
+                {/* Beta-Feedback 09.08.: Marken-Hintergrund statt Weiss, kg an
+                    beiden Fotos, Logo mit Slogan */}
+                <LinearGradient
+                  colors={colors.wallpaper.base}
+                  start={{ x: 0.2, y: 0 }}
+                  end={{ x: 0.8, y: 1 }}
+                  style={styles.shareCard}
+                >
                   <View style={styles.compareRow}>
                     <View style={styles.compareCol}>
                       <Image source={{ uri: first.signedUrl }} style={styles.comparePhoto} />
                       <Text style={styles.compareLabel}>
                         {t('progress.compareBefore')} · {formatDate(first.taken_on)}
                       </Text>
+                      {firstWeight !== null ? (
+                        <Text style={styles.compareKg}>{formatKgLabel(firstWeight)}</Text>
+                      ) : null}
                     </View>
                     <View style={styles.compareCol}>
                       <Image source={{ uri: last.signedUrl }} style={styles.comparePhoto} />
                       <Text style={styles.compareLabel}>
                         {t('progress.compareAfter')} · {formatDate(last.taken_on)}
                       </Text>
+                      {latestWeight !== null ? (
+                        <Text style={styles.compareKg}>{formatKgLabel(latestWeight)}</Text>
+                      ) : null}
                     </View>
                   </View>
                   <View style={styles.shareFooter}>
@@ -335,9 +379,12 @@ export default function ProgressScreen() {
                       ) : null}
                       <Text style={styles.shareSince}>{t('progress.shareSince')}</Text>
                     </View>
-                    <Text style={styles.shareBrand}>IriFit</Text>
+                    <View style={styles.shareBrandWrap}>
+                      <Text style={styles.shareBrand}>IriFit</Text>
+                      <Text style={styles.shareSlogan}>{t('progress.shareSlogan')}</Text>
+                    </View>
                   </View>
-                </View>
+                </LinearGradient>
               </ViewShot>
               <GhostButton
                 label={t('progress.share')}
@@ -405,6 +452,10 @@ export default function ProgressScreen() {
       </Modal>
     </KeyboardAvoidingView>
   );
+}
+
+function formatKgLabel(kg: number): string {
+  return `${kg.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kg`;
 }
 
 function formatDate(iso: string): string {
@@ -540,6 +591,14 @@ const styles = StyleSheet.create({
     color: colors.muted,
     marginBottom: 7,
   },
+  macroRowLabel: {
+    fontFamily: font.bold,
+    fontSize: 10,
+    letterSpacing: 0.6,
+    color: colors.muted2,
+    marginBottom: 4,
+    marginTop: 2,
+  },
   macroBar: {
     flexDirection: 'row',
     height: 10,
@@ -550,10 +609,14 @@ const styles = StyleSheet.create({
   macroSegment: {
     borderRadius: 2,
   },
+  macroBarTarget: {
+    marginTop: 2,
+  },
   macroLegend: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 7,
+    marginBottom: 8,
   },
   macroLegendText: {
     fontFamily: font.semibold,
@@ -644,10 +707,19 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.muted,
   },
+  shareBrandWrap: {
+    alignItems: 'flex-end',
+  },
   shareBrand: {
     fontFamily: font.display,
     fontSize: 22,
     color: colors.ink,
+  },
+  shareSlogan: {
+    fontFamily: font.semibold,
+    fontSize: 9.5,
+    color: colors.muted,
+    marginTop: 1,
   },
   shareButton: {
     marginTop: 12,
@@ -672,13 +744,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 6,
   },
+  compareKg: {
+    fontFamily: font.bold,
+    fontSize: 13,
+    color: colors.ink,
+    textAlign: 'center',
+    marginTop: 2,
+  },
   photoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 10,
+    marginTop: 12,
   },
   photoTile: {
-    width: '31%',
+    // exakt drei Spalten: (100 % − 2×10 Luecke) / 3
+    width: '31.5%',
     aspectRatio: 3 / 4,
     borderRadius: radius.md,
     overflow: 'hidden',

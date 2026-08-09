@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, {
   cancelAnimation,
@@ -12,7 +12,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import Svg, { Circle, Path } from 'react-native-svg';
+import Svg, { Circle, ClipPath, Defs, Path } from 'react-native-svg';
 
 import { GlassView } from '@/components/glass/GlassView';
 import { IriIcon } from '@/components/icons/IriIcon';
@@ -30,23 +30,26 @@ export interface WaterCardProps {
 const formatLiters = (ml: number) =>
   (ml / 1000).toLocaleString('de-DE', { maximumFractionDigits: 2 });
 
-const GLASS_W = 34;
-const GLASS_H = 38;
-const WATER_TOP = 9; // Wasseroberfläche (≈ 76 % gefüllt)
+/**
+ * Glas-Geometrie (Beta-Feedback 09.08., nach Foto): Tumbler — oben weiter Rand,
+ * Wände laufen leicht konisch zu, unten weich gerundeter Boden.
+ * viewBox 34×42; INNER ist die Wasserfläche (fürs Clipping).
+ */
+const VB_W = 34;
+const VB_H = 42;
+const GLASS_OUTLINE =
+  'M4,1.5 L30,1.5 C30,14 29.2,24 26.8,31.5 C25.6,38.5 22.6,40.5 17,40.5 C11.4,40.5 8.4,38.5 7.2,31.5 C4.8,24 4,14 4,1.5 Z';
+const WATER_TOP = 10; // Ruhelage der Wasseroberfläche (≈ 75 % gefüllt)
+
+/** S18: aufsteigende Bläschen — nur im zuletzt gefüllten Glas (Performance!) */
+const BUBBLES = [
+  { x: 12, r: 1.5, delay: 0, duration: 4600 },
+  { x: 22, r: 1.1, delay: 2100, duration: 5400 },
+] as const;
+
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-/**
- * S18: aufsteigende Bläschen — Position/Größe fix, damit sie nicht zappeln.
- * Bewusst nur ZWEI und nur im zuletzt gefüllten Glas (siehe WaterCard): 3 Bläschen
- * mal 8 Gläser waren 24 Dauer-Animationen und haben die App spürbar ausgebremst.
- */
-const BUBBLES = [
-  { x: 11, r: 1.5, delay: 0, duration: 4600 },
-  { x: 23, r: 1.1, delay: 2100, duration: 5400 },
-] as const;
-
-/** Ein Bläschen: steigt von der Glasunterkante zur Wasseroberfläche und verblasst */
 function Bubble({ x, r, delay, duration }: { x: number; r: number; delay: number; duration: number }) {
   const t = useSharedValue(0);
 
@@ -59,7 +62,7 @@ function Bubble({ x, r, delay, duration }: { x: number; r: number; delay: number
   }, [delay, duration, t]);
 
   const props = useAnimatedProps(() => ({
-    cy: GLASS_H - 3 - (GLASS_H - WATER_TOP - 6) * t.value,
+    cy: VB_H - 5 - (VB_H - WATER_TOP - 8) * t.value,
     opacity: t.value < 0.15 ? t.value / 0.15 : 1 - t.value,
   }));
 
@@ -70,59 +73,92 @@ function Bubble({ x, r, delay, duration }: { x: number; r: number; delay: number
 const WAVE_STEPS = 6;
 
 /**
- * S16: Wasseroberfläche als langsam schwappende Sinus-Welle (3,5-s-Loop).
- * amplitude UND phase kommen von der Karte — ein Tap lässt ALLE Gläser
- * nachschwappen, und es läuft nur EIN Zeitgeber statt einem pro Glas
- * (Befund 09.08.: acht parallele Loops waren spürbare Dauerlast).
+ * Ein Glas in Tumbler-Form. amplitude UND phase kommen von der Karte —
+ * ein Tap lässt ALLE Gläser nachschwappen, und es läuft nur EIN Zeitgeber.
  */
-function WaveGlass({
+function TumblerGlass({
   amplitude,
   phase,
   index,
+  filled,
   withBubbles,
+  width,
 }: {
   amplitude: SharedValue<number>;
   phase: SharedValue<number>;
   index: number;
+  filled: boolean;
   withBubbles: boolean;
+  width: number;
 }) {
   const pathProps = useAnimatedProps(() => {
     'worklet';
-    let d = `M0,${GLASS_H}`;
+    let d = `M0,${VB_H}`;
     for (let i = 0; i <= WAVE_STEPS; i += 1) {
-      const x = (GLASS_W / WAVE_STEPS) * i;
+      const x = (VB_W / WAVE_STEPS) * i;
       // Nachbargläser leicht versetzt (index*0.9) — wirkt natürlicher als Gleichtakt
       const y =
         WATER_TOP +
-        Math.sin(phase.value + (x / GLASS_W) * Math.PI * 1.6 + index * 0.9) * amplitude.value;
+        Math.sin(phase.value + (x / VB_W) * Math.PI * 1.6 + index * 0.9) * amplitude.value;
       d += ` L${x.toFixed(1)},${y.toFixed(1)}`;
     }
-    return { d: `${d} L${GLASS_W},${GLASS_H} Z` };
+    return { d: `${d} L${VB_W},${VB_H} Z` };
   });
 
+  const height = Math.round(width * (VB_H / VB_W));
+  const clipId = `glass-${index}`;
+
   return (
-    <View style={[styles.glass, styles.glassWater]}>
-      <Svg width="100%" height="100%" viewBox={`0 0 ${GLASS_W} ${GLASS_H}`} preserveAspectRatio="none">
-        <AnimatedPath animatedProps={pathProps} fill="rgba(98,186,208,0.88)" />
-        {withBubbles
-          ? BUBBLES.map((b, i) => (
-              <Bubble key={i} x={b.x} r={b.r} delay={b.delay} duration={b.duration} />
-            ))
-          : null}
-      </Svg>
-    </View>
+    <Svg width={width} height={height} viewBox={`0 0 ${VB_W} ${VB_H}`}>
+      <Defs>
+        <ClipPath id={clipId}>
+          <Path d={GLASS_OUTLINE} />
+        </ClipPath>
+      </Defs>
+      {/* Glaskörper */}
+      <Path
+        d={GLASS_OUTLINE}
+        fill={filled ? 'rgba(122,206,222,0.16)' : 'rgba(28,28,33,0.05)'}
+      />
+      {filled ? (
+        <>
+          <AnimatedPath
+            animatedProps={pathProps}
+            fill="rgba(98,186,208,0.88)"
+            clipPath={`url(#${clipId})`}
+          />
+          {withBubbles
+            ? BUBBLES.map((b, i) => (
+                <Bubble key={i} x={b.x} r={b.r} delay={b.delay} duration={b.duration} />
+              ))
+            : null}
+        </>
+      ) : null}
+      {/* Kontur zuletzt, damit sie über dem Wasser liegt */}
+      <Path
+        d={GLASS_OUTLINE}
+        fill="none"
+        stroke={filled ? 'rgba(255,255,255,0.85)' : 'rgba(28,28,33,0.14)'}
+        strokeWidth={1.4}
+      />
+    </Svg>
   );
 }
 
+const GAP = 7;
+const MAX_GLASS_W = 46;
+
 /**
- * Wasser-Widget (Prototyp .water): Reihe von Gläsern, Tap füllt bis zum
- * angetippten Glas; Tap auf das letzte volle Glas leert es wieder.
+ * Wasser-Widget: Reihe von Gläsern, Tap füllt bis zum angetippten Glas;
+ * Tap auf das letzte volle Glas leert es wieder. Die Gläser skalieren auf die
+ * volle Kartenbreite (Beta-Feedback 09.08.: iPhone vs. Plus).
  */
 export function WaterCard({ currentMl, goalMl, glassMl, onSetAmount }: WaterCardProps) {
   const glassCount = Math.max(1, Math.round(goalMl / glassMl));
   const filled = Math.round(currentMl / glassMl);
   const amplitude = useSharedValue(1.6);
   const phase = useSharedValue(0);
+  const [rowWidth, setRowWidth] = useState(0);
 
   // EIN Zeitgeber für alle Gläser: 0→2π linear wiederholt = nahtloser Loop
   useEffect(() => {
@@ -132,6 +168,11 @@ export function WaterCard({ currentMl, goalMl, glassMl, onSetAmount }: WaterCard
     );
     return () => cancelAnimation(phase);
   }, [phase]);
+
+  const onRowLayout = (e: LayoutChangeEvent) => setRowWidth(e.nativeEvent.layout.width);
+  const glassW = rowWidth
+    ? Math.min(MAX_GLASS_W, Math.floor((rowWidth - GAP * (glassCount - 1)) / glassCount))
+    : 0;
 
   const tapGlass = (index: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -156,31 +197,30 @@ export function WaterCard({ currentMl, goalMl, glassMl, onSetAmount }: WaterCard
           {t('home.waterAmount', { current: formatLiters(currentMl), goal: formatLiters(goalMl) })}
         </Text>
       </View>
-      <View style={styles.glasses}>
-        {Array.from({ length: glassCount }, (_, i) => {
-          const isFull = i < filled;
-          return (
-            <Pressable
-              key={i}
-              accessibilityRole="button"
-              accessibilityLabel={`${t('home.water')} ${i + 1}`}
-              accessibilityState={{ selected: isFull }}
-              onPress={() => tapGlass(i)}
-              style={styles.glassSlot}
-            >
-              {isFull ? (
-                <WaveGlass
-                  amplitude={amplitude}
-                  phase={phase}
-                  index={i}
-                  withBubbles={i === filled - 1}
-                />
-              ) : (
-                <View style={[styles.glass, styles.glassEmpty]} />
-              )}
-            </Pressable>
-          );
-        })}
+      <View style={styles.glasses} onLayout={onRowLayout}>
+        {glassW > 0
+          ? Array.from({ length: glassCount }, (_, i) => {
+              const isFull = i < filled;
+              return (
+                <Pressable
+                  key={i}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('home.water')} ${i + 1}`}
+                  accessibilityState={{ selected: isFull }}
+                  onPress={() => tapGlass(i)}
+                >
+                  <TumblerGlass
+                    amplitude={amplitude}
+                    phase={phase}
+                    index={i}
+                    filled={isFull}
+                    withBubbles={i === filled - 1}
+                    width={glassW}
+                  />
+                </Pressable>
+              );
+            })
+          : null}
       </View>
     </GlassView>
   );
@@ -216,27 +256,8 @@ const styles = StyleSheet.create({
   },
   glasses: {
     flexDirection: 'row',
-    gap: 7,
+    justifyContent: 'center',
+    gap: GAP,
     marginTop: 10,
-  },
-  glassSlot: {
-    flex: 1,
-    maxWidth: 34,
-  },
-  glass: {
-    height: 38,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-    borderBottomLeftRadius: 11,
-    borderBottomRightRadius: 11,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
-  },
-  glassWater: {
-    overflow: 'hidden',
-    backgroundColor: 'rgba(122,206,222,0.18)',
-  },
-  glassEmpty: {
-    backgroundColor: colors.track,
   },
 });

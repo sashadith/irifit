@@ -36,9 +36,10 @@ export function WeightChart({ entries, targetKg, height = 180 }: WeightChartProp
 
   const values = entries.map((e) => e.weight_kg);
   const times = entries.map((e) => new Date(e.measured_on).getTime());
-  const allValues = targetKg != null ? [...values, targetKg] : values;
-  let min = Math.min(...allValues);
-  let max = Math.max(...allValues);
+  // Skala NUR aus den Messwerten (Beta-Befund 09.08.): Ein fernes Ziel (z. B.
+  // 68 bei Werten um 80) drueckte die Kurve sonst flach an den oberen Rand.
+  let min = Math.min(...values);
+  let max = Math.max(...values);
   if (max - min < 2) {
     // flache Kurven nicht dramatisieren — mindestens 2 kg Spannweite
     const mid = (max + min) / 2;
@@ -111,7 +112,7 @@ export function WeightChart({ entries, targetKg, height = 180 }: WeightChartProp
             </SvgText>
           ))}
 
-          {targetKg != null ? (
+          {targetKg != null && targetKg >= min && targetKg <= max ? (
             <>
               <Line
                 x1={PAD_LEFT}

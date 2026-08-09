@@ -158,8 +158,8 @@
     "streakStart": "Starte deine Serie",
     "remaining": "kcal übrig",
     "summary": "Gegessen: {eaten} · Ziel: {goal}",
-    "macroCarbs": "CARBS",
-    "macroProtein": "PROTEIN",
+    "macroCarbs": "KOHLENHYDRATE",
+    "macroProtein": "EIWEISS",
     "macroFat": "FETT",
     "macroValue": "{current} / {goal} g",
     "water": "Wasser",
@@ -192,7 +192,9 @@
     "sourceSearch": "Suche",
     "sourceRecipe": "Rezept",
     "sourceFavorite": "Favorit",
-    "sourceManual": "Manuell"
+    "sourceManual": "Manuell",
+    "streakInfoTitle": "Deine Serie",
+    "streakInfoBody": "Die Flamme zählt, an wie vielen Tagen hintereinander du etwas eingetragen hast — eine Mahlzeit, dein Wasser oder dein Gewicht.\n\nEin verpasster Tag pro Woche ist okay: dein Joker. Erst danach beginnt die Serie von vorn. Kein Druck — Konsistenz schlägt Perfektion."
   },
   "progress": {
     "eyebrow": "Fortschritt",
@@ -232,7 +234,10 @@
     "share": "Fortschritt teilen",
     "shareTitle": "Mein Fortschritt mit IriFit",
     "shareSince": "seit dem Start",
-    "shareFailed": "Das Teilen hat nicht geklappt — probier es gleich nochmal."
+    "shareFailed": "Das Teilen hat nicht geklappt — probier es gleich nochmal.",
+    "macroActual": "IST",
+    "macroTarget": "DEIN ZIEL",
+    "shareSlogan": "Satt werden — und trotzdem abnehmen."
   },
   "recipes": {
     "title": "Irinas Rezepte",
@@ -372,7 +377,9 @@
     "deleteTitle2": "Ganz sicher?",
     "deleteBody2": "Letzte Frage, versprochen: Sollen wirklich alle deine Daten unwiderruflich gelöscht werden?",
     "deleteConfirm2": "Ja, alles löschen",
-    "deleteFailed": "Löschen hat nicht geklappt — probier es gleich nochmal oder melde dich bei uns."
+    "deleteFailed": "Löschen hat nicht geklappt — probier es gleich nochmal oder melde dich bei uns.",
+    "waterGoal": "Wasserziel",
+    "waterRange": "Bitte zwischen 0,5 und 6 Litern wählen."
   },
   "scan": {
     "eyebrow": "AI-Scan",
@@ -437,7 +444,8 @@
     "favRemove": "Favorit entfernen",
     "productNotFoundTitle": "Produkt nicht gefunden",
     "productNotFoundText": "Dieser Barcode ist nicht in der Datenbank. Versuch den Foto-Scan oder die Suche.",
-    "barcodeError": "Der Barcode-Abruf hat nicht geklappt. Prüfe deine Verbindung."
+    "barcodeError": "Der Barcode-Abruf hat nicht geklappt. Prüfe deine Verbindung.",
+    "searchEyebrow": "Manuelle Suche"
   },
   "legacy": {
     "eyebrow": "Dein Kurs-Bereich",

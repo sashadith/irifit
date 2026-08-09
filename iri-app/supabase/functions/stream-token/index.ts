@@ -91,11 +91,11 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: 'lesson_not_found' }), { status: 404, headers: CORS });
     }
 
-    // Zugriff: aktive Abonnentin (nicht-Legacy-Kurse) ODER Legacy-Käuferin
-    let allowed = false;
-    if (!course.is_legacy) {
-      allowed = await hasActiveSubscription();
-    } else if (course.legacy_slug) {
+    // Zugriff: aktive Abonnentin ODER Legacy-Käuferin (09.08.: Abo zählt auch
+    // bei Legacy-Kursen — die Paywall bewirbt „Irinas Ernährungskurs", also
+    // gehört er zum Abo; Gegenstück zur RLS-Policy courses_select_subscribers)
+    let allowed = await hasActiveSubscription();
+    if (!allowed && course.is_legacy && course.legacy_slug) {
       const { data: legacy } = await admin
         .from('legacy_customers')
         .select('purchased_course_slugs')
