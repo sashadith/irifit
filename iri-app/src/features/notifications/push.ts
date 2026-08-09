@@ -27,13 +27,20 @@ export function configureNotificationHandling() {
   });
 }
 
-/** Android braucht einen Channel, sonst erscheinen Pushes gar nicht */
+/**
+ * Android braucht einen Channel, sonst erscheinen Pushes gar nicht.
+ * "iri-soft" (09.08.): eigener Ton (Saschas push.wav) — Channels sind nach dem
+ * Anlegen unveraenderlich, deshalb neuer Channel statt Umbau von "default".
+ */
+export const ANDROID_CHANNEL_ID = 'iri-soft';
+
 async function ensureAndroidChannel() {
   if (Platform.OS !== 'android') return;
-  await Notifications.setNotificationChannelAsync('default', {
+  await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
     name: 'IriFit',
     importance: Notifications.AndroidImportance.DEFAULT,
     vibrationPattern: [0, 200],
+    sound: 'push.wav',
   });
 }
 

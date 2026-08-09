@@ -57,6 +57,14 @@
         }
       ],
       "expo-video",
+      [
+        "expo-notifications",
+        {
+          "sounds": [
+            "./assets/sounds/push.wav"
+          ]
+        }
+      ],
       "expo-audio",
       "expo-asset"
     ],

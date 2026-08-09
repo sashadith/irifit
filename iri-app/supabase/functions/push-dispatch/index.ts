@@ -81,7 +81,7 @@ function learnedDinner(dinnerHours: number[]): number {
 /** Expo Push API mit Chunking; entfernt tote Tokens (DeviceNotRegistered) */
 async function sendExpoPushes(
   admin: SupabaseClient,
-  messages: { to: string; title: string; body: string; data: Record<string, string> }[],
+  messages: { to: string; title: string; body: string; data: Record<string, string>; sound: string; channelId: string }[],
 ) {
   const dead: string[] = [];
   for (let i = 0; i < messages.length; i += 100) {
@@ -315,7 +315,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── Versand: push_log reserviert (1× je Art und lokalem Tag), dann Expo ──
-  const toSend: { to: string; title: string; body: string; data: Record<string, string> }[] = [];
+  const toSend: { to: string; title: string; body: string; data: Record<string, string>; sound: string; channelId: string }[] = [];
   let sent = 0;
   for (const msg of queue) {
     const p = profileById.get(msg.userId)!;
@@ -329,7 +329,8 @@ Deno.serve(async (req: Request) => {
     if (error) continue; // Unique-Konflikt: heute schon geschickt
     sent += 1;
     for (const token of msg.to) {
-      toSend.push({ to: token, title: msg.title, body: msg.body, data: msg.data });
+      // sound: iOS spielt push.wav aus dem Bundle; channelId: Androids iri-soft-Channel traegt denselben Ton
+      toSend.push({ to: token, title: msg.title, body: msg.body, data: msg.data, sound: 'push.wav', channelId: 'iri-soft' });
     }
   }
   if (toSend.length) await sendExpoPushes(admin, toSend);
