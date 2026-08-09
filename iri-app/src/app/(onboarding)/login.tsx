@@ -11,6 +11,7 @@ import { IriAvatar } from '@/components/ui/IriAvatar';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { RoseHeart } from '@/components/ui/RoseHeart';
 import { signInWithApple, signInWithGoogle } from '@/features/auth/oauth';
+import { useOnboarding } from '@/features/onboarding/OnboardingProvider';
 import { t } from '@/i18n';
 import { supabase } from '@/lib/supabase';
 import { colors, font, spacing, typography } from '@/theme';
@@ -18,6 +19,7 @@ import { colors, font, spacing, typography } from '@/theme';
 /** Login für bestehende Accounts (E-Mail, Apple, Google) */
 export default function LoginScreen() {
   const router = useRouter();
+  const { answers } = useOnboarding();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -45,7 +47,18 @@ export default function LoginScreen() {
         .eq('id', data.user.id)
         .maybeSingle();
       if (!profileRow?.onboarding_completed_at) {
-        router.replace('/(onboarding)/goal');
+        // Wurde das Quiz in dieser Sitzung schon beantwortet, NICHT von vorn
+        // beginnen (Befund Beta 09.08.: „Fragerunde fing von vorne an") —
+        // die Antworten liegen im OnboardingProvider und fließen beim
+        // Abschluss ins Profil. Direkt weiter zur Paywall; hat der Account
+        // bereits Zugang (Beta/Abo), springt die von selbst weiter.
+        const quizDone =
+          answers.goal != null &&
+          answers.birthYear != null &&
+          answers.heightCm != null &&
+          answers.weightKg != null &&
+          answers.activity != null;
+        router.replace(quizDone ? '/(onboarding)/paywall' : '/(onboarding)/goal');
       }
     } finally {
       setBusy(false);

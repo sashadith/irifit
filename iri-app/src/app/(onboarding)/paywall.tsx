@@ -21,6 +21,7 @@ import {
   waitForSubscriptionRow,
 } from '@/features/subscription/purchases';
 import { t } from '@/i18n';
+import { supabase } from '@/lib/supabase';
 import { colors, font, radius, spacing, tintShadow, typography } from '@/theme';
 
 type Plan = 'yearly' | 'monthly';
@@ -39,6 +40,30 @@ export default function PaywallScreen() {
   const [showVoucher, setShowVoucher] = useState(false);
   const [voucherCode, setVoucherCode] = useState('');
   const scrollRef = useRef<ScrollView>(null);
+
+  // Zugang schon vorhanden? (Beta-Accounts, Gutschein-Nutzerinnen, Re-Login nach
+  // Neuinstallation …) — dann gehört hier KEINE Paywall hin. Befund 09.08.:
+  // Beta-Testerinnen mit aktiver subscriptions-Zeile hingen fest, weil die
+  // Paywall nur Kauf/Gutschein/Restore kannte, nie die Datenbank.
+  useEffect(() => {
+    if (!session) return;
+    let cancelled = false;
+    supabase
+      .from('subscriptions')
+      .select('status')
+      .eq('user_id', session.user.id)
+      .in('status', ['trialing', 'active', 'in_grace'])
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled && data) {
+          setBusy(true);
+          completeOnboarding().catch(() => setBusy(false));
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user.id]);
 
   // Das Gutschein-Feld liegt unter dem Falz — ohne Nachscrollen verdeckt es die Tastatur
   // komplett. Erst NACH dem Resize durch die Tastatur (keyboardDidShow) ans Ende scrollen.
