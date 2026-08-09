@@ -248,8 +248,9 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
   kcal: {
-    fontSize: 24,
-    lineHeight: 29,
+    fontSize: 40,
+    lineHeight: 47,
+    color: colors.tintDeep, // groesser + pink (Sascha 09.08.)
   },
   slotChips: {
     flexDirection: 'row',
