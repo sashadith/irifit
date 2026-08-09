@@ -3,9 +3,9 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@expo-google-fonts/antic-didone": "^0.4.1",
     "@expo-google-fonts/dancing-script": "^0.4.2",
     "@expo-google-fonts/manrope": "^0.4.2",
-    "@expo-google-fonts/tenor-sans": "^0.4.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@supabase/supabase-js": "^2.110.7",
     "expo": "^54.0.36",
