@@ -31,15 +31,15 @@ const formatLiters = (ml: number) =>
   (ml / 1000).toLocaleString('de-DE', { maximumFractionDigits: 2 });
 
 /**
- * Glas-Geometrie (Beta-Feedback 09.08., nach Foto): Tumbler — oben weiter Rand,
- * Wände laufen leicht konisch zu, unten weich gerundeter Boden.
- * viewBox 34×42; INNER ist die Wasserfläche (fürs Clipping).
+ * Glas-Geometrie (3. Runde, Sascha 09.08.): unten BREITER als oben und
+ * gedrungener — die Wände laufen vom schmaleren Rand bauchig nach aussen,
+ * unten weich gerundeter Boden. viewBox 34×36.
  */
 const VB_W = 34;
-const VB_H = 42;
+const VB_H = 36;
 const GLASS_OUTLINE =
-  'M3,1.5 L31,1.5 C30.7,11 30.1,19 28.8,26 C27.6,34 25.8,40 17,40 C8.2,40 6.4,34 5.2,26 C3.9,19 3.3,11 3,1.5 Z';
-const WATER_TOP = 10; // Ruhelage der Wasseroberfläche (≈ 75 % gefüllt)
+  'M7,1.5 L27,1.5 C27.6,9 29.4,16 30,22 C30.6,29.5 27.5,34.5 17,34.5 C6.5,34.5 3.4,29.5 4,22 C4.6,16 6.4,9 7,1.5 Z';
+const WATER_TOP = 9; // Ruhelage der Wasseroberfläche (≈ 75 % gefüllt)
 
 /** S18: aufsteigende Bläschen — nur im zuletzt gefüllten Glas (Performance!) */
 const BUBBLES = [
