@@ -36,10 +36,10 @@ const formatLiters = (ml: number) =>
  * unten weich gerundeter Boden. viewBox 34×36.
  */
 const VB_W = 34;
-const VB_H = 36;
+const VB_H = 32; // v5: 10 % hoeher als v4 (Sascha 09.08.)
 const GLASS_OUTLINE =
-  'M7,1.5 L27,1.5 C27.6,9 29.4,16 30,22 C30.6,29.5 27.5,34.5 17,34.5 C6.5,34.5 3.4,29.5 4,22 C4.6,16 6.4,9 7,1.5 Z';
-const WATER_TOP = 9; // Ruhelage der Wasseroberfläche (≈ 75 % gefüllt)
+  'M7,1.3 L27,1.3 C27.6,7.9 29.4,14.1 30,19.4 C30.6,26 27.5,30.5 17,30.5 C6.5,30.5 3.4,26 4,19.4 C4.6,14.1 6.4,7.9 7,1.3 Z';
+const WATER_TOP = 7.7; // Ruhelage der Wasseroberfläche (≈ 75 % gefüllt)
 
 /** S18: aufsteigende Bläschen — nur im zuletzt gefüllten Glas (Performance!) */
 const BUBBLES = [
@@ -62,7 +62,7 @@ function Bubble({ x, r, delay, duration }: { x: number; r: number; delay: number
   }, [delay, duration, t]);
 
   const props = useAnimatedProps(() => ({
-    cy: VB_H - 5 - (VB_H - WATER_TOP - 8) * t.value,
+    cy: VB_H - 4 - (VB_H - WATER_TOP - 6) * t.value,
     opacity: t.value < 0.15 ? t.value / 0.15 : 1 - t.value,
   }));
 
@@ -145,7 +145,7 @@ function TumblerGlass({
   );
 }
 
-const GAP = 7;
+const GAP = 4; // v5: engere Reihe (Sascha 09.08.)
 const MAX_GLASS_W = 46;
 
 /**
