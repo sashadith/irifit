@@ -38,7 +38,7 @@ const formatLiters = (ml: number) =>
 const VB_W = 34;
 const VB_H = 42;
 const GLASS_OUTLINE =
-  'M4,1.5 L30,1.5 C30,14 29.2,24 26.8,31.5 C25.6,38.5 22.6,40.5 17,40.5 C11.4,40.5 8.4,38.5 7.2,31.5 C4.8,24 4,14 4,1.5 Z';
+  'M3,1.5 L31,1.5 C30.7,11 30.1,19 28.8,26 C27.6,34 25.8,40 17,40 C8.2,40 6.4,34 5.2,26 C3.9,19 3.3,11 3,1.5 Z';
 const WATER_TOP = 10; // Ruhelage der Wasseroberfläche (≈ 75 % gefüllt)
 
 /** S18: aufsteigende Bläschen — nur im zuletzt gefüllten Glas (Performance!) */

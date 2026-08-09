@@ -271,32 +271,29 @@ export default function ProfilScreen() {
       <GlassView borderRadius={radius.md} contentStyle={styles.card} style={styles.gap}>
         {/* Beta-Feedback 09.08.: Inhalt direkt in der Karte statt hinter einem Tap */}
         <View style={styles.sectionHead}>
-          <RoseHeart style={styles.irinaHeart} />
+          <RoseHeart size={18} />
           <Text style={[styles.sectionTitle, styles.noGap]}>{t('profile.irinaSection')}</Text>
         </View>
-        <View style={styles.irinaRow}>
-          <IriAvatar size={64} />
-          <View style={styles.irinaText}>
-            <Text style={styles.irinaName}>Irina Dith</Text>
-            <Text style={styles.irinaBio}>{t('coaching.irinaCardBio')}</Text>
+        {/* Zentriert wie das Irina-Sheet (Wunsch Sascha 09.08.): Foto, Name,
+            Bio, rosa Social-Pills — ohne Frag-Irina-Button */}
+        <View style={styles.irinaCenter}>
+          <IriAvatar size={84} />
+          <Text style={styles.irinaName}>Irina Dith</Text>
+          <Text style={styles.irinaBio}>{t('coaching.irinaCardBio')}</Text>
+          <View style={styles.irinaLinks}>
+            {IRINA_LINKS.map((link) => (
+              <Pressable
+                key={link.labelKey}
+                accessibilityRole="link"
+                accessibilityLabel={t(link.labelKey)}
+                onPress={() => openIrinaLink(link.app, link.web)}
+                style={({ pressed }) => [styles.irinaPill, pressed && styles.irinaPillPressed]}
+              >
+                <Text style={styles.irinaPillText}>{t(link.labelKey)}</Text>
+              </Pressable>
+            ))}
           </View>
         </View>
-        <View style={styles.irinaLinks}>
-          {IRINA_LINKS.map((link) => (
-            <Chip
-              key={link.labelKey}
-              label={t(link.labelKey)}
-              selected={false}
-              onPress={() => openIrinaLink(link.app, link.web)}
-            />
-          ))}
-        </View>
-        <GhostButton
-          label={t('profile.askIrina')}
-          small
-          onPress={() => router.push('/(tabs)/coaching')}
-          style={styles.smallGap}
-        />
       </GlassView>
 
       <GlassView borderRadius={radius.md} contentStyle={styles.card} style={styles.gap}>
@@ -419,39 +416,49 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontFamily: font.bold,
   },
-  irinaHeart: {
-    fontSize: 18,
-  },
-  irinaRow: {
-    flexDirection: 'row',
+  irinaCenter: {
     alignItems: 'center',
-    gap: 14,
-  },
-  irinaText: {
-    flex: 1,
+    paddingTop: 4,
   },
   irinaName: {
     fontFamily: font.display,
-    fontSize: 19,
+    fontSize: 24,
     color: colors.ink,
+    marginTop: 12,
   },
   irinaBio: {
     fontFamily: font.regular,
-    fontSize: 12.5,
-    lineHeight: 18,
+    fontSize: 13,
+    lineHeight: 19.5,
     color: colors.muted,
-    marginTop: 3,
+    textAlign: 'center',
+    marginTop: 8,
   },
   irinaLinks: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 12,
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 14,
+  },
+  irinaPill: {
+    backgroundColor: colors.tintDeep,
+    borderRadius: radius.pill,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  irinaPillPressed: {
+    opacity: 0.75,
+  },
+  irinaPillText: {
+    fontFamily: font.bold,
+    fontSize: 13.5,
+    color: colors.white,
   },
   twoCol: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 4,
+    marginTop: 14,
   },
   col: {
     flex: 1,

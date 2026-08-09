@@ -126,7 +126,7 @@ export function DiaryHeader({ date, isToday, greeting, streakCount, onShiftDate 
         <Text style={[typography.displayLg, styles.greeting]} numberOfLines={1}>
           {greeting}
         </Text>
-        <RoseHeart style={styles.heart} wide />
+        <RoseHeart size={26} color={colors.tint} />
       </View>
     </View>
   );
@@ -137,7 +137,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    // = greetingRow.marginBottom (6) + ringCard.marginTop (12) — gleicher
+    // Abstand ueber und unter der Grusszeile (Beta 09.08.)
+    marginBottom: 18,
   },
   dateChip: {
     flexDirection: 'row',
@@ -169,10 +171,6 @@ const styles = StyleSheet.create({
   },
   greeting: {
     flexShrink: 1,
-  },
-  heart: {
-    fontSize: 24,
-    lineHeight: 28,
   },
   streak: {
     flexDirection: 'row',

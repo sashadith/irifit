@@ -56,7 +56,7 @@ export function IrinaCard({ visible, onClose }: IrinaCardProps) {
             <IriAvatar size={84} style={styles.avatar} />
             <Text style={[typography.displayLg, styles.name]}>Irina Dith</Text>
             <Text style={styles.bio}>
-              {t('coaching.irinaCardBio')} <RoseHeart />
+              {t('coaching.irinaCardBio')} <RoseHeart size={13} />
             </Text>
             <View style={styles.links}>
               {IRINA_LINKS.map((link) => (

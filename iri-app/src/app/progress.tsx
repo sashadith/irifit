@@ -55,6 +55,7 @@ export default function ProgressScreen() {
   const [photos, setPhotos] = useState<ProgressPhoto[]>([]);
   const [viewer, setViewer] = useState<ProgressPhoto | null>(null);
   const [busy, setBusy] = useState(false);
+  const [gridW, setGridW] = useState(0);
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -188,6 +189,9 @@ export default function ProgressScreen() {
 
   const first = photos[0];
   const last = photos.length > 1 ? photos[photos.length - 1] : null;
+
+  // Immer DREI Foto-Spalten, exakt auf die Kartenbreite gerechnet (Beta 09.08.)
+  const tileW = gridW > 0 ? Math.floor((gridW - 2 * 10) / 3) : 100;
 
   // Soll-Verteilung aus den Profil-Zielen (4/4/9 kcal je Gramm)
   const goalShares = (() => {
@@ -327,7 +331,7 @@ export default function ProgressScreen() {
                 </>
               ) : null}
               <Text style={styles.consistency}>
-                {t('progress.consistency')} <RoseHeart />
+                {t('progress.consistency')} <RoseHeart size={13} />
               </Text>
             </>
           )}
@@ -402,7 +406,7 @@ export default function ProgressScreen() {
               />
             </>
           ) : null}
-          <View style={styles.photoGrid}>
+          <View style={styles.photoGrid} onLayout={(e) => setGridW(e.nativeEvent.layout.width)}>
             {photos.map((photo) => (
               <Pressable
                 key={photo.id}
@@ -410,7 +414,7 @@ export default function ProgressScreen() {
                 accessibilityLabel={photo.taken_on}
                 onPress={() => setViewer(photo)}
                 onLongPress={() => confirmDeletePhoto(photo)}
-                style={styles.photoTile}
+                style={[styles.photoTile, { width: tileW }]}
               >
                 <Image source={{ uri: photo.signedUrl }} style={styles.photo} />
               </Pressable>
@@ -420,7 +424,7 @@ export default function ProgressScreen() {
               accessibilityLabel={t('progress.addPhoto')}
               onPress={addPhoto}
               disabled={busy}
-              style={[styles.photoTile, styles.addTile, busy && styles.disabled]}
+              style={[styles.photoTile, styles.addTile, { width: tileW }, busy && styles.disabled]}
             >
               <Text style={styles.addTilePlus}>＋</Text>
               <Text style={styles.addTileText}>{t('progress.addPhoto')}</Text>
@@ -712,9 +716,10 @@ const styles = StyleSheet.create({
     color: colors.tintDeep,
   },
   shareSince: {
-    fontFamily: font.semibold,
+    fontFamily: font.display,
     fontSize: 11,
-    color: colors.muted,
+    letterSpacing: 0.3,
+    color: '#675C6C',
   },
   shareBrandWrap: {
     alignItems: 'flex-end',
@@ -738,7 +743,7 @@ const styles = StyleSheet.create({
   },
   shareSlogan: {
     fontFamily: font.display,
-    fontSize: 10,
+    fontSize: 11,
     letterSpacing: 0.3,
     color: '#675C6C', // Marken-Grau wie „Fit"
     marginTop: 1,
@@ -780,8 +785,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   photoTile: {
-    // exakt drei Spalten: (100 % − 2×10 Luecke) / 3
-    width: '31.5%',
     aspectRatio: 3 / 4,
     borderRadius: radius.md,
     overflow: 'hidden',

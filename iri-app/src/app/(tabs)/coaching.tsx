@@ -320,7 +320,7 @@ export default function CoachingScreen() {
           <GlassView contentStyle={styles.cardPad}>
             <Animated.View entering={FadeInUp.duration(400)}>
               <Text style={typography.bodyMuted}>
-                {t('coaching.noCourses')} <RoseHeart />
+                {t('coaching.noCourses')} <RoseHeart size={13} />
               </Text>
             </Animated.View>
           </GlassView>
@@ -400,7 +400,7 @@ export default function CoachingScreen() {
                 <GlassView contentStyle={styles.cardPad}>
                   <Animated.View entering={FadeInUp.duration(400)}>
                     <Text style={typography.bodyMuted}>
-                      {t('coaching.trainingsEmpty')} <RoseHeart />
+                      {t('coaching.trainingsEmpty')} <RoseHeart size={13} />
                     </Text>
                   </Animated.View>
                 </GlassView>

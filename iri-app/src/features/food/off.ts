@@ -33,7 +33,8 @@ interface OffProduct {
   code?: string;
   product_name?: string;
   product_name_de?: string;
-  brands?: string;
+  /** Alt-API: Komma-String · Search-a-licious: Array */
+  brands?: string | string[];
   serving_quantity?: number | string;
   nutriments?: OffNutriments;
 }
@@ -48,7 +49,7 @@ function toFoodItem(product: OffProduct): FoodItem | null {
   return {
     barcode: product.code,
     name,
-    brand: product.brands?.split(',')[0]?.trim() || undefined,
+    brand: (Array.isArray(product.brands) ? product.brands[0] : product.brands?.split(',')[0])?.trim() || undefined,
     kcal100: Math.round(kcal),
     protein100: Math.round((n.proteins_100g ?? 0) * 10) / 10,
     carbs100: Math.round((n.carbohydrates_100g ?? 0) * 10) / 10,
@@ -70,8 +71,35 @@ export async function lookupBarcode(barcode: string): Promise<FoodItem | null> {
   return toFoodItem(json.product);
 }
 
-/** Textsuche (deutsche Instanz, beste Treffer zuerst) */
+/**
+ * Textsuche. Primär die dedizierte Such-API (search.openfoodfacts.org,
+ * „Search-a-licious") — die alte cgi/search.pl auf den Hauptservern liefert
+ * seit 08/2026 sporadisch 503 (Beta-Befund 09.08.: „Prüfe deine Verbindung").
+ * Die alte Route bleibt als Fallback.
+ */
 export async function searchFoods(query: string): Promise<FoodItem[]> {
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      langs: 'de',
+      page_size: '25',
+      fields: FIELDS,
+    });
+    const res = await fetch(`https://search.openfoodfacts.org/search?${params}`, {
+      headers: HEADERS,
+    });
+    if (!res.ok) throw new Error(`off_search_${res.status}`);
+    const json = (await res.json()) as { hits?: OffProduct[] };
+    return (json.hits ?? [])
+      .map(toFoodItem)
+      .filter((item): item is FoodItem => item !== null);
+  } catch {
+    return searchFoodsLegacy(query);
+  }
+}
+
+/** Fallback: alte Suche auf der deutschen Instanz */
+async function searchFoodsLegacy(query: string): Promise<FoodItem[]> {
   const params = new URLSearchParams({
     search_terms: query,
     search_simple: '1',

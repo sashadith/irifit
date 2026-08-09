@@ -72,8 +72,10 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
           animatedProps={arcProps}
         />
       </Svg>
+      {/* Zahl EXAKT im Ringzentrum (Beta 09.08.); das Label haengt absolut
+          darunter und verschiebt die Zahl nicht mehr nach oben */}
       <View style={styles.center} pointerEvents="none">
-        <AnimatedNumber value={value} from={0} style={typography.displayNum} />
+        <AnimatedNumber value={value} from={0} style={[typography.displayNum, styles.number]} />
         <Text style={styles.label}>{label}</Text>
       </View>
     </View>
@@ -89,12 +91,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  number: {
+    lineHeight: 58,
+  },
   label: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: 32, // halbe Zahlhoehe + Luft
     fontFamily: font.bold,
     fontSize: 11,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     color: colors.muted,
-    marginTop: 2,
   },
 });

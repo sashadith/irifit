@@ -25,7 +25,7 @@ export default function WelcomeScreen() {
         </Pressable>
         <Text style={[typography.eyebrow, styles.eyebrow]}>{t('onboarding.welcome.eyebrow')}</Text>
         <Text style={[typography.displayXl, styles.title]}>
-          {t('onboarding.welcome.title')} <RoseHeart />
+          {t('onboarding.welcome.title')} <RoseHeart size={22} />
         </Text>
       </View>
       <GlassView contentStyle={styles.cardContent}>

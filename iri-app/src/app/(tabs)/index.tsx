@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     fontFamily: font.regular,
     fontSize: 12.5,
     color: colors.muted,
-    marginTop: 6,
+    marginTop: 14,
   },
   emptyCard: {
     marginBottom: 14,

@@ -82,7 +82,7 @@ export default function LoginScreen() {
         <View style={styles.top}>
           <IriAvatar size={74} />
           <Text style={[typography.displayLg, styles.title]}>
-            {t('onboarding.login.title')} <RoseHeart />
+            {t('onboarding.login.title')} <RoseHeart size={22} />
           </Text>
         </View>
         <GlassInput
