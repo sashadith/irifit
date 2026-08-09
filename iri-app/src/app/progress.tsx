@@ -380,7 +380,16 @@ export default function ProgressScreen() {
                       <Text style={styles.shareSince}>{t('progress.shareSince')}</Text>
                     </View>
                     <View style={styles.shareBrandWrap}>
-                      <Text style={styles.shareBrand}>IriFit</Text>
+                      <Text style={styles.shareBrand}>
+                        <Text style={styles.shareBrandIri}>Iri</Text>
+                        <Text style={styles.shareBrandFit}>Fit</Text>
+                      </Text>
+                      <LinearGradient
+                        colors={colors.roseGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.shareBrandLine}
+                      />
                       <Text style={styles.shareSlogan}>{t('progress.shareSlogan')}</Text>
                     </View>
                   </View>
@@ -713,7 +722,19 @@ const styles = StyleSheet.create({
   shareBrand: {
     fontFamily: font.display,
     fontSize: 22,
-    color: colors.ink,
+  },
+  shareBrandIri: {
+    color: colors.tintDeep,
+  },
+  shareBrandFit: {
+    color: colors.muted,
+  },
+  shareBrandLine: {
+    alignSelf: 'stretch',
+    height: 2.5,
+    borderRadius: 2,
+    marginTop: 3,
+    marginBottom: 3,
   },
   shareSlogan: {
     fontFamily: font.semibold,
