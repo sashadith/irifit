@@ -24,9 +24,18 @@ export default function WelcomeScreen() {
           <IriAvatar size={110} />
         </Pressable>
         <Text style={[typography.eyebrow, styles.eyebrow]}>{t('onboarding.welcome.eyebrow')}</Text>
-        <Text style={[typography.displayXl, styles.title]}>
-          {t('onboarding.welcome.title')} <RoseHeart size={22} />
-        </Text>
+        {/* Einzeilig, skaliert auf jede Displaybreite (Wunsch Sascha 09.08.) */}
+        <View style={styles.titleRow}>
+          <Text
+            style={[typography.displayXl, styles.title]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.5}
+          >
+            {t('onboarding.welcome.title')}
+          </Text>
+          <RoseHeart size={22} />
+        </View>
       </View>
       <GlassView contentStyle={styles.cardContent}>
         <Text style={styles.intro}>{t('onboarding.welcome.intro')}</Text>
@@ -64,10 +73,19 @@ const styles = StyleSheet.create({
     marginTop: 14,
     textAlign: 'center',
   },
-  title: {
-    textAlign: 'center',
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 6, // etwas mehr Luft zum Rand als die Karten
     marginTop: 12,
   },
+  title: {
+    flexShrink: 1,
+    textAlign: 'center',
+  },
+
   cardContent: {
     padding: spacing.lg,
   },

@@ -233,6 +233,17 @@ export default function ScanScreen() {
     });
   };
 
+  // Menge antippen und direkt eintippen (Sascha 09.08.)
+  const setIngredientGrams = (index: number, raw: string) => {
+    const grams = Number(raw.replace(',', '.'));
+    if (!Number.isFinite(grams) || grams < 0 || grams > 5000) return;
+    setIngredients((prev) => {
+      const next = [...prev];
+      next[index] = scaleIngredient(next[index], grams);
+      return next.filter((i) => i.grams > 0);
+    });
+  };
+
   const removeIngredient = (index: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIngredients((prev) => prev.filter((_, i) => i !== index));
@@ -511,7 +522,18 @@ export default function ScanScreen() {
                       >
                         <Text style={styles.stepButtonText}>−</Text>
                       </Pressable>
-                      <Text style={styles.grams}>{Math.round(ingredient.grams)} g</Text>
+                      <View style={styles.gramsField}>
+                        <TextInput
+                          key={`${index}-${Math.round(ingredient.grams)}`}
+                          defaultValue={String(Math.round(ingredient.grams))}
+                          onEndEditing={(e) => setIngredientGrams(index, e.nativeEvent.text)}
+                          keyboardType="number-pad"
+                          style={styles.gramsInput}
+                          maxLength={4}
+                          accessibilityLabel={`${ingredient.name} Menge`}
+                        />
+                        <Text style={styles.gramsUnit}>g</Text>
+                      </View>
                       <Pressable
                         accessibilityRole="button"
                         accessibilityLabel={`${ingredient.name} mehr`}
@@ -780,6 +802,28 @@ const styles = StyleSheet.create({
     fontFamily: font.semibold,
     fontSize: 15,
     color: colors.ink,
+  },
+  gramsField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    borderWidth: 1,
+    borderColor: colors.stroke,
+    borderRadius: radius.pill,
+    paddingHorizontal: 8,
+  },
+  gramsInput: {
+    fontFamily: font.bold,
+    fontSize: 13,
+    color: colors.ink,
+    paddingVertical: 4,
+    minWidth: 34,
+    textAlign: 'center',
+  },
+  gramsUnit: {
+    fontFamily: font.semibold,
+    fontSize: 11,
+    color: colors.muted,
   },
   grams: {
     fontFamily: font.semibold,

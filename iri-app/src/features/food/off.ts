@@ -12,15 +12,17 @@ export interface FoodItem {
   protein100: number;
   carbs100: number;
   fat100: number;
-  /** Portionsgröße in g, falls vom Hersteller angegeben */
+  /** Portionsgröße in g/ml, falls vom Hersteller angegeben */
   servingG?: number;
+  /** Anzeige-Einheit: ml bei Getränken (Nährwerte je 100 ml), sonst g */
+  unit: 'g' | 'ml';
 }
 
 const HEADERS = {
   'User-Agent': 'IRI-App - React Native - beta (kontakt: sashadith@googlemail.com)',
 };
 
-const FIELDS = 'code,product_name,product_name_de,brands,nutriments,serving_quantity';
+const FIELDS = 'code,product_name,product_name_de,brands,nutriments,serving_quantity,nutrition_data_per,categories_tags';
 
 interface OffNutriments {
   'energy-kcal_100g'?: number;
@@ -36,6 +38,8 @@ interface OffProduct {
   /** Alt-API: Komma-String · Search-a-licious: Array */
   brands?: string | string[];
   serving_quantity?: number | string;
+  nutrition_data_per?: string;
+  categories_tags?: string[];
   nutriments?: OffNutriments;
 }
 
@@ -55,6 +59,13 @@ function toFoodItem(product: OffProduct): FoodItem | null {
     carbs100: Math.round((n.carbohydrates_100g ?? 0) * 10) / 10,
     fat100: Math.round((n.fat_100g ?? 0) * 10) / 10,
     servingG: Number.isFinite(serving) && serving > 0 ? serving : undefined,
+    // Getraenk? Die Such-API liefert kein nutrition_data_per, aber die
+    // Kategorie-Tags (en:beverages) sind dort zuverlaessig gepflegt.
+    unit:
+      product.nutrition_data_per === '100ml' ||
+      (product.categories_tags ?? []).some((c) => c.includes('beverage'))
+        ? 'ml'
+        : 'g',
   };
 }
 

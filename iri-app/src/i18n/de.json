@@ -20,7 +20,7 @@
     "stepLabel": "Schritt {step} von 7",
     "welcome": {
       "eyebrow": "Willkommen bei IriFit",
-      "title": "Schön, dass\ndu da bist.",
+      "title": "Schön, dass du da bist.",
       "intro": "Ich bin Irina. Hier zählst du keine Kalorien-Tabellen und hungerst dich durch keine Diät — wir finden gemeinsam heraus, wie du satt wirst und dich trotzdem leichter fühlst. Ein paar kurze Fragen, dann bauen wir deinen Plan.",
       "start": "Los geht's — 7 kurze Fragen",
       "haveAccount": "Ich habe schon einen Account",
@@ -436,7 +436,7 @@
     "favoritesSection": "Favoriten",
     "noRecent": "Was du zuletzt gegessen hast, erscheint hier — ein Tipp genügt, und es steht wieder im Tagebuch.",
     "noFavorites": "Tippe bei einem Lebensmittel auf ☆, um es hier zu sichern.",
-    "per100": "100 g: {kcal} kcal · {protein} P · {carbs} C · {fat} F",
+    "per100": "100 {unit}: {kcal} kcal · {protein} P · {carbs} C · {fat} F",
     "amountLabel": "Menge",
     "approxKcal": "≈ {kcal} kcal",
     "logCta": "Ins Tagebuch eintragen",

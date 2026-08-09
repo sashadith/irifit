@@ -49,10 +49,16 @@ export function FoodSheet({ item, source, isFavorite, onToggleFavorite, onLogged
     [item, parsedGrams, validGrams],
   );
 
-  const adjust = (delta: number) => {
+  // 50er-Raster (Sascha 09.08.): +/- springt auf das nächste Vielfache von 50;
+  // krumme Werte (330-ml-Dose) kommen über das antippbare Zahlenfeld
+  const adjust = (direction: 1 | -1) => {
     Haptics.selectionAsync();
     const current = validGrams ? parsedGrams : 100;
-    setGrams(String(Math.max(5, Math.round((current + delta) / 5) * 5)));
+    const next =
+      direction > 0
+        ? Math.floor(current / 50) * 50 + 50
+        : Math.ceil(current / 50) * 50 - 50;
+    setGrams(String(Math.max(50, next)));
   };
 
   const submit = async () => {
@@ -97,6 +103,7 @@ export function FoodSheet({ item, source, isFavorite, onToggleFavorite, onLogged
 
       <Text style={styles.per100}>
         {t('food.per100', {
+          unit: item.unit,
           kcal: item.kcal100,
           protein: item.protein100,
           carbs: item.carbs100,
@@ -107,7 +114,7 @@ export function FoodSheet({ item, source, isFavorite, onToggleFavorite, onLogged
       <View style={styles.amountRow}>
         <Text style={styles.amountLabel}>{t('food.amountLabel')}</Text>
         <View style={styles.stepper}>
-          <Pressable accessibilityRole="button" accessibilityLabel="−" onPress={() => adjust(-25)} style={styles.stepButton}>
+          <Pressable accessibilityRole="button" accessibilityLabel="−" onPress={() => adjust(-1)} style={styles.stepButton}>
             <Text style={styles.stepButtonText}>−</Text>
           </Pressable>
           <View style={styles.gramsField}>
@@ -119,9 +126,9 @@ export function FoodSheet({ item, source, isFavorite, onToggleFavorite, onLogged
               accessibilityLabel={t('food.amountLabel')}
               maxLength={5}
             />
-            <Text style={styles.gramsUnit}>g</Text>
+            <Text style={styles.gramsUnit}>{item.unit}</Text>
           </View>
-          <Pressable accessibilityRole="button" accessibilityLabel="＋" onPress={() => adjust(25)} style={styles.stepButton}>
+          <Pressable accessibilityRole="button" accessibilityLabel="＋" onPress={() => adjust(1)} style={styles.stepButton}>
             <Text style={styles.stepButtonText}>＋</Text>
           </Pressable>
         </View>

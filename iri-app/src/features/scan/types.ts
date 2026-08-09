@@ -80,8 +80,12 @@ export function scaleIngredient(ingredient: ScanIngredient, newGrams: number): S
   };
 }
 
-/** Stepper-Schrittweite: 5 g bei kleinen Mengen, sonst ~10 % gerundet auf 5 g */
+/**
+ * Stepper-Schrittweite (Sascha 09.08.): 50 g als Standard; bei kleinen
+ * Zutaten (Butter, Öl …) wären 50er-Sprünge unbrauchbar, darum darunter feiner.
+ */
 export function gramStep(grams: number): number {
   if (grams <= 50) return 5;
-  return Math.max(5, Math.round(grams / 100) * 10);
+  if (grams <= 100) return 10;
+  return 50;
 }
