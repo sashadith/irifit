@@ -34,15 +34,17 @@ export default function LoginScreen() {
       }
       // Ohne abgeschlossenes Onboarding greift kein Guard (der Onboarding-Guard
       // redirectet nur bei onboarding_completed_at) — die Session käme an, aber
-      // der Login-Screen bliebe stehen. Darum hier selbst zum Quiz-Start routen;
-      // abgeschlossene Profile leiten die Guards wie bisher zu den Tabs.
+      // der Login-Screen bliebe stehen. Darum hier selbst weiterleiten:
+      // direkt in den ersten Quiz-Schritt, NICHT auf Welcome — dort stünde
+      // wieder „Ich habe schon einen Account“ und der Login sähe gescheitert aus.
+      // Abgeschlossene Profile leiten die Guards wie bisher zu den Tabs.
       const { data: profileRow } = await supabase
         .from('profiles')
         .select('onboarding_completed_at')
         .eq('id', data.user.id)
         .maybeSingle();
       if (!profileRow?.onboarding_completed_at) {
-        router.replace('/(onboarding)/welcome');
+        router.replace('/(onboarding)/goal');
       }
     } finally {
       setBusy(false);
