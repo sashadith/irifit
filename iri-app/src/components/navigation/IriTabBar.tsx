@@ -3,7 +3,7 @@ import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-nati
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { Tabs, useRouter } from 'expo-router';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassView } from '@/components/glass/GlassView';
@@ -33,7 +33,8 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
   // Liquid-Glass-Blase gleitet zum aktiven Tab (Wunsch Sascha 09.08.).
   // Tab-Positionen kommen aus onLayout; erster Stand ohne Animation.
   const tabX = useRef<Record<number, number>>({});
-  const bubbleX = useSharedValue(-999);
+  const bubbleLeft = useSharedValue(-999);
+  const bubbleW = useSharedValue(BUBBLE_W);
   const placed = useRef(false);
   const [, forceRender] = useState(0);
 
@@ -42,10 +43,30 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
     if (x == null) return;
     const target = x - (BUBBLE_W - 56) / 2;
     if (!placed.current) {
-      bubbleX.value = target;
+      bubbleLeft.value = target;
       placed.current = true;
+      return;
+    }
+    const from = bubbleLeft.value;
+    if (Math.abs(target - from) < 1) return;
+    // Frame-Analyse der echten Telefon-App (10.08.): Die Kapsel UEBERBRUECKT —
+    // Phase 1 (~130 ms): sie dehnt sich, bis sie alten UND neuen Tab umspannt;
+    // Phase 2: sie zieht sich vom alten Ende federnd auf den neuen Tab zusammen.
+    const span = Math.abs(target - from) + BUBBLE_W;
+    if (target > from) {
+      // nach rechts: linke Kante bleibt, rechte waechst — dann links nachziehen
+      bubbleW.value = withSequence(
+        withTiming(span, { duration: 130, easing: Easing.out(Easing.cubic) }),
+        withSpring(BUBBLE_W, { damping: 16, stiffness: 220 }),
+      );
+      bubbleLeft.value = withDelay(130, withSpring(target, { damping: 16, stiffness: 220 }));
     } else {
-      bubbleX.value = withSpring(target, { damping: 14, stiffness: 260, mass: 0.7 });
+      // nach links: linke Kante schiesst vor, rechte bleibt — dann rechts nachziehen
+      bubbleLeft.value = withTiming(target, { duration: 130, easing: Easing.out(Easing.cubic) });
+      bubbleW.value = withSequence(
+        withTiming(span, { duration: 130, easing: Easing.out(Easing.cubic) }),
+        withSpring(BUBBLE_W, { damping: 16, stiffness: 220 }),
+      );
     }
   };
 
@@ -61,7 +82,8 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
   }, [state.index]);
 
   const bubbleStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: bubbleX.value }],
+    left: bubbleLeft.value,
+    width: bubbleW.value,
   }));
 
   const onPlus = () => {
@@ -168,9 +190,7 @@ const styles = StyleSheet.create({
   },
   bubble: {
     position: 'absolute',
-    left: 0,
     top: (70 - BUBBLE_H) / 2,
-    width: BUBBLE_W,
     height: BUBBLE_H,
   },
   bubbleFill: {
