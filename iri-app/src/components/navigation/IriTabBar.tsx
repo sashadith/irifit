@@ -45,7 +45,7 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
       bubbleX.value = target;
       placed.current = true;
     } else {
-      bubbleX.value = withSpring(target, { damping: 16, stiffness: 180 });
+      bubbleX.value = withSpring(target, { damping: 14, stiffness: 260, mass: 0.7 });
     }
   };
 
@@ -128,13 +128,13 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
               <IriIcon
                 name={meta.icon}
                 size={24}
-                color={focused ? colors.ink : colors.muted}
-                opacity={focused ? 1 : 0.6}
+                color={focused ? colors.white : colors.ink}
+                opacity={focused ? 1 : 0.85}
               />
               <Text
                 style={[
                   typography.tabLabel,
-                  { color: focused ? colors.ink : colors.muted },
+                  { color: focused ? colors.white : colors.ink },
                 ]}
               >
                 {t(meta.labelKey)}
@@ -179,9 +179,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   bubbleFallback: {
-    backgroundColor: 'rgba(232,127,156,0.18)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: colors.tintDeep,
   },
   plusWrap: {
     ...tintShadow,
