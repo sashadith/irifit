@@ -35,6 +35,10 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
   const tabX = useRef<Record<number, number>>({});
   const bubbleLeft = useSharedValue(-999);
   const bubbleW = useSharedValue(BUBBLE_W);
+  // Druck-Effekt (Telefon-App): Beim Halten waechst die Blase ueber die
+  // Leiste hinaus und die Leiste selbst schwillt leicht an.
+  const bubbleScale = useSharedValue(1);
+  const barScale = useSharedValue(1);
   const placed = useRef(false);
   const [, forceRender] = useState(0);
 
@@ -84,7 +88,22 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
   const bubbleStyle = useAnimatedStyle(() => ({
     left: bubbleLeft.value,
     width: bubbleW.value,
+    transform: [{ scale: bubbleScale.value }],
   }));
+
+  const barStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: barScale.value }],
+  }));
+
+  const pressIn = () => {
+    bubbleScale.value = withSpring(1.28, { damping: 18, stiffness: 300 });
+    barScale.value = withSpring(1.04, { damping: 18, stiffness: 300 });
+  };
+
+  const pressOut = () => {
+    bubbleScale.value = withSpring(1, { damping: 14, stiffness: 260 });
+    barScale.value = withSpring(1, { damping: 14, stiffness: 260 });
+  };
 
   const onPlus = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -92,11 +111,8 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
   };
 
   return (
-    <GlassView
-      borderRadius={radius.pill}
-      style={[styles.bar, { bottom: Math.max(22, insets.bottom + 6) }]}
-      contentStyle={styles.row}
-    >
+    <Animated.View style={[styles.bar, { bottom: Math.max(22, insets.bottom + 6) }, barStyle]}>
+    <GlassView borderRadius={radius.pill} contentStyle={styles.row}>
       {/* Gleitende Glas-Blase hinter dem aktiven Tab */}
       {/* Kein natives Glas IN Glas — Apple rendert verschachtelte
           UIGlassEffects nicht (Befund 09.08.). Die Blase ist deshalb eine
@@ -116,6 +132,7 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
             canPreventDefault: true,
           });
           if (!focused && !event.defaultPrevented) {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); // wie Wasserglas
             navigation.navigate(route.name);
           }
         };
@@ -144,19 +161,21 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
               accessibilityLabel={t(meta.labelKey)}
               accessibilityState={{ selected: focused }}
               onPress={onPress}
+              onPressIn={pressIn}
+              onPressOut={pressOut}
               onLayout={onTabLayout(index)}
               style={styles.tab}
             >
               <IriIcon
                 name={meta.icon}
                 size={24}
-                color={focused ? colors.white : colors.ink}
+                color={focused ? colors.tintDeep : colors.ink}
                 opacity={focused ? 1 : 0.85}
               />
               <Text
                 style={[
                   typography.tabLabel,
-                  { color: focused ? colors.white : colors.ink },
+                  { color: focused ? colors.tintDeep : colors.ink },
                 ]}
               >
                 {t(meta.labelKey)}
@@ -166,6 +185,7 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
         );
       })}
     </GlassView>
+    </Animated.View>
   );
 }
 
@@ -199,7 +219,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   bubbleFallback: {
-    backgroundColor: colors.tintDeep,
+    backgroundColor: 'rgba(255,255,255,0.92)', // milchig (Telefon-App-Stil)
   },
   plusWrap: {
     ...tintShadow,
