@@ -92,9 +92,16 @@ function ArcItem({
         accessibilityRole="button"
         accessibilityLabel={label}
         onPress={onPress}
-        style={({ pressed }) => [styles.arcCircle, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.arcCircleWrap, pressed && styles.pressed]}
       >
-        <IriIcon name={icon} size={28} color={colors.tintDeep} />
+        <LinearGradient
+          colors={colors.roseGradient}
+          start={{ x: 0.2, y: 0 }}
+          end={{ x: 0.8, y: 1 }}
+          style={styles.arcCircle}
+        >
+          <IriIcon name={icon} size={28} color={colors.white} />
+        </LinearGradient>
       </Pressable>
       <Text style={styles.arcLabel}>{label}</Text>
     </Animated.View>
@@ -371,16 +378,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
   },
+  // Sascha 11.08.: gleiches Design wie der Plus-Button (Rose-Verlauf, weisses Icon)
+  arcCircleWrap: {
+    ...tintShadow,
+    borderRadius: ARC_CIRCLE / 2,
+  },
   arcCircle: {
     width: ARC_CIRCLE,
     height: ARC_CIRCLE,
     borderRadius: ARC_CIRCLE / 2,
-    backgroundColor: 'rgba(255,255,255,0.94)', // milchig wie die Tab-Blase
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.7)',
-    ...tintShadow,
+    borderColor: 'rgba(255,255,255,0.5)',
   },
   arcLabel: {
     ...typography.tabLabel,
