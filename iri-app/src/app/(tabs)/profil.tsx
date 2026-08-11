@@ -341,7 +341,12 @@ export default function ProfilScreen() {
                   style={({ pressed }) => [styles.irinaPill, pressed && styles.irinaPillPressed]}
                 >
                   <Icon size={14} />
-                  <Text style={styles.irinaPillText} numberOfLines={1} adjustsFontSizeToFit>
+                  <Text
+                    style={styles.irinaPillText}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.6}
+                  >
                     {t(link.labelKey)}
                   </Text>
                 </Pressable>
@@ -499,7 +504,7 @@ const styles = StyleSheet.create({
   },
   irinaLinks: {
     flexDirection: 'row',
-    alignSelf: 'stretch',
+    width: '100%',
     gap: 8,
     marginTop: 14,
   },
