@@ -25,9 +25,17 @@ export interface WheelPickerProps {
   readonly selectedIndex: number;
   readonly onChange: (index: number) => void;
   readonly width?: number;
+  /** false, wenn der Eltern-Container EIN gemeinsames Auswahlband zeichnet (iOS-Picker-Look) */
+  readonly showHighlight?: boolean;
 }
 
-export function WheelPicker({ values, selectedIndex, onChange, width = 96 }: WheelPickerProps) {
+export function WheelPicker({
+  values,
+  selectedIndex,
+  onChange,
+  width = 96,
+  showHighlight = true,
+}: WheelPickerProps) {
   const ref = useRef<ScrollView>(null);
   const lastTick = useRef(selectedIndex);
   const dragging = useRef(false);
@@ -58,7 +66,7 @@ export function WheelPicker({ values, selectedIndex, onChange, width = 96 }: Whe
 
   return (
     <View style={[styles.wrap, { width }]}>
-      <View pointerEvents="none" style={styles.highlight} />
+      {showHighlight ? <View pointerEvents="none" style={styles.highlight} /> : null}
       <ScrollView
         ref={ref}
         showsVerticalScrollIndicator={false}
@@ -111,7 +119,7 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontFamily: font.bold,
-    fontSize: 16,
+    fontSize: 18,
     color: colors.ink,
   },
   fade: {

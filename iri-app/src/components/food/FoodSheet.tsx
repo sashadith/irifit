@@ -4,7 +4,7 @@ import * as Haptics from 'expo-haptics';
 
 import { GlassView } from '@/components/glass/GlassView';
 import { Chip } from '@/components/ui/Chip';
-import { WheelPicker } from '@/components/ui/WheelPicker';
+import { WHEEL_ITEM_H, WheelPicker } from '@/components/ui/WheelPicker';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { MealSlot } from '@/features/diary/useDiaryDay';
@@ -42,9 +42,10 @@ export interface FoodSheetProps {
 type AmountUnit = 'g' | 'ml' | 'stk';
 const UNIT_VALUES: AmountUnit[] = ['g', 'ml', 'stk'];
 
-// 5–500 in 5ern (deckt 330-ml-Dosen ab), darüber gröber bis 2 kg
+// 1–19 einzeln (Sascha 11.08.), 20–500 in 5ern (330-ml-Dose), darüber gröber
 const GRAM_VALUES: number[] = [
-  ...Array.from({ length: 100 }, (_, i) => (i + 1) * 5),
+  ...Array.from({ length: 19 }, (_, i) => i + 1),
+  ...Array.from({ length: 97 }, (_, i) => 20 + i * 5),
   ...Array.from({ length: 50 }, (_, i) => 510 + i * 10),
   ...Array.from({ length: 20 }, (_, i) => 1050 + i * 50),
 ];
@@ -137,12 +138,15 @@ export function FoodSheet({ item, source, isFavorite, onToggleFavorite, onLogged
       <View style={styles.amountRow}>
         <Text style={styles.amountLabel}>{t('food.amountLabel')}</Text>
         <View style={styles.wheels}>
+          {/* EIN gemeinsames Auswahlband ueber beide Raeder — wie der native iOS-Picker */}
+          <View pointerEvents="none" style={styles.wheelBand} />
           {unit === 'stk' ? (
             <WheelPicker
               values={PIECE_VALUES.map(String)}
               selectedIndex={pieceIndex}
               onChange={setPieceIndex}
               width={104}
+              showHighlight={false}
             />
           ) : (
             <WheelPicker
@@ -150,6 +154,7 @@ export function FoodSheet({ item, source, isFavorite, onToggleFavorite, onLogged
               selectedIndex={amountIndex}
               onChange={setAmountIndex}
               width={104}
+              showHighlight={false}
             />
           )}
           <WheelPicker
@@ -157,6 +162,7 @@ export function FoodSheet({ item, source, isFavorite, onToggleFavorite, onLogged
             selectedIndex={UNIT_VALUES.indexOf(unit)}
             onChange={changeUnit}
             width={92}
+            showHighlight={false}
           />
         </View>
         {unit === 'stk' ? (
@@ -235,6 +241,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 10,
+    alignSelf: 'stretch',
+  },
+  wheelBand: {
+    position: 'absolute',
+    left: 8,
+    right: 8,
+    top: WHEEL_ITEM_H * 2,
+    height: WHEEL_ITEM_H,
+    borderRadius: 10,
+    backgroundColor: 'rgba(120,120,128,0.12)', // iOS-Picker-Grau
   },
   pieceHint: {
     fontFamily: font.regular,
