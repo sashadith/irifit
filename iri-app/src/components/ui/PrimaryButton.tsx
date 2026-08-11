@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { colors, radius, typography } from '@/theme';
@@ -22,7 +23,10 @@ export function PrimaryButton({ label, onPress, disabled, loading, style, icon }
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: inactive }}
-      onPress={onPress}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress();
+      }}
       disabled={inactive}
       style={({ pressed }) => [styles.shadow, pressed && styles.pressed, inactive && styles.disabled, style]}
     >

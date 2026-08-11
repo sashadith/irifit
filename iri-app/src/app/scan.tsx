@@ -343,7 +343,10 @@ export default function ScanScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={t(m.labelKey)}
                 accessibilityState={{ selected: mode === m.key }}
-                onPress={() => setMode(m.key)}
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  setMode(m.key);
+                }}
                 style={styles.modeItem}
               >
                 {mode === m.key ? (
@@ -380,7 +383,10 @@ export default function ScanScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t('scan.pickPhoto')}
-              onPress={pickFromLibrary}
+              onPress={() => {
+                Haptics.selectionAsync();
+                pickFromLibrary();
+              }}
               style={styles.sideButton}
             >
               <IriIcon name="search" size={22} color={colors.white} strokeWidth={1.6} />
@@ -400,7 +406,10 @@ export default function ScanScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t('scan.close')}
-              onPress={() => router.back()}
+              onPress={() => {
+                Haptics.selectionAsync();
+                router.back();
+              }}
               style={styles.sideButton}
             >
               <Text style={styles.closeX}>✕</Text>

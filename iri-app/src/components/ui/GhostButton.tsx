@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 import { GlassView } from '@/components/glass/GlassView';
 import { colors, font, radius } from '@/theme';
@@ -16,7 +17,15 @@ export interface GhostButtonProps {
 /** Glas-Pill-Button (.btn.ghost im Prototyp) */
 export function GhostButton({ label, onPress, small, style, icon }: GhostButtonProps) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={style}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={() => {
+        Haptics.selectionAsync();
+        onPress();
+      }}
+      style={style}
+    >
       {({ pressed }) => (
         <GlassView
           borderRadius={radius.pill}

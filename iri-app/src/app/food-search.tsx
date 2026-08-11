@@ -438,7 +438,14 @@ function FoodRow({
   readonly onPress: () => void;
 }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={title} onPress={onPress}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      onPress={() => {
+        Haptics.selectionAsync();
+        onPress();
+      }}
+    >
       {({ pressed }) => (
         <GlassView
           borderRadius={radius.md}

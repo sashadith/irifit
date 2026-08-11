@@ -1,4 +1,5 @@
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 import { GlassView } from '@/components/glass/GlassView';
 import { IriIcon, IriIconName } from '@/components/icons/IriIcon';
@@ -70,7 +71,10 @@ export function MealSlotCard({ slot, logs, kcalGoal, onAdd, onDeleteLog, onSelec
                 accessibilityRole="button"
                 accessibilityLabel={t('home.entryKcal', { title: log.title, kcal: log.kcal })}
                 accessibilityHint={t('home.entryTapHint')}
-                onPress={() => onSelectLog(log)}
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  onSelectLog(log);
+                }}
                 hitSlop={4}
               >
                 {({ pressed }) => {
@@ -101,7 +105,10 @@ export function MealSlotCard({ slot, logs, kcalGoal, onAdd, onDeleteLog, onSelec
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${t(meta.labelKey)} — ${t('tabs.add')}`}
-          onPress={onAdd}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            onAdd();
+          }}
           hitSlop={8}
           style={styles.addButton}
         >
