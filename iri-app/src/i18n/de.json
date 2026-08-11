@@ -452,7 +452,9 @@
     "barcodeError": "Der Barcode-Abruf hat nicht geklappt. Prüfe deine Verbindung.",
     "searchEyebrow": "Manuelle Suche",
     "aiCompute": "Mit KI berechnen",
-    "aiComputing": "Iri rechnet …"
+    "aiComputing": "Iri rechnet …",
+    "unitPiece": "Stück",
+    "pieceHint": "1 Stück ≈ {grams} g"
   },
   "legacy": {
     "eyebrow": "Dein Kurs-Bereich",
