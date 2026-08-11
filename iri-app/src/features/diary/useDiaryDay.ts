@@ -18,6 +18,9 @@ export interface FoodLog {
   fat_g: number | null;
   source: LogSource;
   created_at: string;
+  /** Menge + Einheit aus details (falls beim Eintragen bekannt) — für „307 kcal · 180 g" */
+  grams?: number;
+  unit?: 'g' | 'ml';
 }
 
 /** Lokales Datum als YYYY-MM-DD (bewusst nicht UTC — Tagebuch folgt der Gerätezeit) */
@@ -48,7 +51,7 @@ export function useDiaryDay() {
     const [logsRes, waterRes] = await Promise.all([
       supabase
         .from('food_logs')
-        .select('id, logged_on, slot, title, kcal, protein_g, carbs_g, fat_g, source, created_at')
+        .select('id, logged_on, slot, title, kcal, protein_g, carbs_g, fat_g, source, created_at, details')
         .eq('user_id', userId)
         .eq('logged_on', isoDate)
         .order('created_at'),
@@ -59,7 +62,16 @@ export function useDiaryDay() {
         .eq('logged_on', isoDate)
         .maybeSingle(),
     ]);
-    if (!logsRes.error) setLogs((logsRes.data as FoodLog[]) ?? []);
+    if (!logsRes.error) {
+      type Row = FoodLog & { details?: { grams?: number; food?: { unit?: 'g' | 'ml' } } | null };
+      setLogs(
+        ((logsRes.data as Row[]) ?? []).map(({ details, ...log }) => ({
+          ...log,
+          grams: details?.grams,
+          unit: details?.food?.unit ?? 'g',
+        })),
+      );
+    }
     setWaterMl(waterRes.data?.amount_ml ?? 0);
     setLoading(false);
   }, [userId, isoDate]);

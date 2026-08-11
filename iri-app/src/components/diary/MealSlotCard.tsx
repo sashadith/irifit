@@ -76,6 +76,7 @@ export function MealSlotCard({ slot, logs, kcalGoal, onAdd, onDeleteLog, onSelec
                 {({ pressed }) => (
                   <Text style={[styles.subtitle, pressed && styles.entryPressed]}>
                     {t('home.entryKcal', { title: log.title, kcal: log.kcal })}
+                    {log.grams ? ` · ${log.grams} ${log.unit ?? 'g'}` : ''}
                   </Text>
                 )}
               </Pressable>
