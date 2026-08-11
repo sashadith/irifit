@@ -274,7 +274,9 @@ const styles = StyleSheet.create({
   slotChips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    // explizit gleiches Raster in beide Richtungen (Sascha 11.08.)
+    columnGap: 10,
+    rowGap: 10,
     marginTop: 14,
   },
   cta: {
