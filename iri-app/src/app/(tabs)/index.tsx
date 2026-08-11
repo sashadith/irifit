@@ -10,6 +10,7 @@ import { MealSlotCard } from '@/components/diary/MealSlotCard';
 import { ProgressCard } from '@/components/diary/ProgressCard';
 import { WaterCard } from '@/components/diary/WaterCard';
 import { GlassView } from '@/components/glass/GlassView';
+import { IriIcon } from '@/components/icons/IriIcon';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
 import { CalorieRing } from '@/components/ui/CalorieRing';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
@@ -17,6 +18,7 @@ import { SattScoreDots } from '@/components/recipes/SattScoreDots';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { FoodLog, MealSlot, toIsoDate, useDiaryDay } from '@/features/diary/useDiaryDay';
 import { markPushOffered, registerForPush, shouldOfferPush } from '@/features/notifications/push';
+import { fetchTodaySteps } from '@/features/health/steps';
 import { playSound } from '@/features/sound/sounds';
 import { updateStreak } from '@/features/progress/streak';
 import { fetchRecipes, RecipeListItem } from '@/features/recipes/recipesData';
@@ -24,7 +26,7 @@ import { recipeSattScore } from '@/features/recipes/sattScore';
 import { suggestRecipes } from '@/features/recipes/suggest';
 import { t } from '@/i18n';
 import { supabase } from '@/lib/supabase';
-import { colors, font, spacing } from '@/theme';
+import { colors, font, radius, spacing } from '@/theme';
 
 const SLOTS: MealSlot[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
@@ -75,6 +77,14 @@ export default function HomeScreen() {
   useEffect(() => {
     loadWeight();
   }, [loadWeight]);
+
+  // Schritte aus Apple Health (Sascha 11.08.) — Chip nur bei echten Daten
+  const [steps, setSteps] = useState<number | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      fetchTodaySteps().then(setSteps);
+    }, []),
+  );
 
   // Nach Rückkehr aus dem Scan-Modal o. Ä. frische Daten zeigen
   // + Streak neu berechnen (milde Regel mit Joker, Session 7)
@@ -127,6 +137,12 @@ export default function HomeScreen() {
       />
 
       <GlassView style={styles.ringCard} contentStyle={styles.ringContent}>
+        {steps !== null && diary.isToday ? (
+          <View style={styles.stepsChip}>
+            <IriIcon name="steps" size={15} color={colors.tintDeep} />
+            <Text style={styles.stepsText}>{steps.toLocaleString('de-DE')}</Text>
+          </View>
+        ) : null}
         <CalorieRing value={remaining} label={t('home.remaining')} progress={1 - progress} />
         <Text style={styles.summary}>
           {t('home.summary', {
@@ -214,6 +230,26 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  stepsChip: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    borderRadius: radius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.9)',
+    zIndex: 1,
+  },
+  stepsText: {
+    fontFamily: font.bold,
+    fontSize: 12.5,
+    color: colors.ink,
+  },
   ringCard: {
     marginTop: spacing.md,
   },
