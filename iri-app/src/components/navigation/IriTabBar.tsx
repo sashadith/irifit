@@ -1,5 +1,12 @@
 import { ComponentProps, Fragment, useEffect, useRef, useState } from 'react';
-import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  LayoutChangeEvent,
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { Tabs, useRouter } from 'expo-router';
@@ -21,14 +28,90 @@ const TAB_META: Record<string, { icon: IriIconName; labelKey: TranslationKey }> 
 /** Props-Typ aus Expo Routers eigener tabBar-Signatur abgeleitet (vermeidet Versionskonflikte) */
 type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 
-/** Schwebende Glas-Pill mit zentralem Rosé-Plus (öffnet den Eintragen-Flow) */
+/** Schwebende Glas-Pill mit zentralem Rosé-Plus (öffnet das Bogen-Menü) */
 const BUBBLE_W = 62;
 const BUBBLE_H = 54;
+
+/**
+ * Plus-Menü (Sascha 11.08.): Halbbogen über dem Plus statt Kamera-Sofortstart —
+ * die Kamera läuft erst, wenn wirklich gescannt werden soll.
+ */
+const ARC_ACTIONS = [
+  { icon: 'cameraAi', labelKey: 'tabs.addPhoto', route: '/scan?mode=photo' },
+  { icon: 'barcode', labelKey: 'tabs.addBarcode', route: '/scan?mode=barcode' },
+  { icon: 'fridgeAi', labelKey: 'tabs.addPantry', route: '/scan?mode=inventory' },
+  { icon: 'searchFood', labelKey: 'tabs.addSearch', route: '/food-search' },
+] as const;
+const ARC_RADIUS = 150;
+const ARC_ANGLES = [135, 105, 75, 45]; // Grad, links → rechts
+const ARC_CIRCLE = 58;
+
+function ArcItem({
+  icon,
+  label,
+  index,
+  centerX,
+  centerBottom,
+  onPress,
+}: {
+  icon: IriIconName;
+  label: string;
+  index: number;
+  centerX: number;
+  centerBottom: number;
+  onPress: () => void;
+}) {
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    // Stagger von innen nach aussen wirkt wie ein Auffaechern
+    progress.value = withDelay(index * 45, withSpring(1, { damping: 15, stiffness: 240 }));
+  }, [index, progress]);
+
+  const rad = (ARC_ANGLES[index] * Math.PI) / 180;
+  const dx = Math.cos(rad) * ARC_RADIUS;
+  const dy = Math.sin(rad) * ARC_RADIUS;
+
+  const style = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [
+      { translateY: (1 - progress.value) * 36 },
+      { scale: 0.3 + 0.7 * progress.value },
+    ],
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        styles.arcItem,
+        { left: centerX + dx - styles.arcItem.width / 2, bottom: centerBottom + dy - ARC_CIRCLE / 2 - 20 },
+        style,
+      ]}
+    >
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        onPress={onPress}
+        style={({ pressed }) => [styles.arcCircle, pressed && styles.pressed]}
+      >
+        <IriIcon name={icon} size={28} color={colors.tintDeep} />
+      </Pressable>
+      <Text style={styles.arcLabel}>{label}</Text>
+    </Animated.View>
+  );
+}
 
 export function IriTabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { width: screenW } = useWindowDimensions();
   const centerIndex = Math.ceil(state.routes.length / 2);
+
+  // Bogen-Menü über dem Plus
+  const [menuOpen, setMenuOpen] = useState(false);
+  const plusRot = useSharedValue(0);
+  const barBottom = Math.max(22, insets.bottom + 6);
+  const plusCenterBottom = barBottom + 35; // Bar-Höhe 70, Plus mittig
 
   // Liquid-Glass-Blase gleitet zum aktiven Tab (Wunsch Sascha 09.08.).
   // Tab-Positionen kommen aus onLayout; erster Stand ohne Animation.
@@ -107,11 +190,49 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
 
   const onPlus = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/scan');
+    const next = !menuOpen;
+    setMenuOpen(next);
+    plusRot.value = withSpring(next ? 45 : 0, { damping: 15, stiffness: 260 });
   };
 
+  const closeMenu = () => {
+    setMenuOpen(false);
+    plusRot.value = withSpring(0, { damping: 15, stiffness: 260 });
+  };
+
+  const onArcAction = (route: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    closeMenu();
+    router.push(route as never);
+  };
+
+  const plusIconStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${plusRot.value}deg` }],
+  }));
+
   return (
-    <Animated.View style={[styles.bar, { bottom: Math.max(22, insets.bottom + 6) }, barStyle]}>
+    <>
+    {menuOpen ? (
+      <>
+        <Pressable
+          accessibilityLabel={t('common.close')}
+          onPress={closeMenu}
+          style={styles.arcBackdrop}
+        />
+        {ARC_ACTIONS.map((action, i) => (
+          <ArcItem
+            key={action.icon}
+            icon={action.icon}
+            label={t(action.labelKey)}
+            index={i}
+            centerX={screenW / 2}
+            centerBottom={plusCenterBottom}
+            onPress={() => onArcAction(action.route)}
+          />
+        ))}
+      </>
+    ) : null}
+    <Animated.View style={[styles.bar, { bottom: barBottom }, barStyle]}>
     <GlassView borderRadius={radius.pill} contentStyle={styles.row}>
       {/* Gleitende Glas-Blase hinter dem aktiven Tab */}
       {/* Kein natives Glas IN Glas — Apple rendert verschachtelte
@@ -152,7 +273,9 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
                   end={{ x: 0.8, y: 1 }}
                   style={styles.plus}
                 >
-                  <IriIcon name="plus" size={26} color={colors.white} strokeWidth={1.6} />
+                  <Animated.View style={plusIconStyle}>
+                    <IriIcon name="plus" size={26} color={colors.white} strokeWidth={1.6} />
+                  </Animated.View>
                 </LinearGradient>
               </Pressable>
             )}
@@ -186,6 +309,7 @@ export function IriTabBar({ state, navigation }: TabBarProps) {
       })}
     </GlassView>
     </Animated.View>
+    </>
   );
 }
 
@@ -236,5 +360,30 @@ const styles = StyleSheet.create({
   },
   pressed: {
     transform: [{ scale: 0.94 }],
+  },
+  arcBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(252,246,249,0.72)', // weich rosé-weiss, Inhalt tritt zurück
+  },
+  arcItem: {
+    position: 'absolute',
+    width: 84,
+    alignItems: 'center',
+    gap: 5,
+  },
+  arcCircle: {
+    width: ARC_CIRCLE,
+    height: ARC_CIRCLE,
+    borderRadius: ARC_CIRCLE / 2,
+    backgroundColor: 'rgba(255,255,255,0.94)', // milchig wie die Tab-Blase
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+    ...tintShadow,
+  },
+  arcLabel: {
+    ...typography.tabLabel,
+    color: colors.ink,
   },
 });

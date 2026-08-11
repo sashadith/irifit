@@ -4,7 +4,11 @@
     "recipes": "Rezepte",
     "coaching": "Coaching",
     "profile": "Profil",
-    "add": "Eintragen"
+    "add": "Eintragen",
+    "addPhoto": "Foto",
+    "addBarcode": "Barcode",
+    "addPantry": "Vorrat",
+    "addSearch": "Suche"
   },
   "common": {
     "next": "Weiter",

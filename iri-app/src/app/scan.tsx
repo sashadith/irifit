@@ -16,7 +16,7 @@ import {
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassView } from '@/components/glass/GlassView';
@@ -88,7 +88,12 @@ export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
 
   const [phase, setPhase] = useState<Phase>('camera');
-  const [mode, setMode] = useState<CameraMode>('photo');
+  // Plus-Menue (11.08.) reicht den Modus als Parameter durch — die Kamera
+  // startet erst NACH der Wahl im Bogen-Menue, nicht mehr pauschal
+  const { mode: modeParam } = useLocalSearchParams<{ mode?: string }>();
+  const [mode, setMode] = useState<CameraMode>(
+    modeParam === 'barcode' || modeParam === 'inventory' ? modeParam : 'photo',
+  );
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [image, setImage] = useState<{ base64: string; mediaType: string } | null>(null);
   const [ingredients, setIngredients] = useState<ScanIngredient[]>([]);
