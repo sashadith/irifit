@@ -1,21 +1,21 @@
-import { useEffect, useRef } from 'react';
-import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ReactNode, useEffect, useRef } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import Animated, {
+  runOnJS,
+  SharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 
 import { colors, font } from '@/theme';
 
 /**
- * Scroll-Rad ohne native Abhängigkeit (Session 22, Mengen-Wahl im FoodSheet):
- * ScrollView mit Snap auf Zeilenhöhe, milchige Mittel-Kapsel als Auswahl,
- * Haptik-Tick pro Rastung — fühlt sich wie der iOS-Picker an, läuft aber
- * im bestehenden Dev-Client ohne neuen Build.
+ * Scroll-Rad im nativen iOS-Picker-Look (Session 22): ScrollView mit Snap,
+ * dazu die Trommel-Optik per Reanimated — jede Zeile kippt perspektivisch
+ * aus der Mitte weg (rotateX), schrumpft und blendet aus. Kein natives
+ * Modul nötig, läuft im bestehenden Dev-Client.
  */
 export const WHEEL_ITEM_H = 34;
 const VISIBLE = 5; // ungerade, damit eine Zeile exakt in der Mitte liegt
@@ -29,6 +29,32 @@ export interface WheelPickerProps {
   readonly showHighlight?: boolean;
 }
 
+/** Eine Rad-Zeile: kippt/schrumpft abhängig vom Abstand zur Mitte */
+function WheelItem({
+  index,
+  offset,
+  children,
+}: {
+  index: number;
+  offset: SharedValue<number>;
+  children: ReactNode;
+}) {
+  const style = useAnimatedStyle(() => {
+    'worklet';
+    const distance = (index * WHEEL_ITEM_H - offset.value) / WHEEL_ITEM_H;
+    const clamped = Math.max(-2.6, Math.min(2.6, distance));
+    return {
+      transform: [
+        { perspective: 420 },
+        { rotateX: `${clamped * 26}deg` },
+        { scale: 1 - Math.abs(clamped) * 0.08 },
+      ],
+      opacity: 1 - Math.abs(clamped) * 0.28,
+    };
+  });
+  return <Animated.View style={[styles.item, style]}>{children}</Animated.View>;
+}
+
 export function WheelPicker({
   values,
   selectedIndex,
@@ -36,38 +62,48 @@ export function WheelPicker({
   width = 96,
   showHighlight = true,
 }: WheelPickerProps) {
-  const ref = useRef<ScrollView>(null);
-  const lastTick = useRef(selectedIndex);
+  const ref = useRef<Animated.ScrollView>(null);
+  const offset = useSharedValue(selectedIndex * WHEEL_ITEM_H);
+  const lastTick = useSharedValue(selectedIndex);
   const dragging = useRef(false);
 
   // Programmatische Auswahl (z. B. Einheiten-Wechsel setzt die Menge neu)
   useEffect(() => {
     if (dragging.current) return;
     ref.current?.scrollTo({ y: selectedIndex * WHEEL_ITEM_H, animated: false });
-    lastTick.current = selectedIndex;
+    lastTick.value = selectedIndex;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedIndex, values.join('|')]);
 
-  const indexAt = (y: number) =>
-    Math.min(values.length - 1, Math.max(0, Math.round(y / WHEEL_ITEM_H)));
+  const maxIndex = values.length - 1;
 
-  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const idx = indexAt(e.nativeEvent.contentOffset.y);
-    if (idx !== lastTick.current) {
-      lastTick.current = idx;
-      Haptics.selectionAsync();
-    }
-  };
-
-  const settle = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const settle = (y: number) => {
     dragging.current = false;
-    onChange(indexAt(e.nativeEvent.contentOffset.y));
+    onChange(Math.min(maxIndex, Math.max(0, Math.round(y / WHEEL_ITEM_H))));
   };
+
+  const tick = () => Haptics.selectionAsync();
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (e) => {
+      'worklet';
+      offset.value = e.contentOffset.y;
+      const idx = Math.min(maxIndex, Math.max(0, Math.round(e.contentOffset.y / WHEEL_ITEM_H)));
+      if (idx !== lastTick.value) {
+        lastTick.value = idx;
+        runOnJS(tick)();
+      }
+    },
+    onMomentumEnd: (e) => {
+      'worklet';
+      runOnJS(settle)(e.contentOffset.y);
+    },
+  });
 
   return (
     <View style={[styles.wrap, { width }]}>
       {showHighlight ? <View pointerEvents="none" style={styles.highlight} /> : null}
-      <ScrollView
+      <Animated.ScrollView
         ref={ref}
         showsVerticalScrollIndicator={false}
         snapToInterval={WHEEL_ITEM_H}
@@ -77,19 +113,15 @@ export function WheelPicker({
         onScrollBeginDrag={() => {
           dragging.current = true;
         }}
-        onScroll={onScroll}
-        scrollEventThrottle={32}
-        onMomentumScrollEnd={settle}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
       >
         {values.map((value, i) => (
-          <View key={`${value}-${i}`} style={styles.item}>
+          <WheelItem key={`${value}-${i}`} index={i} offset={offset}>
             <Text style={styles.itemText}>{value}</Text>
-          </View>
+          </WheelItem>
         ))}
-      </ScrollView>
-      {/* Weiche Verläufe oben/unten, damit das Rad „rund" wirkt */}
-      <View pointerEvents="none" style={[styles.fade, styles.fadeTop]} />
-      <View pointerEvents="none" style={[styles.fade, styles.fadeBottom]} />
+      </Animated.ScrollView>
     </View>
   );
 }
@@ -121,19 +153,5 @@ const styles = StyleSheet.create({
     fontFamily: font.bold,
     fontSize: 18,
     color: colors.ink,
-  },
-  fade: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: WHEEL_ITEM_H,
-  },
-  fadeTop: {
-    top: 0,
-    backgroundColor: 'rgba(255,250,252,0.55)',
-  },
-  fadeBottom: {
-    bottom: 0,
-    backgroundColor: 'rgba(255,250,252,0.55)',
   },
 });
