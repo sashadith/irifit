@@ -29,6 +29,7 @@ import { GhostButton } from '@/components/ui/GhostButton';
 import { RoseHeart } from '@/components/ui/RoseHeart';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { deletePhoto, listPhotos, ProgressPhoto, uploadPhoto } from '@/features/progress/photos';
+import { fetchWeekAvgSteps } from '@/features/health/steps';
 import { fetchWeekStats, WeekStats } from '@/features/progress/stats';
 import { addWeightToday, deleteWeight, fetchWeights, WeightEntry } from '@/features/progress/weights';
 import { t, TranslationKey } from '@/i18n';
@@ -52,6 +53,7 @@ export default function ProgressScreen() {
   const [period, setPeriod] = useState<Period>('3M');
   const [weightInput, setWeightInput] = useState('');
   const [stats, setStats] = useState<WeekStats | null>(null);
+  const [avgSteps, setAvgSteps] = useState<number | null>(null);
   const [photos, setPhotos] = useState<ProgressPhoto[]>([]);
   const [viewer, setViewer] = useState<ProgressPhoto | null>(null);
   const [busy, setBusy] = useState(false);
@@ -67,6 +69,7 @@ export default function ProgressScreen() {
     setWeights(w);
     setStats(s);
     setPhotos(p);
+    fetchWeekAvgSteps().then(setAvgSteps);
   }, [userId]);
 
   useEffect(() => {
@@ -307,6 +310,11 @@ export default function ProgressScreen() {
                         maximumFractionDigits: 2,
                       }),
                     })}
+                  </Text>
+                ) : null}
+                {avgSteps !== null ? (
+                  <Text style={styles.statSub}>
+                    {t('progress.avgSteps', { steps: avgSteps.toLocaleString('de-DE') })}
                   </Text>
                 ) : null}
               </View>

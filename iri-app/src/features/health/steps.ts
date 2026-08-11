@@ -23,6 +23,35 @@ if (Platform.OS === 'ios') {
 
 const STEP_TYPE = 'HKQuantityTypeIdentifierStepCount' as const;
 
+/** Ø Schritte der letzten 7 Tage (nur Tage MIT Daten — wie der Wasser-Schnitt) */
+export async function fetchWeekAvgSteps(): Promise<number | null> {
+  if (!healthkit) return null;
+  try {
+    const available = await healthkit.isHealthDataAvailableAsync();
+    if (!available) return null;
+    await healthkit.requestAuthorization({ toRead: [STEP_TYPE] });
+
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+    const days = await healthkit.queryStatisticsCollectionForQuantity(
+      STEP_TYPE,
+      ['cumulativeSum'],
+      start,
+      { day: 1 },
+      { filter: { date: { startDate: start, endDate: end } }, unit: 'count' },
+    );
+    const sums = days
+      .map((d) => Math.round(d.sumQuantity?.quantity ?? 0))
+      .filter((n) => n > 0);
+    if (sums.length === 0) return null;
+    return Math.round(sums.reduce((a, b) => a + b, 0) / sums.length);
+  } catch {
+    return null;
+  }
+}
+
 /** Schritte von heute, oder null (kein iOS, kein Modul, keine Freigabe, keine Daten) */
 export async function fetchTodaySteps(): Promise<number | null> {
   if (!healthkit) return null;

@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   stepsChip: {
     position: 'absolute',
     top: 12,
-    left: 12,
+    right: 12,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,

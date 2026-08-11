@@ -242,7 +242,8 @@
     "macroActual": "IST",
     "macroTarget": "DEIN ZIEL",
     "shareSlogan": "Abnehmen ohne zu hungern.",
-    "avgWater": "Ø {liters} L Wasser am Tag"
+    "avgWater": "Ø {liters} L Wasser am Tag",
+    "avgSteps": "Ø {steps} Schritte am Tag"
   },
   "recipes": {
     "title": "Irinas Rezepte",
