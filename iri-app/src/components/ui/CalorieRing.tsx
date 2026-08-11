@@ -37,33 +37,54 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
   const clamped = Math.min(1, Math.max(0, progress));
   const animated = useSharedValue(0);
 
-  // Liquid-Glass-Look (Sascha 11.08.): Glanzlicht wandert langsam ueber den
-  // Ring — EIN Timer, laeuft als Worklet auf dem UI-Thread (kostet ~nichts)
-  const glint = useSharedValue(0);
+  // Fluessigglas (Sascha 11.08., v2): durchscheinende Rose-Fluessigkeit in
+  // matter Glasrinne, Blaeschen treiben durch den Bogen, die Spitze pulst.
+  // EIN Loop-Timer, alles Worklets auf dem UI-Thread.
+  const flow = useSharedValue(0);
 
   useEffect(() => {
     animated.value = withTiming(clamped, { duration: 800, easing: Easing.out(Easing.cubic) });
   }, [clamped, animated]);
 
   useEffect(() => {
-    glint.value = withRepeat(withTiming(1, { duration: 6000, easing: Easing.linear }), -1);
-    return () => cancelAnimation(glint);
-  }, [glint]);
+    flow.value = withRepeat(withTiming(1, { duration: 5200, easing: Easing.linear }), -1);
+    return () => cancelAnimation(flow);
+  }, [flow]);
 
   const arcProps = useAnimatedProps(() => ({
     strokeDashoffset: c * (1 - animated.value),
   }));
 
-  // Lichtkante folgt dem Bogen auf einem etwas groesseren Radius
-  const rSheen = r + STROKE / 2 - 2.5;
-  const cSheen = 2 * Math.PI * rSheen;
-  const sheenProps = useAnimatedProps(() => ({
-    strokeDashoffset: cSheen * (1 - animated.value),
-  }));
+  const cx = size / 2;
+  // Leuchtpunkt an der Bogenspitze, sanft pulsierend
+  const tipProps = useAnimatedProps(() => {
+    'worklet';
+    const angle = animated.value * Math.PI * 2;
+    const pulse = 1 + 0.18 * Math.sin(flow.value * Math.PI * 4);
+    return {
+      cx: cx + r * Math.cos(angle),
+      cy: cx + r * Math.sin(angle),
+      r: 3.2 * pulse,
+      opacity: animated.value > 0.02 ? 0.9 : 0,
+    };
+  });
 
-  const glintProps = useAnimatedProps(() => ({
-    strokeDashoffset: -c * glint.value,
-  }));
+  // Zwei Blaeschen treiben vom Start zur Spitze (versetzt), verblassen am Ende
+  const bubbleProps = (offset: number, radial: number) =>
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useAnimatedProps(() => {
+      'worklet';
+      const u = (flow.value + offset) % 1;
+      const angle = u * animated.value * Math.PI * 2;
+      const fade = u < 0.12 ? u / 0.12 : u > 0.85 ? (1 - u) / 0.15 : 1;
+      return {
+        cx: cx + (r + radial) * Math.cos(angle),
+        cy: cx + (r + radial) * Math.sin(angle),
+        opacity: animated.value > 0.06 ? 0.55 * fade : 0,
+      };
+    });
+  const bubble1 = bubbleProps(0, -2.5);
+  const bubble2 = bubbleProps(0.45, 2);
 
   return (
     <View style={{ width: size, height: size }}>
@@ -81,23 +102,11 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
             <Stop offset="100%" stopColor={colors.tintDeep} />
           </LinearGradient>
         </Defs>
-        {/* Glasrinne: milchiger Tube-Track mit feinen Kanten */}
-        <Circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.72)" strokeWidth={STROKE} />
-        <Circle cx={size / 2} cy={size / 2} r={r + STROKE / 2} fill="none" stroke="rgba(28,28,33,0.05)" strokeWidth={1} />
-        <Circle cx={size / 2} cy={size / 2} r={r - STROKE / 2} fill="none" stroke="rgba(28,28,33,0.05)" strokeWidth={1} />
-        {/* Weicher Rose-Schein hinter dem Bogen */}
-        <AnimatedCircle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          stroke="url(#ringGradient)"
-          strokeWidth={STROKE + 8}
-          strokeLinecap="round"
-          strokeDasharray={c}
-          opacity={0.18}
-          animatedProps={arcProps}
-        />
+        {/* Matte Glasrinne mit zarten Kanten */}
+        <Circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.66)" strokeWidth={STROKE} />
+        <Circle cx={size / 2} cy={size / 2} r={r + STROKE / 2} fill="none" stroke="rgba(28,28,33,0.045)" strokeWidth={1} />
+        <Circle cx={size / 2} cy={size / 2} r={r - STROKE / 2} fill="none" stroke="rgba(28,28,33,0.045)" strokeWidth={1} />
+        {/* Durchscheinende Rose-Fluessigkeit */}
         <AnimatedCircle
           cx={size / 2}
           cy={size / 2}
@@ -107,32 +116,14 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
           strokeWidth={STROKE}
           strokeLinecap="round"
           strokeDasharray={c}
+          opacity={0.82}
           animatedProps={arcProps}
         />
-        {/* Lichtkante am oberen Glasrand des Bogens */}
-        <AnimatedCircle
-          cx={size / 2}
-          cy={size / 2}
-          r={rSheen}
-          fill="none"
-          stroke="rgba(255,255,255,0.55)"
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          strokeDasharray={cSheen}
-          animatedProps={sheenProps}
-        />
-        {/* Wanderndes Glanzlicht ueber der ganzen Glasrinne */}
-        <AnimatedCircle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          stroke="rgba(255,255,255,0.4)"
-          strokeWidth={STROKE - 5}
-          strokeLinecap="round"
-          strokeDasharray={`${c * 0.14} ${c * 0.86}`}
-          animatedProps={glintProps}
-        />
+        {/* Blaeschen treiben durch die Fluessigkeit */}
+        <AnimatedCircle r={1.7} fill="rgba(255,255,255,0.9)" animatedProps={bubble1} />
+        <AnimatedCircle r={1.2} fill="rgba(255,255,255,0.9)" animatedProps={bubble2} />
+        {/* Pulsierender Leuchtpunkt an der Spitze */}
+        <AnimatedCircle fill="rgba(255,255,255,0.95)" animatedProps={tipProps} />
       </Svg>
       {/* Zahl EXAKT im Ringzentrum (Beta 09.08.); das Label haengt absolut
           darunter und verschiebt die Zahl nicht mehr nach oben */}
