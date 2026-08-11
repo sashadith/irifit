@@ -43,8 +43,15 @@ function WheelItem({
     'worklet';
     const distance = (index * WHEEL_ITEM_H - offset.value) / WHEEL_ITEM_H;
     const clamped = Math.max(-2.6, Math.min(2.6, distance));
+    // Zylinder-Projektion wie beim nativen Picker: Zeilen liegen auf einer
+    // Trommel mit Radius R — je weiter aussen, desto staerker ruecken sie
+    // Richtung Mitte (sin statt linear), statt flach weiterzulaufen.
+    const angle = clamped * 0.4538; // 26 Grad pro Zeile in rad
+    const radius = WHEEL_ITEM_H / 0.4538;
+    const pull = clamped * WHEEL_ITEM_H - radius * Math.sin(angle);
     return {
       transform: [
+        { translateY: -pull },
         { perspective: 420 },
         { rotateX: `${clamped * 26}deg` },
         { scale: 1 - Math.abs(clamped) * 0.08 },
