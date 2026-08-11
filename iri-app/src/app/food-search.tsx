@@ -354,6 +354,7 @@ export default function FoodSearchScreen() {
             />
             <PrimaryButton
               label={t('food.aiCompute')}
+              icon={<IriIcon name="sparkleDuo" size={18} color={colors.white} />}
               onPress={aiCompute}
               disabled={!aiText.trim()}
               style={styles.modalCta}

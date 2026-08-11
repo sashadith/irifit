@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -9,10 +10,12 @@ export interface PrimaryButtonProps {
   readonly disabled?: boolean;
   readonly loading?: boolean;
   readonly style?: ViewStyle;
+  /** Optionales Symbol links vom Text (z. B. KI-Sternchen) */
+  readonly icon?: ReactNode;
 }
 
 /** Pill-CTA im Rosé-Verlauf (Design-Entscheidung Sascha 05.08.: ein Akzent statt dunkler Buttons) */
-export function PrimaryButton({ label, onPress, disabled, loading, style }: PrimaryButtonProps) {
+export function PrimaryButton({ label, onPress, disabled, loading, style, icon }: PrimaryButtonProps) {
   const inactive = disabled || loading;
   return (
     <Pressable
@@ -32,7 +35,10 @@ export function PrimaryButton({ label, onPress, disabled, loading, style }: Prim
         {loading ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Text style={typography.button}>{label}</Text>
+          <>
+            {icon}
+            <Text style={typography.button}>{label}</Text>
+          </>
         )}
       </LinearGradient>
     </Pressable>
@@ -49,6 +55,8 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   inner: {
+    flexDirection: 'row',
+    gap: 8,
     borderRadius: radius.pill,
     paddingVertical: 16,
     alignItems: 'center',
