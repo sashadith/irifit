@@ -12,6 +12,10 @@
       "buildNumber": "12",
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSHealthShareUsageDescription": "IriFit zeigt deine heutigen Schritte aus Apple Health an. Es werden nur Schrittdaten gelesen.",
+        "NSHealthUpdateUsageDescription": "IriFit schreibt keine Gesundheitsdaten."
       }
     },
     "android": {
