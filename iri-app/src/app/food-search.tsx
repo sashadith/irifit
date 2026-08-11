@@ -240,7 +240,7 @@ export default function FoodSearchScreen() {
                     {aiBusy ? (
                       <ActivityIndicator size="small" color={colors.white} />
                     ) : (
-                      <IriIcon name="sparkle" size={17} color={colors.white} />
+                      <IriIcon name="sparkleDuo" size={18} color={colors.white} />
                     )}
                     <Text style={styles.aiButtonText}>
                       {aiBusy ? t('food.aiComputing') : t('food.aiCompute')}
@@ -262,14 +262,14 @@ export default function FoodSearchScreen() {
                     accessibilityLabel={t('food.aiCompute')}
                     onPress={aiCompute}
                     disabled={aiBusy}
-                    style={({ pressed }) => [styles.aiFallback, pressed && styles.rowPressed]}
+                    style={({ pressed }) => [styles.aiButton, styles.aiButtonBelow, pressed && styles.rowPressed]}
                   >
                     {aiBusy ? (
-                      <ActivityIndicator size="small" color={colors.tintDeep} />
+                      <ActivityIndicator size="small" color={colors.white} />
                     ) : (
-                      <IriIcon name="sparkle" size={15} color={colors.tintDeep} />
+                      <IriIcon name="sparkleDuo" size={18} color={colors.white} />
                     )}
-                    <Text style={styles.aiFallbackText}>
+                    <Text style={styles.aiButtonText}>
                       {aiBusy ? t('food.aiComputing') : t('food.aiFallback')}
                     </Text>
                   </Pressable>
@@ -409,18 +409,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.white,
   },
-  aiFallback: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 7,
-    paddingVertical: 12,
-    marginTop: 2,
-  },
-  aiFallbackText: {
-    fontFamily: font.semibold,
-    fontSize: 13.5,
-    color: colors.tintDeep,
+  aiButtonBelow: {
+    marginTop: 6,
+    marginBottom: 0,
   },
   centerRow: {
     flexDirection: 'row',
