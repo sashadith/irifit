@@ -61,7 +61,10 @@ export function LogDetailSheet({ log, onClose, onDelete }: LogDetailSheetProps) 
             <Text style={[typography.displayLg, styles.title]} numberOfLines={2}>
               {log.title}
             </Text>
-            <Text style={styles.kcal}>{t('home.entryKcalOnly', { kcal: log.kcal })}</Text>
+            <Text style={styles.kcal}>
+              {log.grams ? `${log.grams} ${log.unit ?? 'g'} · ` : ''}
+              {t('home.entryKcalOnly', { kcal: log.kcal })}
+            </Text>
             {macroParts.length > 0 ? <Text style={styles.meta}>{macroParts.join(' · ')}</Text> : null}
             <Text style={styles.meta}>
               {t('home.logSheetTime', { time: timeLabel })} · {t(SOURCE_LABEL[log.source] ?? 'home.sourceManual')}
