@@ -220,38 +220,60 @@ export default function FoodSearchScreen() {
             </View>
           ) : showSearch ? (
             <View style={styles.topGap}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t('food.aiCompute')}
-                onPress={aiCompute}
-                disabled={aiBusy}
-                style={({ pressed }) => [styles.aiButton, pressed && styles.rowPressed]}
-              >
-                {aiBusy ? (
-                  <ActivityIndicator size="small" color={colors.white} />
-                ) : (
-                  <IriIcon name="sparkle" size={17} color={colors.white} />
-                )}
-                <Text style={styles.aiButtonText}>
-                  {aiBusy ? t('food.aiComputing') : t('food.aiCompute')}
-                </Text>
-              </Pressable>
               {searching ? (
                 <View style={styles.centerRow}>
                   <ActivityIndicator color={colors.tintDeep} />
                   <Text style={typography.bodyMuted}> {t('food.searching')}</Text>
                 </View>
               ) : results.length === 0 ? (
-                <Text style={[typography.bodyMuted, styles.emptyText]}>{t('food.noResults')}</Text>
+                <>
+                  <Text style={[typography.bodyMuted, styles.emptyText]}>{t('food.noResults')}</Text>
+                  {/* KI bewusst als Fallback NACH der Datenbanksuche (Sascha 11.08.):
+                      sonst klickt jede sofort auf die teure Analyse */}
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('food.aiCompute')}
+                    onPress={aiCompute}
+                    disabled={aiBusy}
+                    style={({ pressed }) => [styles.aiButton, pressed && styles.rowPressed]}
+                  >
+                    {aiBusy ? (
+                      <ActivityIndicator size="small" color={colors.white} />
+                    ) : (
+                      <IriIcon name="sparkle" size={17} color={colors.white} />
+                    )}
+                    <Text style={styles.aiButtonText}>
+                      {aiBusy ? t('food.aiComputing') : t('food.aiCompute')}
+                    </Text>
+                  </Pressable>
+                </>
               ) : (
-                results.map((item, i) => (
-                  <FoodRow
-                    key={`${foodKey(item)}-${i}`}
-                    title={item.name}
-                    subtitle={`${item.brand ? `${item.brand} · ` : ''}${item.kcal100} kcal / 100 g`}
-                    onPress={() => setSheet({ item, source: 'search' })}
-                  />
-                ))
+                <>
+                  {results.map((item, i) => (
+                    <FoodRow
+                      key={`${foodKey(item)}-${i}`}
+                      title={item.name}
+                      subtitle={`${item.brand ? `${item.brand} · ` : ''}${item.kcal100} kcal / 100 g`}
+                      onPress={() => setSheet({ item, source: 'search' })}
+                    />
+                  ))}
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('food.aiCompute')}
+                    onPress={aiCompute}
+                    disabled={aiBusy}
+                    style={({ pressed }) => [styles.aiFallback, pressed && styles.rowPressed]}
+                  >
+                    {aiBusy ? (
+                      <ActivityIndicator size="small" color={colors.tintDeep} />
+                    ) : (
+                      <IriIcon name="sparkle" size={15} color={colors.tintDeep} />
+                    )}
+                    <Text style={styles.aiFallbackText}>
+                      {aiBusy ? t('food.aiComputing') : t('food.aiFallback')}
+                    </Text>
+                  </Pressable>
+                </>
               )}
             </View>
           ) : (
@@ -386,6 +408,19 @@ const styles = StyleSheet.create({
     fontFamily: font.semibold,
     fontSize: 14,
     color: colors.white,
+  },
+  aiFallback: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    paddingVertical: 12,
+    marginTop: 2,
+  },
+  aiFallbackText: {
+    fontFamily: font.semibold,
+    fontSize: 13.5,
+    color: colors.tintDeep,
   },
   centerRow: {
     flexDirection: 'row',

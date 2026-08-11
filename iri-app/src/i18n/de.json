@@ -454,7 +454,8 @@
     "aiCompute": "Mit KI berechnen",
     "aiComputing": "Iri rechnet …",
     "unitPiece": "Stück",
-    "pieceHint": "1 Stück ≈ {grams} g"
+    "pieceHint": "1 Stück ≈ {grams} g",
+    "aiFallback": "Nichts Passendes? Mit KI berechnen"
   },
   "legacy": {
     "eyebrow": "Dein Kurs-Bereich",
