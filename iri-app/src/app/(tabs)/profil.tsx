@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 
 import * as Haptics from 'expo-haptics';
@@ -12,6 +13,7 @@ import { GhostButton } from '@/components/ui/GhostButton';
 import { GlassInput } from '@/components/ui/GlassInput';
 import { IriAvatar } from '@/components/ui/IriAvatar';
 import { IriIcon } from '@/components/icons/IriIcon';
+import { GlobeIcon, InstagramIcon, TikTokIcon } from '@/components/icons/SocialIcons';
 import { RoseHeart } from '@/components/ui/RoseHeart';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -103,6 +105,43 @@ export default function ProfilScreen() {
       profile?.fat_goal_g === g.fat_goal_g
     );
   };
+
+  // Liquid-Slider (Sascha 11.08.): milchige Kapsel gleitet federnd zwischen
+  // den drei Positionen, statt hart umzuspringen — gleiche Sprache wie die Tab-Bar.
+  const segX = useRef<Record<number, { x: number; w: number }>>({});
+  const segLeft = useSharedValue(-999);
+  const segW = useSharedValue(0);
+  const segPlaced = useRef(false);
+
+  const activeIndex = MACRO_PRESETS.findIndex((p) => presetActive(p));
+
+  const placeSeg = (index: number, animate: boolean) => {
+    const m = segX.current[index];
+    if (!m) return;
+    if (!segPlaced.current || !animate) {
+      segLeft.value = m.x;
+      segW.value = m.w;
+      segPlaced.current = true;
+    } else {
+      segLeft.value = withSpring(m.x, { damping: 17, stiffness: 220 });
+      segW.value = withSpring(m.w, { damping: 17, stiffness: 220 });
+    }
+  };
+
+  const onSegLayout = (index: number) => (e: LayoutChangeEvent) => {
+    segX.current[index] = { x: e.nativeEvent.layout.x, w: e.nativeEvent.layout.width };
+    if (index === activeIndex) placeSeg(index, false);
+  };
+
+  useEffect(() => {
+    if (activeIndex >= 0) placeSeg(activeIndex, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex]);
+
+  const segStyle = useAnimatedStyle(() => ({
+    left: segLeft.value,
+    width: segW.value,
+  }));
 
   const applyPreset = async (preset: (typeof MACRO_PRESETS)[number]) => {
     if (!session) return;
@@ -224,7 +263,8 @@ export default function ProfilScreen() {
         {/* Beta-Feedback 09.08.: Chips ragten über den Rand — jetzt ein
             Segmentregler mit drei gleich breiten Positionen in Kartenbreite */}
         <View style={styles.segment}>
-          {MACRO_PRESETS.map((preset) => {
+          <Animated.View pointerEvents="none" style={[styles.segmentIndicator, segStyle]} />
+          {MACRO_PRESETS.map((preset, index) => {
             const active = presetActive(preset);
             return (
               <Pressable
@@ -232,7 +272,8 @@ export default function ProfilScreen() {
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
                 onPress={() => applyPreset(preset)}
-                style={[styles.segmentItem, active && styles.segmentActive]}
+                onLayout={onSegLayout(index)}
+                style={styles.segmentItem}
               >
                 <Text
                   style={[styles.segmentText, active && styles.segmentTextActive]}
@@ -258,12 +299,16 @@ export default function ProfilScreen() {
       </GlassView>
 
       <GlassView borderRadius={radius.md} contentStyle={styles.card} style={styles.gap}>
-        <Text style={styles.sectionTitle}>{t('profile.kcalExplainTitle')}</Text>
+        <View style={styles.sectionHead}>
+          <IriIcon name="target" size={18} color={colors.tintDeep} />
+          <Text style={[styles.sectionTitle, styles.noGap]}>{t('profile.kcalExplainTitle')}</Text>
+        </View>
         <Text style={[typography.bodyMuted, styles.explain]}>{t('profile.kcalExplain')}</Text>
       </GlassView>
 
       <GhostButton
         label={t('profile.reminders')}
+        icon={<IriIcon name="bell" size={17} color={colors.tintDeep} />}
         onPress={() => router.push('/reminders')}
         style={styles.gap}
       />
@@ -281,17 +326,27 @@ export default function ProfilScreen() {
           <Text style={styles.irinaName}>Irina Dith</Text>
           <Text style={styles.irinaBio}>{t('coaching.irinaCardBio')}</Text>
           <View style={styles.irinaLinks}>
-            {IRINA_LINKS.map((link) => (
-              <Pressable
-                key={link.labelKey}
-                accessibilityRole="link"
-                accessibilityLabel={t(link.labelKey)}
-                onPress={() => openIrinaLink(link.app, link.web)}
-                style={({ pressed }) => [styles.irinaPill, pressed && styles.irinaPillPressed]}
-              >
-                <Text style={styles.irinaPillText}>{t(link.labelKey)}</Text>
-              </Pressable>
-            ))}
+            {IRINA_LINKS.map((link) => {
+              const Icon = link.labelKey.includes('Instagram')
+                ? InstagramIcon
+                : link.labelKey.includes('Tiktok')
+                  ? TikTokIcon
+                  : GlobeIcon;
+              return (
+                <Pressable
+                  key={link.labelKey}
+                  accessibilityRole="link"
+                  accessibilityLabel={t(link.labelKey)}
+                  onPress={() => openIrinaLink(link.app, link.web)}
+                  style={({ pressed }) => [styles.irinaPill, pressed && styles.irinaPillPressed]}
+                >
+                  <Icon size={14} />
+                  <Text style={styles.irinaPillText} numberOfLines={1} adjustsFontSizeToFit>
+                    {t(link.labelKey)}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
       </GlassView>
@@ -404,8 +459,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     borderRadius: radius.pill,
   },
-  segmentActive: {
-    backgroundColor: colors.tintDeep,
+  segmentIndicator: {
+    position: 'absolute',
+    top: 3,
+    bottom: 3,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.94)', // milchiges Glas wie Tab-Kapsel
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
   },
   segmentText: {
     fontFamily: font.semibold,
@@ -413,7 +476,7 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
   segmentTextActive: {
-    color: colors.white,
+    color: colors.tintDeep,
     fontFamily: font.bold,
   },
   irinaCenter: {
@@ -436,15 +499,19 @@ const styles = StyleSheet.create({
   },
   irinaLinks: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 10,
+    alignSelf: 'stretch',
+    gap: 8,
     marginTop: 14,
   },
   irinaPill: {
+    flex: 1, // eine Zeile, volle Kartenbreite (Sascha 11.08.)
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
     backgroundColor: colors.tintDeep,
     borderRadius: radius.pill,
-    paddingHorizontal: 20,
+    paddingHorizontal: 8,
     paddingVertical: 10,
   },
   irinaPillPressed: {
