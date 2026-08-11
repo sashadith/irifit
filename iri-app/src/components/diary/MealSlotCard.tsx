@@ -73,12 +73,25 @@ export function MealSlotCard({ slot, logs, kcalGoal, onAdd, onDeleteLog, onSelec
                 onPress={() => onSelectLog(log)}
                 hitSlop={4}
               >
-                {({ pressed }) => (
-                  <Text style={[styles.subtitle, pressed && styles.entryPressed]}>
-                    {t('home.entryKcal', { title: log.title, kcal: log.kcal })}
-                    {log.grams ? ` · ${log.grams} ${log.unit ?? 'g'}` : ''}
-                  </Text>
-                )}
+                {({ pressed }) => {
+                  const time = new Date(log.created_at);
+                  const timeLabel = `${time.getHours()}:${String(time.getMinutes()).padStart(2, '0')}`;
+                  return (
+                    <View style={styles.entry}>
+                      <Text
+                        style={[styles.subtitle, pressed && styles.entryPressed]}
+                        numberOfLines={1}
+                      >
+                        {log.title}
+                      </Text>
+                      {/* Zweite Zeile (Sascha 11.08.): 110 g · 307 kcal · 13:20 Uhr */}
+                      <Text style={[styles.entryMeta, pressed && styles.entryPressed]}>
+                        {log.grams ? `${log.grams} ${log.unit ?? 'g'} · ` : ''}
+                        {log.kcal} kcal · {timeLabel} Uhr
+                      </Text>
+                    </View>
+                  );
+                }}
               </Pressable>
             ))
           ) : (
@@ -144,6 +157,15 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     color: colors.muted,
     marginTop: 2,
+  },
+  entry: {
+    marginBottom: 3,
+  },
+  entryMeta: {
+    fontFamily: font.semibold,
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: colors.muted,
   },
   entryPressed: {
     color: colors.tintDeep,
