@@ -459,7 +459,8 @@
     "aiFallback": "Nichts Passendes? Mit KI berechnen",
     "aiPromptTitle": "Mit KI berechnen",
     "aiPromptText": "Beschreibe deine Mahlzeit möglichst genau — am besten mit Mengen. Die KI zerlegt sie in Zutaten und berechnet die Nährwerte.",
-    "aiPromptPlaceholder": "z. B. 150 g Skyr mit 30 g Himbeeren und 1 TL Honig"
+    "aiPromptPlaceholder": "z. B. 150 g Skyr mit 30 g Himbeeren und 1 TL Honig",
+    "removeIngredient": "entfernen"
   },
   "legacy": {
     "eyebrow": "Dein Kurs-Bereich",

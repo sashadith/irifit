@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -36,6 +36,7 @@ import {
 } from '@/features/food/foodData';
 import { FoodItem, searchFoods } from '@/features/food/off';
 import { analyzeTextMeal, ScanError } from '@/features/scan/api';
+import type { ScanIngredient } from '@/features/scan/types';
 import { t } from '@/i18n';
 import { colors, font, radius, spacing, typography } from '@/theme';
 
@@ -58,6 +59,11 @@ export default function FoodSearchScreen() {
   // ein Stichwort ('Skyr') — hier beschreibt die Nutzerin die echte Mahlzeit.
   const [aiPromptOpen, setAiPromptOpen] = useState(false);
   const [aiText, setAiText] = useState('');
+  // KI-Ergebnis als entfernbare Zutatenliste (Sascha 11.08.) — erst danach
+  // geht es mit der Gesamtportion ins normale FoodSheet
+  const [aiResult, setAiResult] = useState<{ dish: string; ingredients: ScanIngredient[] } | null>(
+    null,
+  );
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadLists = useCallback(async () => {
@@ -150,18 +156,7 @@ export default function FoodSearchScreen() {
         Alert.alert(t('common.error'), t('scan.errorGeneric'));
         return;
       }
-      const total = (key: 'kcal' | 'protein_g' | 'carbs_g' | 'fat_g') =>
-        result.ingredients.reduce((sum, i) => sum + i[key], 0);
-      const item: FoodItem = {
-        name: result.dish,
-        kcal100: Math.round((total('kcal') / grams) * 100),
-        protein100: Math.round((total('protein_g') / grams) * 1000) / 10,
-        carbs100: Math.round((total('carbs_g') / grams) * 1000) / 10,
-        fat100: Math.round((total('fat_g') / grams) * 1000) / 10,
-        servingG: Math.round(grams),
-        unit: 'g',
-      };
-      setSheet({ item, source: 'manual' });
+      setAiResult({ dish: result.dish, ingredients: result.ingredients });
     } catch (e) {
       if (e instanceof ScanError && e.code === 'fair_use_exceeded') {
         Alert.alert(t('scan.fairUseTitle'), t('scan.fairUseText', { limit: e.scansUsed ?? 300 }));
@@ -174,6 +169,32 @@ export default function FoodSearchScreen() {
   };
 
   const showSearch = query.trim().length >= 2;
+
+  const removeAiIngredient = (index: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setAiResult((prev) => {
+      if (!prev) return prev;
+      const ingredients = prev.ingredients.filter((_, i) => i !== index);
+      return ingredients.length ? { ...prev, ingredients } : null;
+    });
+  };
+
+  const aiItem: FoodItem | null = useMemo(() => {
+    if (!aiResult) return null;
+    const grams = aiResult.ingredients.reduce((sum, i) => sum + i.grams, 0);
+    if (grams <= 0) return null;
+    const total = (key: 'kcal' | 'protein_g' | 'carbs_g' | 'fat_g') =>
+      aiResult.ingredients.reduce((sum, i) => sum + i[key], 0);
+    return {
+      name: aiResult.dish,
+      kcal100: Math.round((total('kcal') / grams) * 100),
+      protein100: Math.round((total('protein_g') / grams) * 1000) / 10,
+      carbs100: Math.round((total('carbs_g') / grams) * 1000) / 10,
+      fat100: Math.round((total('fat_g') / grams) * 1000) / 10,
+      servingG: Math.round(grams),
+      unit: 'g',
+    };
+  }, [aiResult]);
 
   // „Nochmal essen"-Untertitel: 255 kcal · 110 g · 11. Aug. 2026 (Sascha 11.08.)
   const recentSubtitle = (entry: RecentEntry) => {
@@ -221,7 +242,47 @@ export default function FoodSearchScreen() {
             ) : null}
           </View>
 
-          {sheet ? (
+          {aiResult && aiItem ? (
+            <View style={styles.sheetWrap}>
+              <GlassView borderRadius={radius.md} contentStyle={styles.aiListContent}>
+                <View style={styles.modalTitleRow}>
+                  <IriIcon name="sparkleDuo" size={17} color={colors.tintDeep} />
+                  <Text style={styles.modalTitle}>{aiResult.dish}</Text>
+                </View>
+                {aiResult.ingredients.map((ing, i) => (
+                  <View key={`${ing.name}-${i}`} style={styles.aiIngredientRow}>
+                    <Text style={styles.aiIngredientText} numberOfLines={1}>
+                      {Math.round(ing.grams)} g {ing.name}
+                    </Text>
+                    <Text style={styles.aiIngredientKcal}>{Math.round(ing.kcal)} kcal</Text>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={`${ing.name} ${t('food.removeIngredient')}`}
+                      onPress={() => removeAiIngredient(i)}
+                      hitSlop={8}
+                      style={styles.aiIngredientRemove}
+                    >
+                      <Text style={styles.aiIngredientRemoveText}>✕</Text>
+                    </Pressable>
+                  </View>
+                ))}
+              </GlassView>
+              <FoodSheet
+                key={`${aiResult.ingredients.length}-${aiItem.servingG}`}
+                item={aiItem}
+                source="manual"
+                isFavorite={Boolean(favoriteFor(aiItem))}
+                onToggleFavorite={() => toggleFavorite(aiItem)}
+                onLogged={() => router.back()}
+              />
+              <GhostButton
+                label={t('common.back')}
+                small
+                onPress={() => setAiResult(null)}
+                style={styles.topGap}
+              />
+            </View>
+          ) : sheet ? (
             <View style={styles.sheetWrap}>
               <FoodSheet
                 item={sheet.item}
@@ -509,6 +570,42 @@ const styles = StyleSheet.create({
   },
   modalCancel: {
     marginTop: 8,
+  },
+  aiListContent: {
+    padding: spacing.lg,
+    marginBottom: 12,
+  },
+  aiIngredientRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 11,
+  },
+  aiIngredientText: {
+    flex: 1,
+    fontFamily: font.semibold,
+    fontSize: 14,
+    color: colors.ink,
+  },
+  aiIngredientKcal: {
+    fontFamily: font.bold,
+    fontSize: 13,
+    color: colors.tintDeep,
+  },
+  aiIngredientRemove: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: 'rgba(255,255,255,0.75)',
+    borderWidth: 1,
+    borderColor: colors.stroke,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiIngredientRemoveText: {
+    fontSize: 12,
+    color: colors.muted,
+    fontFamily: font.semibold,
   },
   centerRow: {
     flexDirection: 'row',
