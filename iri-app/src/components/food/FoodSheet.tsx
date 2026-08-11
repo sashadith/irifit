@@ -248,9 +248,18 @@ const styles = StyleSheet.create({
     left: 8,
     right: 8,
     top: WHEEL_ITEM_H * 2,
-    height: WHEEL_ITEM_H,
-    borderRadius: 10,
-    backgroundColor: 'rgba(120,120,128,0.12)', // iOS-Picker-Grau
+    height: WHEEL_ITEM_H + 6,
+    marginTop: -3,
+    borderRadius: (WHEEL_ITEM_H + 6) / 2,
+    // Milchglas wie die Tab-Blase — echtes UIGlassEffect-in-Glas rendert
+    // Apple nicht (Befund 09.08.), die Kapsel wirkt identisch
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.9)',
+    shadowColor: '#d47693',
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
   },
   pieceHint: {
     fontFamily: font.regular,

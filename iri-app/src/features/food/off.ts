@@ -61,9 +61,13 @@ function toFoodItem(product: OffProduct): FoodItem | null {
     servingG: Number.isFinite(serving) && serving > 0 ? serving : undefined,
     // Getraenk? Die Such-API liefert kein nutrition_data_per, aber die
     // Kategorie-Tags (en:beverages) sind dort zuverlaessig gepflegt.
+    // ACHTUNG: 'en:plant-based-foods-and-beverages' tragen auch Chips & Co. —
+    // der Sammelbegriff zaehlt NICHT als Getraenk (Pringles-Befund 11.08.).
     unit:
       product.nutrition_data_per === '100ml' ||
-      (product.categories_tags ?? []).some((c) => c.includes('beverage'))
+      (product.categories_tags ?? []).some(
+        (c) => c.includes('beverage') && !c.includes('foods-and-beverages'),
+      )
         ? 'ml'
         : 'g',
   };

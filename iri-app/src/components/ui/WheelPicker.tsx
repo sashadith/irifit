@@ -17,7 +17,7 @@ import { colors, font } from '@/theme';
  * aus der Mitte weg (rotateX), schrumpft und blendet aus. Kein natives
  * Modul nötig, läuft im bestehenden Dev-Client.
  */
-export const WHEEL_ITEM_H = 34;
+export const WHEEL_ITEM_H = 24; // 30 % kleinere Trommel (Sascha 11.08.)
 const VISIBLE = 5; // ungerade, damit eine Zeile exakt in der Mitte liegt
 
 export interface WheelPickerProps {
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontFamily: font.bold,
-    fontSize: 18,
+    fontSize: 15,
     color: colors.ink,
   },
 });
