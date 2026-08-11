@@ -244,7 +244,7 @@ export default function FoodSearchScreen() {
 
           {aiResult && aiItem ? (
             <View style={styles.sheetWrap}>
-              <GlassView borderRadius={radius.md} contentStyle={styles.aiListContent}>
+              <GlassView borderRadius={radius.md} style={styles.aiListCard} contentStyle={styles.aiListContent}>
                 <View style={styles.modalTitleRow}>
                   <IriIcon name="sparkleDuo" size={17} color={colors.tintDeep} />
                   <Text style={styles.modalTitle}>{aiResult.dish}</Text>
@@ -571,9 +571,11 @@ const styles = StyleSheet.create({
   modalCancel: {
     marginTop: 8,
   },
+  aiListCard: {
+    marginBottom: 14, // Abstand ZWISCHEN den Karten, nicht im Karteninneren
+  },
   aiListContent: {
     padding: spacing.lg,
-    marginBottom: 12,
   },
   aiIngredientRow: {
     flexDirection: 'row',
