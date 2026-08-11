@@ -157,6 +157,56 @@ export default function ProfilScreen() {
     await refreshProfile();
   };
 
+  // Kompletter Neustart (Sascha 11.08.): Tagebuch, Wasser, Gewichte, Fotos und
+  // Serie auf null — Konto, Ziele, Favoriten und Abo bleiben unangetastet.
+  const confirmReset = () => {
+    Alert.alert(t('profile.resetTitle'), t('profile.resetBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('profile.resetConfirm1'),
+        style: 'destructive',
+        onPress: () =>
+          Alert.alert(t('profile.resetTitle2'), t('profile.resetBody2'), [
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('profile.resetConfirm2'), style: 'destructive', onPress: resetProgress },
+          ]),
+      },
+    ]);
+  };
+
+  const resetProgress = async () => {
+    if (!session) return;
+    const uid = session.user.id;
+    try {
+      // Fotos zuerst aus dem Storage, dann die Zeilen
+      const { data: photoRows } = await supabase
+        .from('progress_photos')
+        .select('storage_path')
+        .eq('user_id', uid);
+      if (photoRows && photoRows.length > 0) {
+        await supabase.storage
+          .from('progress-photos')
+          .remove(photoRows.map((r) => r.storage_path));
+      }
+      const results = await Promise.all([
+        supabase.from('food_logs').delete().eq('user_id', uid),
+        supabase.from('water_logs').delete().eq('user_id', uid),
+        supabase.from('weights').delete().eq('user_id', uid),
+        supabase.from('progress_photos').delete().eq('user_id', uid),
+      ]);
+      if (results.some((r) => r.error)) throw results.find((r) => r.error)?.error;
+      await supabase
+        .from('profiles')
+        .update({ streak_count: 0, streak_longest: 0 })
+        .eq('id', uid);
+      await refreshProfile();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert(t('profile.resetDoneTitle'), t('profile.resetDoneBody'));
+    } catch {
+      Alert.alert(t('common.error'), t('profile.saveFailed'));
+    }
+  };
+
   const confirmDelete = () => {
     Alert.alert(t('profile.deleteTitle'), t('profile.deleteBody'), [
       { text: t('common.cancel'), style: 'cancel' },
@@ -376,7 +426,10 @@ export default function ProfilScreen() {
 
       <GhostButton label={t('profile.signOut')} onPress={signOut} style={styles.gap} />
       <View style={styles.deleteWrap}>
-        <Text style={styles.deleteLink} onPress={confirmDelete}>
+        <Text style={styles.deleteLink} onPress={confirmReset}>
+          {t('profile.resetProgress')}
+        </Text>
+        <Text style={[styles.deleteLink, styles.deleteGap]} onPress={confirmDelete}>
           {t('profile.deleteAccount')}
         </Text>
       </View>
@@ -559,6 +612,9 @@ const styles = StyleSheet.create({
   },
   smallGap: {
     marginTop: 10,
+  },
+  deleteGap: {
+    marginTop: 14,
   },
   deleteWrap: {
     alignItems: 'center',

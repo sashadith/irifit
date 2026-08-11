@@ -385,7 +385,16 @@
     "deleteConfirm2": "Ja, alles löschen",
     "deleteFailed": "Löschen hat nicht geklappt — probier es gleich nochmal oder melde dich bei uns.",
     "waterGoal": "Wasserziel",
-    "waterRange": "Bitte zwischen 0,5 und 6 Litern wählen."
+    "waterRange": "Bitte zwischen 0,5 und 6 Litern wählen.",
+    "resetProgress": "Fortschritt zurücksetzen",
+    "resetTitle": "Fortschritt zurücksetzen?",
+    "resetBody": "Tagebuch, Wasser, Gewichtsverlauf, Fotos und deine Serie werden gelöscht — du startest bei null. Dein Konto, deine Ziele und Favoriten bleiben erhalten.",
+    "resetConfirm1": "Zurücksetzen",
+    "resetTitle2": "Wirklich alles auf null?",
+    "resetBody2": "Das lässt sich nicht rückgängig machen.",
+    "resetConfirm2": "Ja, bei null anfangen",
+    "resetDoneTitle": "Alles auf null",
+    "resetDoneBody": "Dein Fortschritt wurde zurückgesetzt. Auf einen frischen Start! 💪"
   },
   "scan": {
     "eyebrow": "AI-Scan",
