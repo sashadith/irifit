@@ -89,6 +89,20 @@ Regeln:
 - confidence 'low', wenn das Foto unscharf ist, wenig zu erkennen ist oder es kein Vorrats-/Kühlschrankfoto ist.
 - Wenn keine Lebensmittel erkennbar sind: leere Zutatenliste, dish='Nichts erkannt', confidence='low'.`;
 
+// Text-Eingabe (Session 22): Freitext wie '100 g Hähnchenbrust gebraten, 10 g Öl'
+// → gleiche Zutaten-Struktur wie der Foto-Scan, damit die App identisch rechnet
+const TEXT_PROMPT = `Du bist die Essens-Analyse von IRI, einer deutschen Ernährungs-App für Frauen, die abnehmen möchten, ohne zu hungern.
+
+Die Nutzerin beschreibt ihre Mahlzeit als freien Text (oft mit Tippfehlern, Abkürzungen wie 'gr', 'EL', 'TL', 'Stk', Umgangssprache). Zerlege die Beschreibung in Zutaten mit Gramm-Mengen und berechne die Nährwerte.
+
+Regeln:
+- Angegebene Mengen sind Wahrheit — exakt übernehmen ('100 gr' = 100 g, '1 EL Öl' ≈ 10 g, '1 TL' ≈ 5 g, '1 Dose Cola' = 330 ml ≈ 330 g). Fehlt eine Menge, schätze eine realistische deutsche Portion.
+- Zubereitungsart einrechnen: 'gebraten' ohne separates Öl → typische Bratfett-Menge als eigene Zutat ergänzen; steht Öl/Butter schon im Text, NICHT doppelt zählen.
+- Tippfehler stillschweigend korrigieren ('Hhnerbrust' → Hähnchenbrust).
+- Nährwerte pro Zutat müssen zur Menge passen (4 kcal/g Kohlenhydrate, 4 kcal/g Protein, 9 kcal/g Fett).
+- dish: kurzer deutscher Name der Mahlzeit (max. 40 Zeichen), portion: Gesamtmenge (z. B. '110 g').
+- confidence 'high' bei klaren Mengenangaben; 'low' nur, wenn der Text keine Mahlzeit beschreibt — dann dish='Keine Mahlzeit erkannt' und leere Zutatenliste.`;
+
 // Stabiler System-Prompt (Prompt-Caching-Breakpoint am Ende)
 const SYSTEM_PROMPT = `Du bist die Essens-Analyse von IRI, einer deutschen Ernährungs-App für Frauen, die abnehmen möchten, ohne zu hungern.
 
@@ -259,18 +273,24 @@ Deno.serve(async (req: Request) => {
 
   let body: {
     image?: { base64: string; mediaType: string };
+    text?: string;
     correction?: { previous: ScanResult; note?: string };
-    mode?: 'meal' | 'inventory';
+    mode?: 'meal' | 'inventory' | 'text';
   };
   try {
     body = await req.json();
   } catch {
     return new Response(JSON.stringify({ error: 'invalid_json' }), { status: 400, headers: CORS });
   }
-  if (!body.image?.base64 || !body.image.mediaType) {
+  const mode = body.mode === 'inventory' ? 'inventory' : body.mode === 'text' ? 'text' : 'meal';
+  const textInput = (body.text ?? '').trim().slice(0, 600);
+  if (mode === 'text') {
+    if (!textInput) {
+      return new Response(JSON.stringify({ error: 'missing_text' }), { status: 400, headers: CORS });
+    }
+  } else if (!body.image?.base64 || !body.image.mediaType) {
     return new Response(JSON.stringify({ error: 'missing_image' }), { status: 400, headers: CORS });
   }
-  const mode = body.mode === 'inventory' ? 'inventory' : 'meal';
 
   // Fair-Use: 300 Analysen pro Kalendermonat — atomarer Increment VOR dem
   // Modell-Aufruf (S11-Checkliste d: Read-then-Upsert war race-anfällig)
@@ -295,7 +315,18 @@ Deno.serve(async (req: Request) => {
   let result: ScanResult | InventoryResult;
   let modelUsed: 'haiku' | 'sonnet';
   try {
-    if (mode === 'inventory') {
+    if (mode === 'text') {
+      const content: Anthropic.MessageParam['content'] = [
+        { type: 'text', text: `Beschreibung der Mahlzeit: "${textInput}"` },
+      ];
+      ({ result, modelUsed } = await analyzeTwoStage<ScanResult>(
+        anthropic,
+        content,
+        TEXT_PROMPT,
+        SCAN_SCHEMA,
+        (r) => r.ingredients.length > 0,
+      ));
+    } else if (mode === 'inventory') {
       const content = buildUserContent(body.image, undefined, 'inventory');
       // Zweistufig: nur bei niedriger Konfidenz das teurere Modell (~20 % der Fälle)
       ({ result, modelUsed } = await analyzeTwoStage<InventoryResult>(

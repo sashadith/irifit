@@ -450,7 +450,9 @@
     "productNotFoundTitle": "Produkt nicht gefunden",
     "productNotFoundText": "Dieser Barcode ist nicht in der Datenbank. Versuch den Foto-Scan oder die Suche.",
     "barcodeError": "Der Barcode-Abruf hat nicht geklappt. Prüfe deine Verbindung.",
-    "searchEyebrow": "Manuelle Suche"
+    "searchEyebrow": "Manuelle Suche",
+    "aiCompute": "Mit KI berechnen",
+    "aiComputing": "Iri rechnet …"
   },
   "legacy": {
     "eyebrow": "Dein Kurs-Bereich",

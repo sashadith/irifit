@@ -38,6 +38,11 @@ export async function analyzeInventory(image: {
   return (await invokeAnalyze({ image, mode: 'inventory' })) as InventoryResponse;
 }
 
+/** Freitext ('100 g Hähnchenbrust gebraten …') → Zutaten + Nährwerte (Session 22) */
+export async function analyzeTextMeal(text: string): Promise<ScanResponse> {
+  return (await invokeAnalyze({ text, mode: 'text' })) as ScanResponse;
+}
+
 export async function analyzeFood(
   image: { base64: string; mediaType: string },
   correction?: { previous: ScanResult; note?: string },

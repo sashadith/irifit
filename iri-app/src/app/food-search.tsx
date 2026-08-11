@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -32,10 +33,11 @@ import {
   removeFoodFavorite,
 } from '@/features/food/foodData';
 import { FoodItem, searchFoods } from '@/features/food/off';
+import { analyzeTextMeal, ScanError } from '@/features/scan/api';
 import { t } from '@/i18n';
 import { colors, font, radius, spacing, typography } from '@/theme';
 
-type SheetState = { item: FoodItem; source: 'search' | 'favorite' } | null;
+type SheetState = { item: FoodItem; source: 'search' | 'favorite' | 'manual' } | null;
 
 export default function FoodSearchScreen() {
   const router = useRouter();
@@ -49,6 +51,7 @@ export default function FoodSearchScreen() {
   const [recents, setRecents] = useState<RecentEntry[]>([]);
   const [favorites, setFavorites] = useState<FoodFavorite[]>([]);
   const [sheet, setSheet] = useState<SheetState>(null);
+  const [aiBusy, setAiBusy] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadLists = useCallback(async () => {
@@ -117,6 +120,45 @@ export default function FoodSearchScreen() {
     }
   };
 
+  // Freitext → KI (Session 22): '100 g Hähnchenbrust gebraten, 10 g Öl' wird
+  // zerlegt und berechnet; Eintragen läuft über das normale FoodSheet und
+  // landet damit automatisch unter „Nochmal essen".
+  const aiCompute = async () => {
+    const text = query.trim();
+    if (!text || aiBusy) return;
+    Keyboard.dismiss();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setAiBusy(true);
+    try {
+      const { result } = await analyzeTextMeal(text);
+      const grams = result.ingredients.reduce((sum, i) => sum + i.grams, 0);
+      if (result.ingredients.length === 0 || grams <= 0) {
+        Alert.alert(t('common.error'), t('scan.errorGeneric'));
+        return;
+      }
+      const total = (key: 'kcal' | 'protein_g' | 'carbs_g' | 'fat_g') =>
+        result.ingredients.reduce((sum, i) => sum + i[key], 0);
+      const item: FoodItem = {
+        name: result.dish,
+        kcal100: Math.round((total('kcal') / grams) * 100),
+        protein100: Math.round((total('protein_g') / grams) * 1000) / 10,
+        carbs100: Math.round((total('carbs_g') / grams) * 1000) / 10,
+        fat100: Math.round((total('fat_g') / grams) * 1000) / 10,
+        servingG: Math.round(grams),
+        unit: 'g',
+      };
+      setSheet({ item, source: 'manual' });
+    } catch (e) {
+      if (e instanceof ScanError && e.code === 'fair_use_exceeded') {
+        Alert.alert(t('scan.fairUseTitle'), t('scan.fairUseText', { limit: e.scansUsed ?? 300 }));
+      } else {
+        Alert.alert(t('common.error'), t('scan.errorGeneric'));
+      }
+    } finally {
+      setAiBusy(false);
+    }
+  };
+
   const showSearch = query.trim().length >= 2;
 
   return (
@@ -162,6 +204,22 @@ export default function FoodSearchScreen() {
             </View>
           ) : showSearch ? (
             <View style={styles.topGap}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('food.aiCompute')}
+                onPress={aiCompute}
+                disabled={aiBusy}
+                style={({ pressed }) => [styles.aiButton, pressed && styles.rowPressed]}
+              >
+                {aiBusy ? (
+                  <ActivityIndicator size="small" color={colors.white} />
+                ) : (
+                  <IriIcon name="sparkle" size={17} color={colors.white} />
+                )}
+                <Text style={styles.aiButtonText}>
+                  {aiBusy ? t('food.aiComputing') : t('food.aiCompute')}
+                </Text>
+              </Pressable>
               {searching ? (
                 <View style={styles.centerRow}>
                   <ActivityIndicator color={colors.tintDeep} />
@@ -295,6 +353,23 @@ const styles = StyleSheet.create({
   },
   topGap: {
     marginTop: 12,
+  },
+  aiButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: colors.tintDeep,
+    borderRadius: radius.pill,
+    paddingVertical: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
+  },
+  aiButtonText: {
+    fontFamily: font.semibold,
+    fontSize: 14,
+    color: colors.white,
   },
   centerRow: {
     flexDirection: 'row',
