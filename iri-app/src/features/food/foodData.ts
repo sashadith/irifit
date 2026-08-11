@@ -35,6 +35,8 @@ export interface RecentEntry {
   /** Original-FoodItem, falls der Eintrag aus Barcode/Suche stammt */
   food?: FoodItem;
   grams?: number;
+  /** Wann zuletzt gegessen (ISO) — für die Datumsanzeige in „Nochmal essen" */
+  loggedAt?: string;
 }
 
 /** „Nochmal essen": letzte Einträge, nach Titel dedupliziert */
@@ -62,6 +64,7 @@ export async function fetchRecentEntries(userId: string): Promise<RecentEntry[]>
       slot: row.slot as MealSlot,
       food: details?.food,
       grams: details?.grams,
+      loggedAt: row.created_at,
     });
     if (recents.length >= 12) break;
   }

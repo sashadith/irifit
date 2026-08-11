@@ -161,6 +161,22 @@ export default function FoodSearchScreen() {
 
   const showSearch = query.trim().length >= 2;
 
+  // „Nochmal essen"-Untertitel: 255 kcal · 110 g · 11. Aug. 2026 (Sascha 11.08.)
+  const recentSubtitle = (entry: RecentEntry) => {
+    const parts = [`${entry.kcal} kcal`];
+    if (entry.grams) parts.push(`${entry.grams} ${entry.food?.unit ?? 'g'}`);
+    if (entry.loggedAt) {
+      parts.push(
+        new Date(entry.loggedAt).toLocaleDateString('de-DE', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        }),
+      );
+    }
+    return parts.join(' · ');
+  };
+
   return (
     <View style={styles.flex}>
       <Wallpaper />
@@ -248,7 +264,7 @@ export default function FoodSearchScreen() {
                   <FoodRow
                     key={`${entry.title}-${i}`}
                     title={entry.title}
-                    subtitle={`${entry.kcal} kcal`}
+                    subtitle={recentSubtitle(entry)}
                     onPress={() =>
                       entry.food
                         ? setSheet({ item: entry.food, source: 'search' })
