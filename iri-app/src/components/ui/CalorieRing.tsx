@@ -74,7 +74,8 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useAnimatedProps(() => {
       'worklet';
-      const u = (flow.value + offset) % 1;
+      // Blaeschen fliessen der Fuellrichtung ENTGEGEN (Sascha 11.08.)
+      const u = 1 - ((flow.value + offset) % 1);
       const angle = u * animated.value * Math.PI * 2;
       const fade = u < 0.12 ? u / 0.12 : u > 0.85 ? (1 - u) / 0.15 : 1;
       return {
