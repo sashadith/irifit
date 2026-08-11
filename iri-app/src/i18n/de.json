@@ -415,7 +415,7 @@
     "modePhoto": "Foto",
     "modeBarcode": "Barcode",
     "modeSearch": "Suche",
-    "modeInventory": "Kühlschrank",
+    "modeInventory": "Vorrat",
     "barcodeHint": "Halte den Barcode in den Rahmen",
     "inventoryHint": "Fotografiere deinen offenen Kühlschrank oder Vorrat",
     "inventoryAnalyzing": "Ich schaue, was da ist …",
@@ -428,7 +428,8 @@
     "inventoryNoMatch": "In Irinas Rezepten passt heute nichts genau — aber hier ist eine Idee:",
     "inventorySuggestion": "Irinas AI-Idee",
     "inventorySuggestionMacros": "≈ {kcal} kcal · {protein} P · {carbs} C · {fat} F pro Portion",
-    "inventoryRetake": "Neues Foto"
+    "inventoryRetake": "Neues Foto",
+    "photoCta": "Fotografiere dein Essen — den Rest übernimmt die IriFit KI"
   },
   "food": {
     "searchTitle": "Suche & Favoriten",

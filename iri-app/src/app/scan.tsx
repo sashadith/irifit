@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassView } from '@/components/glass/GlassView';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
 import { Wallpaper } from '@/components/Wallpaper';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Chip } from '@/components/ui/Chip';
 import { GhostButton } from '@/components/ui/GhostButton';
 import { IriIcon } from '@/components/icons/IriIcon';
@@ -328,24 +329,53 @@ export default function ScanScreen() {
           onBarcodeScanned={mode === 'barcode' ? onBarcodeScanned : undefined}
         />
         <View style={[styles.cameraOverlay, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 }]}>
-          <View style={styles.cameraTop}>
-            <GlassView borderRadius={radius.pill} contentStyle={styles.cameraHint}>
-              <Text style={styles.cameraHintText}>
-                {mode === 'barcode'
-                  ? t('scan.barcodeHint')
-                  : mode === 'inventory'
-                    ? t('scan.inventoryHint')
-                    : t('scan.cameraHint')}
-              </Text>
-            </GlassView>
-            <View style={styles.modeChips}>
-              <Chip label={t('scan.modePhoto')} selected={mode === 'photo'} onPress={() => setMode('photo')} />
-              <Chip label={t('scan.modeBarcode')} selected={mode === 'barcode'} onPress={() => setMode('barcode')} />
-              <Chip label={t('scan.modeInventory')} selected={mode === 'inventory'} onPress={() => setMode('inventory')} />
-              <Chip label={t('scan.modeSearch')} selected={false} onPress={() => router.push('/food-search')} />
-            </View>
+          {/* Runde Modus-Buttons wie im Plus-Menue (Sascha 11.08.); Suche liegt im Plus-Menue */}
+          <View style={styles.modeRow}>
+            {(
+              [
+                { key: 'photo', icon: 'cameraAi', labelKey: 'scan.modePhoto' },
+                { key: 'barcode', icon: 'barcode', labelKey: 'scan.modeBarcode' },
+                { key: 'inventory', icon: 'fridgeAi', labelKey: 'scan.modeInventory' },
+              ] as const
+            ).map((m) => (
+              <Pressable
+                key={m.key}
+                accessibilityRole="button"
+                accessibilityLabel={t(m.labelKey)}
+                accessibilityState={{ selected: mode === m.key }}
+                onPress={() => setMode(m.key)}
+                style={styles.modeItem}
+              >
+                {mode === m.key ? (
+                  <LinearGradient
+                    colors={colors.roseGradient}
+                    start={{ x: 0.2, y: 0 }}
+                    end={{ x: 0.8, y: 1 }}
+                    style={[styles.modeCircle, styles.modeCircleActive]}
+                  >
+                    <IriIcon name={m.icon} size={26} color={colors.white} />
+                  </LinearGradient>
+                ) : (
+                  <View style={styles.modeCircle}>
+                    <IriIcon name={m.icon} size={26} color={colors.ink} />
+                  </View>
+                )}
+                <Text style={styles.modeLabel}>{t(m.labelKey)}</Text>
+              </Pressable>
+            ))}
           </View>
           {mode === 'barcode' ? <View style={styles.barcodeFrame} pointerEvents="none" /> : null}
+          <View style={styles.cameraBottom}>
+          {/* Beschreibung ueber dem Ausloeser (Sascha 11.08.) */}
+          <GlassView borderRadius={radius.pill} contentStyle={styles.cameraHint}>
+            <Text style={styles.cameraHintText}>
+              {mode === 'barcode'
+                ? t('scan.barcodeHint')
+                : mode === 'inventory'
+                  ? t('scan.inventoryHint')
+                  : t('scan.photoCta')}
+            </Text>
+          </GlassView>
           <View style={styles.cameraControls}>
             <Pressable
               accessibilityRole="button"
@@ -375,6 +405,7 @@ export default function ScanScreen() {
             >
               <Text style={styles.closeX}>✕</Text>
             </Pressable>
+          </View>
           </View>
         </View>
       </View>
@@ -628,17 +659,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
   },
-  cameraTop: {
+  modeRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 22,
+  },
+  modeItem: {
     alignItems: 'center',
-    gap: 10,
+    gap: 5,
+  },
+  modeCircle: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+  },
+  modeCircleActive: {
+    backgroundColor: 'transparent',
+    borderColor: 'rgba(255,255,255,0.5)',
+  },
+  modeLabel: {
+    fontFamily: font.semibold,
+    fontSize: 11.5,
+    color: colors.white,
+    textShadowColor: 'rgba(0,0,0,0.45)',
+    textShadowRadius: 4,
+    textShadowOffset: { width: 0, height: 1 },
+  },
+  cameraBottom: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    gap: 16,
   },
   cameraHint: {
     paddingHorizontal: 16,
     paddingVertical: 9,
-  },
-  modeChips: {
-    flexDirection: 'row',
-    gap: 8,
   },
   barcodeFrame: {
     alignSelf: 'center',
