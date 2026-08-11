@@ -4,6 +4,7 @@ import {
   Alert,
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -21,6 +22,7 @@ import { GlassView } from '@/components/glass/GlassView';
 import { IriIcon } from '@/components/icons/IriIcon';
 import { Wallpaper } from '@/components/Wallpaper';
 import { GhostButton } from '@/components/ui/GhostButton';
+import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { useAuth } from '@/features/auth/AuthProvider';
 import {
   addFoodFavorite,
@@ -52,6 +54,10 @@ export default function FoodSearchScreen() {
   const [favorites, setFavorites] = useState<FoodFavorite[]>([]);
   const [sheet, setSheet] = useState<SheetState>(null);
   const [aiBusy, setAiBusy] = useState(false);
+  // Popup vor der KI-Berechnung (Sascha 11.08.): Das Suchwort oben ist oft nur
+  // ein Stichwort ('Skyr') — hier beschreibt die Nutzerin die echte Mahlzeit.
+  const [aiPromptOpen, setAiPromptOpen] = useState(false);
+  const [aiText, setAiText] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadLists = useCallback(async () => {
@@ -123,9 +129,17 @@ export default function FoodSearchScreen() {
   // Freitext → KI (Session 22): '100 g Hähnchenbrust gebraten, 10 g Öl' wird
   // zerlegt und berechnet; Eintragen läuft über das normale FoodSheet und
   // landet damit automatisch unter „Nochmal essen".
+  const openAiPrompt = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Keyboard.dismiss();
+    setAiText(query.trim());
+    setAiPromptOpen(true);
+  };
+
   const aiCompute = async () => {
-    const text = query.trim();
+    const text = aiText.trim();
     if (!text || aiBusy) return;
+    setAiPromptOpen(false);
     Keyboard.dismiss();
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setAiBusy(true);
@@ -233,7 +247,7 @@ export default function FoodSearchScreen() {
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={t('food.aiCompute')}
-                    onPress={aiCompute}
+                    onPress={openAiPrompt}
                     disabled={aiBusy}
                     style={({ pressed }) => [styles.aiButton, pressed && styles.rowPressed]}
                   >
@@ -260,7 +274,7 @@ export default function FoodSearchScreen() {
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={t('food.aiCompute')}
-                    onPress={aiCompute}
+                    onPress={openAiPrompt}
                     disabled={aiBusy}
                     style={({ pressed }) => [styles.aiButton, styles.aiButtonBelow, pressed && styles.rowPressed]}
                   >
@@ -315,6 +329,39 @@ export default function FoodSearchScreen() {
           <GhostButton label={t('scan.close')} small onPress={() => router.back()} style={styles.closeButton} />
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal visible={aiPromptOpen} transparent animationType="fade" onRequestClose={() => setAiPromptOpen(false)}>
+        <KeyboardAvoidingView
+          style={styles.modalBackdrop}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setAiPromptOpen(false)} />
+          <GlassView strong borderRadius={radius.md} style={styles.modalCard} contentStyle={styles.modalContent}>
+            <View style={styles.modalTitleRow}>
+              <IriIcon name="sparkleDuo" size={19} color={colors.tintDeep} />
+              <Text style={styles.modalTitle}>{t('food.aiPromptTitle')}</Text>
+            </View>
+            <Text style={styles.modalText}>{t('food.aiPromptText')}</Text>
+            <TextInput
+              value={aiText}
+              onChangeText={setAiText}
+              placeholder={t('food.aiPromptPlaceholder')}
+              placeholderTextColor={colors.muted2}
+              style={styles.modalInput}
+              multiline
+              autoFocus
+              accessibilityLabel={t('food.aiPromptTitle')}
+            />
+            <PrimaryButton
+              label={t('food.aiCompute')}
+              onPress={aiCompute}
+              disabled={!aiText.trim()}
+              style={styles.modalCta}
+            />
+            <GhostButton label={t('common.cancel')} small onPress={() => setAiPromptOpen(false)} style={styles.modalCancel} />
+          </GlassView>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -412,6 +459,55 @@ const styles = StyleSheet.create({
   aiButtonBelow: {
     marginTop: 6,
     marginBottom: 0,
+  },
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 22,
+    backgroundColor: 'rgba(60,40,50,0.35)',
+  },
+  modalCard: {
+    borderRadius: radius.md,
+  },
+  modalContent: {
+    padding: spacing.lg,
+  },
+  modalTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  modalTitle: {
+    fontFamily: font.bold,
+    fontSize: 17,
+    color: colors.ink,
+  },
+  modalText: {
+    fontFamily: font.regular,
+    fontSize: 13.5,
+    lineHeight: 19,
+    color: colors.muted,
+    marginTop: 8,
+  },
+  modalInput: {
+    fontFamily: font.semibold,
+    fontSize: 14.5,
+    color: colors.ink,
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderWidth: 1,
+    borderColor: colors.stroke,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    minHeight: 74,
+    textAlignVertical: 'top',
+    marginTop: 12,
+  },
+  modalCta: {
+    marginTop: 14,
+  },
+  modalCancel: {
+    marginTop: 8,
   },
   centerRow: {
     flexDirection: 'row',

@@ -452,10 +452,13 @@
     "barcodeError": "Der Barcode-Abruf hat nicht geklappt. Prüfe deine Verbindung.",
     "searchEyebrow": "Manuelle Suche",
     "aiCompute": "Mit KI berechnen",
-    "aiComputing": "Iri rechnet …",
+    "aiComputing": "IriFit KI rechnet …",
     "unitPiece": "Stück",
     "pieceHint": "1 Stück ≈ {grams} g",
-    "aiFallback": "Nichts Passendes? Mit KI berechnen"
+    "aiFallback": "Nichts Passendes? Mit KI berechnen",
+    "aiPromptTitle": "Mit KI berechnen",
+    "aiPromptText": "Beschreibe deine Mahlzeit möglichst genau — am besten mit Mengen. Die KI zerlegt sie in Zutaten und berechnet die Nährwerte.",
+    "aiPromptPlaceholder": "z. B. 150 g Skyr mit 30 g Himbeeren und 1 TL Honig"
   },
   "legacy": {
     "eyebrow": "Dein Kurs-Bereich",
