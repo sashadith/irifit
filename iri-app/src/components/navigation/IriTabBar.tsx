@@ -37,10 +37,11 @@ const BUBBLE_H = 54;
  * die Kamera läuft erst, wenn wirklich gescannt werden soll.
  */
 const ARC_ACTIONS = [
-  { icon: 'cameraAi', labelKey: 'tabs.addPhoto', route: '/scan?mode=photo' },
-  { icon: 'barcode', labelKey: 'tabs.addBarcode', route: '/scan?mode=barcode' },
-  { icon: 'fridgeAi', labelKey: 'tabs.addPantry', route: '/scan?mode=inventory' },
+  // Reihenfolge Sascha 12.08.: Suche, Barcode, KI Foto, KI Vorrat
   { icon: 'searchFood', labelKey: 'tabs.addSearch', route: '/food-search' },
+  { icon: 'barcode', labelKey: 'tabs.addBarcode', route: '/scan?mode=barcode' },
+  { icon: 'cameraAi', labelKey: 'tabs.addPhoto', route: '/scan?mode=photo' },
+  { icon: 'fridgeAi', labelKey: 'tabs.addPantry', route: '/scan?mode=inventory' },
 ] as const;
 const ARC_RADIUS = 150;
 const ARC_ANGLES = [135, 105, 75, 45]; // Grad, links → rechts
