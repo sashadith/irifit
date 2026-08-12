@@ -33,6 +33,10 @@ export function MealSlotCard({ slot, logs, kcalGoal, onDeleteLog, onSelectLog }:
   const meta = SLOT_META[slot];
   const slotKcal = logs.reduce((sum, l) => sum + l.kcal, 0);
   const hasLogs = logs.length > 0;
+  // Slot-Makros hinter den kcal (Sascha 12.08.): 27K · 1E · 0F
+  const macroSum = (key: 'carbs_g' | 'protein_g' | 'fat_g') =>
+    Math.round(logs.reduce((sum, l) => sum + (l[key] ?? 0), 0));
+  const slotMacros = `${macroSum('carbs_g')}K · ${macroSum('protein_g')}E · ${macroSum('fat_g')}F`;
 
   const emptySubtitle =
     meta.range[0] === 0
@@ -62,6 +66,7 @@ export function MealSlotCard({ slot, logs, kcalGoal, onDeleteLog, onSelectLog }:
           <View style={styles.titleRow}>
             <Text style={styles.title}>{t(meta.labelKey)}</Text>
             {hasLogs ? <Text style={styles.slotKcal}>{slotKcal} kcal</Text> : null}
+            {hasLogs ? <Text style={styles.slotMacros}>{slotMacros}</Text> : null}
           </View>
           {hasLogs ? (
             logs.map((log) => (
@@ -144,6 +149,11 @@ const styles = StyleSheet.create({
     fontFamily: font.bold,
     fontSize: 12,
     color: colors.tintDeep,
+  },
+  slotMacros: {
+    fontFamily: font.semibold,
+    fontSize: 11,
+    color: colors.muted,
   },
   subtitle: {
     fontFamily: font.regular,
