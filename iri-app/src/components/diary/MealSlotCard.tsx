@@ -23,14 +23,13 @@ export interface MealSlotCardProps {
   readonly slot: MealSlot;
   readonly logs: readonly FoodLog[];
   readonly kcalGoal: number;
-  readonly onAdd: () => void;
   readonly onDeleteLog: (id: string) => void;
   /** Tap auf einen Eintrag → Detail-Sheet mit sichtbarem Löschen (Feedback 23.07.) */
   readonly onSelectLog: (log: FoodLog) => void;
 }
 
-/** Mahlzeiten-Slot (Prototyp .meal): Icon-Bubble, Einträge bzw. Empfehlung, +/✓ */
-export function MealSlotCard({ slot, logs, kcalGoal, onAdd, onDeleteLog, onSelectLog }: MealSlotCardProps) {
+/** Mahlzeiten-Slot (Prototyp .meal): Icon-Bubble, Einträge bzw. Empfehlung — Eintragen läuft übers zentrale Plus-Menü (Sascha 12.08.) */
+export function MealSlotCard({ slot, logs, kcalGoal, onDeleteLog, onSelectLog }: MealSlotCardProps) {
   const meta = SLOT_META[slot];
   const slotKcal = logs.reduce((sum, l) => sum + l.kcal, 0);
   const hasLogs = logs.length > 0;
@@ -102,18 +101,6 @@ export function MealSlotCard({ slot, logs, kcalGoal, onAdd, onDeleteLog, onSelec
             <Text style={styles.subtitle}>{emptySubtitle}</Text>
           )}
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${t(meta.labelKey)} — ${t('tabs.add')}`}
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            onAdd();
-          }}
-          hitSlop={8}
-          style={styles.addButton}
-        >
-          <IriIcon name="plus" size={17} color={colors.ink} strokeWidth={1.8} />
-        </Pressable>
       </GlassView>
     </Pressable>
   );
@@ -176,15 +163,5 @@ const styles = StyleSheet.create({
   },
   entryPressed: {
     color: colors.tintDeep,
-  },
-  addButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    borderWidth: 1,
-    borderColor: colors.stroke,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

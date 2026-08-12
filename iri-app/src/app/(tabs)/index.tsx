@@ -220,7 +220,6 @@ export default function HomeScreen() {
           slot={slot}
           logs={diary.logsBySlot[slot]}
           kcalGoal={kcalGoal}
-          onAdd={() => router.push('/scan')}
           onDeleteLog={diary.deleteLog}
           onSelectLog={setSelectedLog}
         />
