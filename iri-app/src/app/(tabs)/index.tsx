@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { DiaryHeader } from '@/components/diary/DiaryHeader';
@@ -78,13 +78,21 @@ export default function HomeScreen() {
     loadWeight();
   }, [loadWeight]);
 
-  // Schritte aus Apple Health (Sascha 11.08.) — Chip nur bei echten Daten
+  // Schritte aus Apple Health (Sascha 11.08.) — Chip nur bei echten Daten.
+  // Health haengt dem Live-Zaehler ein paar Minuten hinterher (Apple buendelt);
+  // wir fragen bei Tab-Fokus UND bei Rueckkehr aus dem Hintergrund neu ab (12.08.).
   const [steps, setSteps] = useState<number | null>(null);
   useFocusEffect(
     useCallback(() => {
       fetchTodaySteps().then(setSteps);
     }, []),
   );
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') fetchTodaySteps().then(setSteps);
+    });
+    return () => sub.remove();
+  }, []);
 
   // Nach Rückkehr aus dem Scan-Modal o. Ä. frische Daten zeigen
   // + Streak neu berechnen (milde Regel mit Joker, Session 7)
