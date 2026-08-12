@@ -26,6 +26,7 @@ import { IriAvatar } from '@/components/ui/IriAvatar';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { RoseHeart } from '@/components/ui/RoseHeart';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { isSubscriptionLapsed } from '@/features/subscription/lapsed';
 import { Chip } from '@/components/ui/Chip';
 import {
   Broadcast,
@@ -165,6 +166,7 @@ export default function CoachingScreen() {
   const [qaBusy, setQaBusy] = useState(false);
   const [showIrina, setShowIrina] = useState(false);
   const [showBroadcastImage, setShowBroadcastImage] = useState(false);
+  const [subLapsed, setSubLapsed] = useState(false);
   const [broadcastImageDims, setBroadcastImageDims] = useState<{ w: number; h: number } | null>(null);
   const win = useWindowDimensions();
 
@@ -182,6 +184,7 @@ export default function CoachingScreen() {
     setCompleted(done);
     setQuestions(q);
     setTrainings(tv);
+    isSubscriptionLapsed(userId).then(setSubLapsed);
   }, [userId]);
 
   useFocusEffect(
@@ -308,6 +311,15 @@ export default function CoachingScreen() {
               })}
             </View>
           </View>
+        ) : null}
+
+        {/* Abo abgelaufen? Freundliche Verlaengerungs-Frage statt stiller Leere (Sascha 12.08.) */}
+        {subLapsed ? (
+          <GlassView borderRadius={radius.md} style={styles.renewCard} contentStyle={styles.renewContent}>
+            <Text style={styles.renewTitle}>{t('renew.cardTitle')}</Text>
+            <Text style={[typography.bodyMuted, styles.renewText]}>{t('renew.cardText')}</Text>
+            <PrimaryButton label={t('renew.cardCta')} onPress={() => router.push('/renew')} style={styles.renewCta} />
+          </GlassView>
         ) : null}
 
         {/* Trainings (Spur 2: flache Bibliothek, neueste zuerst) */}
@@ -706,6 +718,23 @@ const styles = StyleSheet.create({
   sectionLabel: {
     marginTop: 20,
     marginBottom: 10,
+  },
+  renewCard: {
+    marginBottom: 18,
+  },
+  renewContent: {
+    padding: 18,
+  },
+  renewTitle: {
+    fontFamily: font.bold,
+    fontSize: 16,
+    color: colors.ink,
+  },
+  renewText: {
+    marginTop: 6,
+  },
+  renewCta: {
+    marginTop: 12,
   },
   cardPad: {
     padding: spacing.lg,
