@@ -310,71 +310,6 @@ export default function CoachingScreen() {
           </View>
         ) : null}
 
-        {/* Kurs */}
-        <Text style={[typography.eyebrow, styles.sectionLabel]}>
-          {courses.length > 0
-            ? `${t('coaching.courseSection')} · ${t('coaching.courseProgress', { done: modulesDone, total: courses.length })}`
-            : t('coaching.courseSection')}
-        </Text>
-        {courses.length === 0 ? (
-          <GlassView contentStyle={styles.cardPad}>
-            <Animated.View entering={FadeInUp.duration(400)}>
-              <Text style={typography.bodyMuted}>
-                {t('coaching.noCourses')} <RoseHeart size={13} />
-              </Text>
-            </Animated.View>
-          </GlassView>
-        ) : (
-          moduleStats.map(({ course, doneCount, total }, index) => {
-            const isDone = total > 0 && doneCount === total;
-            const previous = index > 0 ? moduleStats[index - 1] : null;
-            const locked =
-              !course.is_legacy &&
-              previous !== null &&
-              !previous.course.is_legacy &&
-              previous.doneCount < previous.total;
-            const inProgress = !isDone && !locked && doneCount > 0;
-            return (
-              <Pressable
-                key={course.id}
-                accessibilityRole="button"
-                accessibilityLabel={course.title}
-                accessibilityState={{ disabled: locked }}
-                disabled={locked}
-                onPress={() => router.push(`/course/${course.id}`)}
-              >
-                {({ pressed }) => (
-                  <GlassView
-                    borderRadius={radius.md}
-                    style={[styles.moduleRow, pressed && styles.pressed, locked && styles.moduleLocked]}
-                    contentStyle={[styles.moduleContent, inProgress && styles.moduleActive]}
-                  >
-                    <View style={[styles.moduleNumber, isDone && styles.moduleNumberDone]}>
-                      <Text style={[styles.moduleNumberText, isDone && styles.moduleNumberTextDone]}>
-                        {isDone ? '✓' : index + 1}
-                      </Text>
-                    </View>
-                    <View style={styles.moduleText}>
-                      <Text style={styles.moduleTitle} numberOfLines={1}>
-                        {course.title}
-                      </Text>
-                      <Text style={styles.moduleMeta}>
-                        {locked
-                          ? t('coaching.moduleLocked')
-                          : isDone
-                            ? `${t('coaching.lessonCount', { count: total })} · ${t('coaching.moduleDone')}`
-                            : doneCount > 0
-                              ? `${t('coaching.lessonProgressOf', { done: doneCount, total })} · ${t('coaching.moduleContinue')}`
-                              : t('coaching.lessonCount', { count: total })}
-                      </Text>
-                    </View>
-                  </GlassView>
-                )}
-              </Pressable>
-            );
-          })
-        )}
-
         {/* Trainings (Spur 2: flache Bibliothek, neueste zuerst) */}
         <Text style={[typography.eyebrow, styles.sectionLabel]}>{t('coaching.trainingsSection')}</Text>
         {(() => {
@@ -446,6 +381,71 @@ export default function CoachingScreen() {
             </>
           );
         })()}
+
+        {/* Kurs */}
+        <Text style={[typography.eyebrow, styles.sectionLabel]}>
+          {courses.length > 0
+            ? `${t('coaching.courseSection')} · ${t('coaching.courseProgress', { done: modulesDone, total: courses.length })}`
+            : t('coaching.courseSection')}
+        </Text>
+        {courses.length === 0 ? (
+          <GlassView contentStyle={styles.cardPad}>
+            <Animated.View entering={FadeInUp.duration(400)}>
+              <Text style={typography.bodyMuted}>
+                {t('coaching.noCourses')} <RoseHeart size={13} />
+              </Text>
+            </Animated.View>
+          </GlassView>
+        ) : (
+          moduleStats.map(({ course, doneCount, total }, index) => {
+            const isDone = total > 0 && doneCount === total;
+            const previous = index > 0 ? moduleStats[index - 1] : null;
+            const locked =
+              !course.is_legacy &&
+              previous !== null &&
+              !previous.course.is_legacy &&
+              previous.doneCount < previous.total;
+            const inProgress = !isDone && !locked && doneCount > 0;
+            return (
+              <Pressable
+                key={course.id}
+                accessibilityRole="button"
+                accessibilityLabel={course.title}
+                accessibilityState={{ disabled: locked }}
+                disabled={locked}
+                onPress={() => router.push(`/course/${course.id}`)}
+              >
+                {({ pressed }) => (
+                  <GlassView
+                    borderRadius={radius.md}
+                    style={[styles.moduleRow, pressed && styles.pressed, locked && styles.moduleLocked]}
+                    contentStyle={[styles.moduleContent, inProgress && styles.moduleActive]}
+                  >
+                    <View style={[styles.moduleNumber, isDone && styles.moduleNumberDone]}>
+                      <Text style={[styles.moduleNumberText, isDone && styles.moduleNumberTextDone]}>
+                        {isDone ? '✓' : index + 1}
+                      </Text>
+                    </View>
+                    <View style={styles.moduleText}>
+                      <Text style={styles.moduleTitle} numberOfLines={1}>
+                        {course.title}
+                      </Text>
+                      <Text style={styles.moduleMeta}>
+                        {locked
+                          ? t('coaching.moduleLocked')
+                          : isDone
+                            ? `${t('coaching.lessonCount', { count: total })} · ${t('coaching.moduleDone')}`
+                            : doneCount > 0
+                              ? `${t('coaching.lessonProgressOf', { done: doneCount, total })} · ${t('coaching.moduleContinue')}`
+                              : t('coaching.lessonCount', { count: total })}
+                      </Text>
+                    </View>
+                  </GlassView>
+                )}
+              </Pressable>
+            );
+          })
+        )}
 
         {/* Q&A */}
         <Text style={[typography.eyebrow, styles.sectionLabel]}>{t('coaching.qaSection')}</Text>
