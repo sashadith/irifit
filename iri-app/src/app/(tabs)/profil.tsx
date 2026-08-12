@@ -362,17 +362,6 @@ export default function ProfilScreen() {
         onPress={() => router.push('/reminders')}
         style={styles.gap}
       />
-      {/* Blitzableiter (Session 24): Kritik soll HIER landen, nicht im Store */}
-      <GhostButton
-        label={t('profile.feedback')}
-        icon={<IriIcon name="mail" size={17} color={colors.tintDeep} />}
-        onPress={() =>
-          Linking.openURL(
-            'mailto:support@irinadith.com?subject=' + encodeURIComponent('IriFit Feedback'),
-          )
-        }
-        style={styles.smallGap}
-      />
 
       <GlassView borderRadius={radius.md} contentStyle={styles.card} style={styles.gap}>
         {/* Beta-Feedback 09.08.: Inhalt direkt in der Karte statt hinter einem Tap */}
@@ -434,6 +423,18 @@ export default function ProfilScreen() {
           style={styles.smallGap}
         />
       </GlassView>
+
+      {/* Blitzableiter (Session 24): Kritik soll HIER landen, nicht im Store */}
+      <GhostButton
+        label={t('profile.feedback')}
+        icon={<IriIcon name="mail" size={17} color={colors.tintDeep} />}
+        onPress={() =>
+          Linking.openURL(
+            'mailto:support@irinadith.com?subject=' + encodeURIComponent('IriFit Feedback'),
+          )
+        }
+        style={styles.gap}
+      />
 
       <GhostButton label={t('profile.signOut')} onPress={signOut} style={styles.gap} />
       <View style={styles.deleteWrap}>
