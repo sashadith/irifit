@@ -286,7 +286,7 @@
   "coaching": {
     "title": "Coaching mit Irina",
     "broadcastToday": "heute {time}",
-    "courseSection": "Dein Kurs",
+    "courseSection": "Bleib fit mit Iri - Der Kurs",
     "courseProgress": "{done} von {total} Modulen",
     "lessonCount": "{count} Lektionen",
     "lessonProgressOf": "Lektion {done} von {total}",
