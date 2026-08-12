@@ -19,6 +19,7 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { FoodLog, MealSlot, toIsoDate, useDiaryDay } from '@/features/diary/useDiaryDay';
 import { markPushOffered, registerForPush, shouldOfferPush } from '@/features/notifications/push';
 import { fetchTodaySteps } from '@/features/health/steps';
+import { maybeAskForReview, recordUsageDay } from '@/features/rating/rating';
 import { playSound } from '@/features/sound/sounds';
 import { updateStreak } from '@/features/progress/streak';
 import { fetchRecipes, RecipeListItem } from '@/features/recipes/recipesData';
@@ -78,6 +79,10 @@ export default function HomeScreen() {
     loadWeight();
   }, [loadWeight]);
 
+  useEffect(() => {
+    recordUsageDay();
+  }, []);
+
   // Schritte aus Apple Health (Sascha 11.08.) — Chip nur bei echten Daten.
   // Health haengt dem Live-Zaehler ein paar Minuten hinterher (Apple buendelt);
   // wir fragen bei Tab-Fokus UND bei Rueckkehr aus dem Hintergrund neu ab (12.08.).
@@ -101,10 +106,14 @@ export default function HomeScreen() {
       diary.refresh();
       loadWeight();
       if (session) {
-        updateStreak(session.user.id).then((changed) => {
+        updateStreak(session.user.id).then(({ changed, streak }) => {
           if (changed) {
             playSound('streak'); // Serie gewachsen — kleiner Moment der Freude
             refreshProfile().catch(() => {});
+            // Gluecksmoment: 7-Tage-Serie → Bewertungs-Popup (2 s nach dem Sound)
+            if (streak >= 7 && session) {
+              setTimeout(() => maybeAskForReview('streak7', session.user.id), 2000);
+            }
           }
         });
       }
@@ -119,6 +128,14 @@ export default function HomeScreen() {
   // Messungen, sonst „Noch kein Verlauf"
   const deltaKg =
     latestWeight !== null && firstWeight !== null ? latestWeight - firstWeight : null;
+
+  // Gluecksmoment: erstes Mal >= 1 kg unter dem Startgewicht (Sascha 12.08.)
+  useEffect(() => {
+    if (deltaKg !== null && deltaKg <= -1 && session) {
+      maybeAskForReview('weightLoss', session.user.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deltaKg, session?.user.id]);
 
   const showEmptyHint = !diary.loading && diary.isToday && diary.logs.length === 0;
 

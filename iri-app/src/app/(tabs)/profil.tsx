@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, LayoutChangeEvent, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 
@@ -361,6 +361,17 @@ export default function ProfilScreen() {
         icon={<IriIcon name="bell" size={17} color={colors.tintDeep} />}
         onPress={() => router.push('/reminders')}
         style={styles.gap}
+      />
+      {/* Blitzableiter (Session 24): Kritik soll HIER landen, nicht im Store */}
+      <GhostButton
+        label={t('profile.feedback')}
+        icon={<IriIcon name="mail" size={17} color={colors.tintDeep} />}
+        onPress={() =>
+          Linking.openURL(
+            'mailto:support@irinadith.com?subject=' + encodeURIComponent('IriFit Feedback'),
+          )
+        }
+        style={styles.smallGap}
       />
 
       <GlassView borderRadius={radius.md} contentStyle={styles.card} style={styles.gap}>

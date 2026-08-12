@@ -394,7 +394,8 @@
     "resetBody2": "Das lässt sich nicht rückgängig machen.",
     "resetConfirm2": "Ja, bei null anfangen",
     "resetDoneTitle": "Alles auf null",
-    "resetDoneBody": "Dein Fortschritt wurde zurückgesetzt. Auf einen frischen Start! 💪"
+    "resetDoneBody": "Dein Fortschritt wurde zurückgesetzt. Auf einen frischen Start! 💪",
+    "feedback": "Feedback an uns"
   },
   "scan": {
     "eyebrow": "AI-Scan",
