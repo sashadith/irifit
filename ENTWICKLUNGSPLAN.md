@@ -98,7 +98,7 @@ Kontext liest Claude Code automatisch aus `CLAUDE.md`. Design-Referenz: `IRI-Pro
 - [ ] Apple-Freigabe abwarten → Paid Apps Agreement + Banking + W-8BEN-E
 - [ ] VOR LAUNCH: E-Mail-Bestätigung in Supabase wieder EINschalten (für Beta aus) + Redirect-URL konfigurieren + Apple/Google-Provider einrichten
 - [ ] Google Play Console beantragen
-- [ ] Small Business Program (Apple) + 15 %-Stufe (Google)
+- [x] Small Business Program (Apple) BEANTRAGT 13.08. (Bestaetigung per Mail folgt; vorher am selben Tag: Paid-Apps-Vertrag unterschrieben, Revolut-Bank hinterlegt, W-8BEN-E + Foreign-Status-Zertifikat AKTIV [Corporation, Cyprus-Treaty Art. 14, 0% Royalties, LOB ownership/base-erosion], EU-Haendler-Erklaerung/DSA AKTIV — alles binnen Stunden von Apple freigegeben). Google: KEINE Aktion noetig — Abos haben seit 2022 automatisch 15% ab dem ersten Euro (die aktivierbare 15%-Stufe betrifft nur Einmalkaeufe). OFFEN: D&B-Adresskorrektur (Hausnummer 11 fehlt im ASC-Eintrag, via developer.apple.com/enroll/duns-lookup)
 - [x] Supabase-Projekt live (mzzonwvbacxlpwsmefrn, Frankfurt ✓; vor Beta: Pro-Plan wegen Backups!) · [ ] RevenueCat-Konto · [x] Anthropic-API-Key (als Secret gesetzt)
 - [ ] Rechtstexte beauftragen (inkl. Digistore24-Datennutzung)
 - [ ] Subdomain bei Hostinger (Landing + Datenschutz/Support-URLs)
