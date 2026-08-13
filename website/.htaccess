@@ -1,0 +1,20 @@
+# irinadith.com — Caching
+#
+# Hostinger liefert per Default fuer ALLES max-age=604800 (eine Woche). Bei HTML
+# heisst das: wer die Seite einmal offen hatte, sieht Textaenderungen erst nach
+# Tagen. Darum HTML kurz halten und nur die versionierten Assets lange cachen.
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|htm)$">
+    Header set Cache-Control "public, max-age=300, must-revalidate"
+  </FilesMatch>
+
+  # CSS/JS werden ueber ?v=... versioniert — duerfen lange liegen bleiben
+  <FilesMatch "\.(css|js)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+
+  <FilesMatch "\.(webp|png|jpg|jpeg|svg|ico|woff2)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+</IfModule>
