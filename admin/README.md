@@ -66,9 +66,17 @@ bewusste Entscheidung, kein Nebenbei-Schritt.
 
 **Die `NEXT_PUBLIC_*`-Variablen müssen VOR dem Build gesetzt sein** — Next backt sie in
 die JS-Bundles ein. Im Assistenten unter *Environment variables* eintragen, nicht erst
-danach im Panel. Gesetzt sind `NEXT_PUBLIC_SUPABASE_URL` und
-`NEXT_PUBLIC_SUPABASE_ANON_KEY`; die geheimen Variablen bewusst NICHT — Video-Upload und
-Nutzerverwaltung bleiben lokale Werkzeuge.
+danach im Panel. Gesetzt sind `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` und seit 13.08.
+`SUPABASE_SERVICE_ROLE_KEY` (Saschas Entscheidung — die Nutzerverwaltung soll im Web
+laufen). Der Service-Role-Key wird nur serverseitig in `/api/users` gelesen und landet
+nicht im Browser-Bundle; er ist der einzige Grund, warum diese Variable NICHT mit
+`NEXT_PUBLIC_` beginnen darf. `CF_ACCOUNT_ID`/`CF_STREAM_TOKEN` fehlen weiterhin —
+Kurs-Video-Upload bleibt ein lokales Werkzeug.
+
+Folge davon: **jeder** Panel-Admin kann Nutzerinnen einsehen, Admin-Rechte vergeben und
+Konten sperren, also auch Irina. Wer das einschränken will, muss den Menüpunkt und die
+Seite an eine Konto-Liste binden — es gibt unterhalb von `role = 'admin'` keine feinere
+Stufe.
 
 Beim ersten Deployment geprüft: `/login` liefert 200, `/`, `/broadcast`, `/qa` und
 `/rezepte` leiten ohne Sitzung per 307 auf `/login` (der Proxy-Guard greift), die

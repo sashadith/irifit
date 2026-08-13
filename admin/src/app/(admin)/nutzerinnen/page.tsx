@@ -27,7 +27,7 @@ export default function NutzerinnenPage() {
     if (!res.ok) {
       setError(
         json.error === 'service_role_missing'
-          ? 'SUPABASE_SERVICE_ROLE_KEY fehlt in admin/.env.local — siehe Supabase Dashboard → Project Settings → API Keys (secret key). Danach Dev-Server neu starten.'
+          ? 'SUPABASE_SERVICE_ROLE_KEY fehlt. Im Web: hPanel → Web Apps → admin.irinadith.com → Environment variables, danach neu deployen. Lokal: admin/.env.local, danach Dev-Server neu starten.'
           : `Laden fehlgeschlagen: ${json.error}`,
       );
       return;
