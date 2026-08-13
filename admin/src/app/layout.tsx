@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
-import { Italiana, Manrope } from 'next/font/google';
+import { Antic_Didone, Manrope } from 'next/font/google';
 import './globals.css';
 
-const italiana = Italiana({
-  variable: '--font-italiana',
+/** Display-Schrift wie in App und auf irinadith.com: Antic Didone (löst Italiana ab, 09.08.) */
+const anticDidone = Antic_Didone({
+  variable: '--font-display-face',
   weight: '400',
   subsets: ['latin'],
 });
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="de" className={`${italiana.variable} ${manrope.variable}`}>
+    <html lang="de" className={`${anticDidone.variable} ${manrope.variable}`}>
       <body>{children}</body>
     </html>
   );

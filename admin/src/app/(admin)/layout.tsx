@@ -4,7 +4,7 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
   return (
     <div className="shell">
       <aside className="sidebar">
-        {/* Wortmarke FINAL (IRI-Branding.html, 22.07.): Italiana, „Iri" Rosé + „Fit" Slogan-Grau */}
+        {/* Wortmarke FINAL (IRI-Branding.html, 22.07.): Antic Didone, „Iri" Rosé + „Fit" Slogan-Grau */}
         <div className="brand">
           <span style={{ color: '#d25578' }}>Iri</span>
           <span style={{ color: '#8a7b8e' }}>Fit</span>{' '}
