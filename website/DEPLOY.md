@@ -10,7 +10,8 @@ Statische Seiten, Hosting bei Hostinger (Business Web Hosting, SSL + CDN aktiv).
 - `style.css` — gemeinsames Markenstylesheet (Antic Didone + Manrope, Rosé-Verlauf, Milchglas)
 - `img/iri-N.webp` + `@small` — aus `iri-app/assets/images/iripics/*.png` (11 MB PNG → 0,9 MB WebP)
 - `img/shot-*.webp` + `@small` — App-Screenshots aus dem iOS-Simulator, in iPhone-Rahmen gesetzt
-- `admin/index.html` — Platzhalter für admin.irinadith.com
+- `admin/index.html` — historischer Platzhalter, NICHT mehr ausgeliefert: admin.irinadith.com
+  ist seit 13.08. eine Hostinger Web App (Next.js aus `admin/`, siehe dortige README)
 - `.htaccess` — Cache-Regeln (siehe unten)
 
 ## Hochladen (FTP)
@@ -34,7 +35,7 @@ Nach jeder CSS-Änderung die Versionsnummer in **allen** HTML-Dateien hochzähle
 wiederkehrende Besucher tagelang das alte Stylesheet:
 
 ```bash
-perl -pi -e 's{style\.css\?v=\d+}{style.css?v=2026081304}g' index.html datenschutz.html agb.html impressum.html admin/index.html
+perl -pi -e 's{style\.css\?v=\d+}{style.css?v=2026081304}g' index.html datenschutz.html agb.html impressum.html
 ```
 
 Eine einmal ausgelieferte Versions-URL ist eine Woche verbrannt — wer versehentlich eine kaputte
@@ -42,10 +43,10 @@ Datei hochlädt, muss die Nummer erhöhen, nicht nur die Datei reparieren.
 
 ## DNS
 - irinadith.com → Hostinger (ns1/ns2.dns-parking.com), A 92.113.16.216
-- admin.irinadith.com → automatisch angelegt, A 92.113.16.224
+- admin.irinadith.com → Hostinger Web App (Node 22, Next.js); die frühere statische
+  Subdomain wurde dafür gelöscht, der Assistent legt sie selbst wieder an
 - irinadith.de → eigene Zone (nova/cosmos.dns-parking.com), A 2.57.91.91 — 301 auf https://irinadith.com
   (zwei Regeln in Hostinger: http:// und https://)
 
 ## Offen
 - Store-Links: derzeit Platzhalter `#` mit "Bald verfügbar" — nach Veröffentlichung echte URLs eintragen
-- Admin-Bereich für Irina (Login mit App-Konto, Broadcasts + Rezepte pflegen)

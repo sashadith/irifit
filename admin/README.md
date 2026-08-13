@@ -45,29 +45,32 @@ Vergeben der Rolle mitzudenken.
 Ohne die beiden geheimen Blöcke läuft alles außer Video-Upload und Nutzerverwaltung;
 beide Module zeigen dann eine klare Meldung statt zu crashen.
 
-## Deployment auf admin.irinadith.com — offener Schritt
+## Deployment — https://admin.irinadith.com (live seit 13.08.2026)
 
-Hostinger **Business** kann Node-Apps (hPanel → Websites → Web Apps, „Supports Next.js").
-Kostet nichts extra, läuft auf dem Plan, der ohnehin die Landingpage trägt.
+Läuft als Hostinger **Web App** (hPanel → Websites → Web Apps) auf dem Business-Plan,
+der ohnehin die Landingpage trägt. Node 22, Framework-Preset Next.js, Root `./`,
+Build-Einstellungen auf Default. Kostet nichts extra.
 
-Vorbereitet ist ein Paket ohne `node_modules`, `.next` und `.env.local`:
+Neues Paket bauen und hochladen:
 
 ```bash
-cd admin && zip -rq ~/Desktop/irifit-admin.zip . -x "node_modules/*" ".next/*" ".git/*" ".env.local"
+cd admin && npm run build   # erst lokal gruen bekommen
+zip -rq ~/Desktop/irifit-admin.zip . -x "node_modules/*" ".next/*" ".git/*" ".env.local"
 ```
 
-Der Assistent (hPanel → Web Apps → *Get started*) fragt nacheinander nach Domain,
-Deploy-Methode und Dateien. Zwei Dinge stehen dort noch im Weg:
+Dann in hPanel die Web App öffnen und das Archiv neu deployen. Der ZIP-Upload läuft über
+einen nativen Dateidialog — den muss ein Mensch bedienen. Wer das loswerden will,
+aktiviert SSH (hPanel → Advanced → SSH Access, steht auf *Inactive*) oder hängt ein
+GitHub-Repo an; beides ändert die Zugangslage des Hosting-Kontos und ist darum eine
+bewusste Entscheidung, kein Nebenbei-Schritt.
 
-1. **`admin.irinadith.com` wird abgelehnt** („Your domain can't have active subdomains"),
-   weil die Subdomain schon als statische Seite mit dem Platzhalter aus `website/admin/`
-   existiert. Sie muss vorher weg — danach legt der Assistent sie neu an.
-   Alternativ zuerst auf der temporären Domain deployen und die Domain später umhängen.
-2. **Der ZIP-Upload braucht einen Menschen** am Dateidialog. Wer das automatisieren will,
-   aktiviert SSH (hPanel → Advanced → SSH Access, steht auf *Inactive*) und lädt per
-   `scp` hoch — das ist eine Änderung an den Sicherheitseinstellungen des Hosting-Kontos
-   und darum bewusst nicht nebenbei passiert.
+**Die `NEXT_PUBLIC_*`-Variablen müssen VOR dem Build gesetzt sein** — Next backt sie in
+die JS-Bundles ein. Im Assistenten unter *Environment variables* eintragen, nicht erst
+danach im Panel. Gesetzt sind `NEXT_PUBLIC_SUPABASE_URL` und
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`; die geheimen Variablen bewusst NICHT — Video-Upload und
+Nutzerverwaltung bleiben lokale Werkzeuge.
 
-Danach im Web-App-Panel die beiden `NEXT_PUBLIC_*`-Variablen eintragen. Die geheimen
-Variablen gehören nur dorthin, wenn Video-Upload und Nutzerverwaltung wirklich im Web
-gebraucht werden — sonst bleiben sie lokal.
+Beim ersten Deployment geprüft: `/login` liefert 200, `/`, `/broadcast`, `/qa` und
+`/rezepte` leiten ohne Sitzung per 307 auf `/login` (der Proxy-Guard greift), die
+Supabase-URL steckt im ausgelieferten Chunk, und eine Anmeldung mit erfundener Adresse
+wird von Supabase korrekt abgelehnt.
