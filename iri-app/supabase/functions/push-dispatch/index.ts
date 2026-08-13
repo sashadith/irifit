@@ -276,7 +276,7 @@ Deno.serve(async (req: Request) => {
           to: tokensByUser.get(userId)!,
           title: `Noch ca. ${rest} kcal übrig`,
           body: 'Falls du noch Hunger hast: Ich hätte da ein paar Ideen für dich. 😋',
-          data: { route: '/(tabs)/recipes' },
+          data: { route: '/(tabs)/rezepte' },
           userId,
           kind: 'meal_evening',
         });

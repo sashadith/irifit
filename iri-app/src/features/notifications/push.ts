@@ -99,8 +99,27 @@ export async function markPushOffered() {
  * Tap auf eine Benachrichtigung → Deep Link (Konzept 13: nie nur „App öffnen").
  * route ist ein App-Pfad; 'manage-subscription' öffnet die Play-Abo-Verwaltung.
  */
+// Bereits zugestellte Pushes tragen ggf. alte Pfade — hier umbiegen statt 404
+const LEGACY_PUSH_ROUTES: Record<string, string> = {
+  '/(tabs)/recipes': '/(tabs)/rezepte', // Tippfehler bis 12.08. im Abend-Push
+};
+
+// Nur bekannte Ziele zulassen — alles andere landet sanft auf Home statt
+// auf Expo Routers 'Unmatched Route'-Seite (Befund Sascha 12.08.)
+const KNOWN_PUSH_ROUTES = [
+  '/(tabs)',
+  '/(tabs)/coaching',
+  '/(tabs)/rezepte',
+  '/(tabs)/profil',
+  '/scan',
+  '/progress',
+  '/food-search',
+  '/reminders',
+];
+const KNOWN_PUSH_PREFIXES = ['/recipe/', '/course/', '/training/'];
+
 export function resolvePushRoute(data: Record<string, unknown>): string | null {
-  const route = typeof data.route === 'string' ? data.route : null;
+  let route = typeof data.route === 'string' ? data.route : null;
   if (!route) return null;
   if (route === 'manage-subscription') {
     Linking.openURL(
@@ -108,5 +127,9 @@ export function resolvePushRoute(data: Record<string, unknown>): string | null {
     );
     return null;
   }
-  return route;
+  route = LEGACY_PUSH_ROUTES[route] ?? route;
+  const base = route.split('?')[0];
+  const known =
+    KNOWN_PUSH_ROUTES.includes(base) || KNOWN_PUSH_PREFIXES.some((p) => base.startsWith(p));
+  return known ? route : '/(tabs)';
 }
