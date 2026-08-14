@@ -166,11 +166,18 @@ Deno.serve(async (req: Request) => {
     .eq('send_push', true)
     .not('sent_at', 'is', null)
     .is('push_sent_at', null);
+  let deferredBroadcasts = 0;
   for (const b of pendingBroadcasts ?? []) {
+    let queued = 0;
+    let deferred = 0;
     for (const [userId, p] of profileById) {
       if (!p.push_broadcast) continue;
       const { hour } = localNow(p.timezone);
-      if (hour >= 21 || hour < 9) continue; // Ruhezeit: verpasster Broadcast bleibt in der App sichtbar
+      if (hour >= 21 || hour < 9) {
+        // Nachts kein Push — der Broadcast ist in der App ohnehin schon sichtbar
+        deferred++;
+        continue;
+      }
       queue.push({
         to: tokensByUser.get(userId)!,
         title: 'Neuigkeit von Irina 💌',
@@ -180,8 +187,21 @@ Deno.serve(async (req: Request) => {
         kind: 'broadcast',
         refId: b.id,
       });
+      queued++;
     }
-    await admin.from('broadcasts').update({ push_sent_at: new Date().toISOString() }).eq('id', b.id);
+    // Nur abhaken, wenn wirklich jemand erreicht wurde. Wurde ausschliesslich
+    // wegen der Ruhezeit uebersprungen, bleibt push_sent_at offen und der
+    // naechste Lauf ab 9 Uhr holt es nach.
+    //
+    // Vorher wurde hier IMMER abgehakt — ein Broadcast nach 21 Uhr galt damit
+    // als zugestellt und erreichte nie jemanden (Sascha 14.08., 21:40: „Push an
+    // 0 Geraete raus"). Wer niemanden hat, weil alle Push aus haben, wird
+    // weiterhin abgehakt und nicht endlos wiederholt.
+    if (queued > 0 || deferred === 0) {
+      await admin.from('broadcasts').update({ push_sent_at: new Date().toISOString() }).eq('id', b.id);
+    } else {
+      deferredBroadcasts++;
+    }
   }
 
   // ── 2) Q&A: Irinas Antwort ist da ────────────────────────────────────────
@@ -358,5 +378,5 @@ Deno.serve(async (req: Request) => {
   }
   if (toSend.length) await sendExpoPushes(admin, toSend);
 
-  return Response.json({ ok: true, sent }, { headers: CORS });
+  return Response.json({ ok: true, sent, deferredBroadcasts }, { headers: CORS });
 });

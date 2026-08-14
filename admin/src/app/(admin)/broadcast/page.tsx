@@ -196,9 +196,16 @@ export default function BroadcastPage() {
           headers: { Authorization: `Bearer ${session?.access_token ?? ''}` },
         });
         const json = await res.json().catch(() => null);
-        hint = res.ok
-          ? ` Push an ${json?.sent ?? '?'} Geräte raus.`
-          : ' Push konnte nicht sofort ausgelöst werden — der Verteiler holt ihn innerhalb von 15 Minuten nach.';
+        if (!res.ok) {
+          hint = ' Push konnte nicht sofort ausgelöst werden — der Verteiler holt ihn innerhalb von 15 Minuten nach.';
+        } else if (json?.deferredBroadcasts > 0) {
+          // Nachtruhe: zwischen 21 und 9 Uhr wird kein Push zugestellt
+          hint = ' Push wartet auf morgen früh — zwischen 21 und 9 Uhr stören wir niemanden.';
+        } else if ((json?.sent ?? 0) === 0) {
+          hint = ' Kein Push zugestellt — offenbar hat niemand Broadcast-Benachrichtigungen an.';
+        } else {
+          hint = ` Push an ${json.sent} Geräte raus.`;
+        }
       } catch {
         hint = ' Push konnte nicht sofort ausgelöst werden — der Verteiler holt ihn innerhalb von 15 Minuten nach.';
       }
