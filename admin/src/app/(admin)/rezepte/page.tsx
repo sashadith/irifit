@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { recipeSattScore, sattDots } from '@/lib/sattScore';
+import { matchesSearch } from '@/lib/search';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { Recipe, recipeImageUrl } from '@/lib/types';
 
@@ -26,11 +27,11 @@ export default function RezepteListe() {
   }, []);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = search.trim();
     if (!q) return recipes;
-    return recipes.filter(
-      (r) => r.title.toLowerCase().includes(q) || (r.category ?? '').toLowerCase().includes(q),
-    );
+    // Gleiche verzeihende Suche wie in der App: „hähn spar" findet den
+    // Hähnchen-Spargel-Salat, Umlaute zaehlen in beide Richtungen
+    return recipes.filter((r) => matchesSearch(q, r.title, r.category));
   }, [recipes, search]);
 
   return (

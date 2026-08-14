@@ -16,6 +16,7 @@ import {
   violatesAllergies,
 } from '@/features/recipes/recipesData';
 import { fetchRecipeFavoriteIds } from '@/features/recipes/recipesData';
+import { matchesSearch } from '@/features/search/match';
 import { suggestRecipes } from '@/features/recipes/suggest';
 import { loadShoppingList } from '@/features/shopping/shoppingList';
 import { t } from '@/i18n';
@@ -92,11 +93,14 @@ export default function RezepteScreen() {
   }, [recipes]);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = query.trim();
     const allergies = (forMe ? profile?.allergies : undefined) ?? [];
     return recipes.filter((r) => {
       if (category && r.category !== category) return false;
-      if (q && !r.title.toLowerCase().includes(q)) return false;
+      // Verzeihende Suche (Sascha 14.08.): „hähn spar" findet den
+      // Hähnchen-Spargel-Salat, Umlaute in beide Richtungen. Kategorie mit
+      // durchsuchen, damit „dessert" auch ohne Chip-Klick trifft.
+      if (q && !matchesSearch(q, r.title, r.category)) return false;
       if (kcalMax && r.kcal_per_serving > kcalMax) return false;
       if (veggie && !isVegetarian(r)) return false;
       if (forMe && violatesAllergies(r, allergies)) return false;

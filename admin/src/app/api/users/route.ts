@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 import { isAdminUser } from '@/lib/admin';
+import { matchesSearch } from '@/lib/search';
 import { supabaseServer } from '@/lib/supabase/server';
 import type { AdminUser } from '@/lib/types';
 
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
   const admin = serviceClient();
   if (!admin) return NextResponse.json({ error: 'service_role_missing' }, { status: 500 });
 
-  const q = new URL(request.url).searchParams.get('q')?.trim().toLowerCase() ?? '';
+  const q = new URL(request.url).searchParams.get('q')?.trim() ?? '';
 
   // Beta-Maßstab: eine Seite mit 1000 reicht weit; Pagination folgt bei Bedarf
   const { data: userList, error: listError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
@@ -74,9 +75,9 @@ export async function GET(request: Request) {
   });
 
   if (q) {
-    users = users.filter(
-      (u) => u.email.toLowerCase().includes(q) || (u.display_name ?? '').toLowerCase().includes(q),
-    );
+    // Gleiche verzeihende Suche wie bei den Rezepten — „müller" findet auch
+    // „Mueller", und „anna mue" reicht als Eingabe
+    users = users.filter((u) => matchesSearch(q, u.email, u.display_name));
   }
   users.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
 
