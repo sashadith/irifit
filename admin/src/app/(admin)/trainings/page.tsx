@@ -142,6 +142,12 @@ export default function TrainingsPage() {
     }
   };
 
+  const messageEl = message ? (
+    <p className={message.kind === 'ok' ? 'ok-text' : 'error-text'} style={{ marginTop: 12 }}>
+      {message.text}
+    </p>
+  ) : null;
+
   return (
     <>
       <div className="page-head">
@@ -161,11 +167,6 @@ export default function TrainingsPage() {
         Filter-Chips erscheinen in der App automatisch, sobald mindestens 2 Tags je 3 Videos haben.
       </p>
 
-      {message ? (
-        <p className={message.kind === 'ok' ? 'ok-text' : 'error-text'} style={{ marginBottom: 12 }}>
-          {message.text}
-        </p>
-      ) : null}
 
       <div className="split">
         <div className="glass" style={{ overflow: 'hidden' }}>
@@ -285,10 +286,14 @@ export default function TrainingsPage() {
                 Löschen
               </button>
             </div>
+            {/* Rueckmeldung direkt unter den Knoepfen (Sascha 14.08.): oben stand
+                sie ausserhalb des Blickfelds, wenn man unten auf Speichern tippt */}
+            {messageEl}
           </div>
         ) : (
           <div className="glass pad">
             <p className="hint">Wähle ein Training aus der Liste oder lege ein neues an.</p>
+            {messageEl}
           </div>
         )}
       </div>

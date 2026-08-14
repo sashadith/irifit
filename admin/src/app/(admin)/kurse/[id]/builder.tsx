@@ -187,6 +187,12 @@ export function CourseBuilder({ courseId }: { courseId: string }) {
 
   if (!course) return <p className="hint">Lädt …</p>;
 
+  const messageEl = message ? (
+    <p className={message.kind === 'ok' ? 'ok-text' : 'error-text'} style={{ marginTop: 12 }}>
+      {message.text}
+    </p>
+  ) : null;
+
   return (
     <>
       <div className="page-head">
@@ -206,11 +212,6 @@ export function CourseBuilder({ courseId }: { courseId: string }) {
         </div>
       </div>
 
-      {message ? (
-        <p className={message.kind === 'ok' ? 'ok-text' : 'error-text'} style={{ marginBottom: 14 }}>
-          {message.text}
-        </p>
-      ) : null}
 
       <div className="glass pad" style={{ marginBottom: 20 }}>
         <div className="form-row cols-3">
@@ -377,10 +378,13 @@ export function CourseBuilder({ courseId }: { courseId: string }) {
                 Löschen
               </button>
             </div>
+            {/* Rueckmeldung unter den Knoepfen, wie bei den Trainings (14.08.) */}
+            {messageEl}
           </div>
         ) : (
           <div className="glass pad">
             <p className="hint">Wähle eine Lektion aus der Liste oder lege eine neue an.</p>
+            {messageEl}
           </div>
         )}
       </div>
