@@ -67,11 +67,11 @@ export function RecipeCard({ recipe, onPress, isNew }: RecipeCardProps) {
 }
 
 const styles = StyleSheet.create({
-  // Auf dem Bild oben links — dort ist bei den Rezeptfotos am ehesten Ruhe
+  // Auf dem Bild oben rechts (Sascha 14.08.)
   newBadge: {
     position: 'absolute',
     top: 8,
-    left: 8,
+    right: 8,
     backgroundColor: colors.tintDeep,
     borderRadius: radius.pill,
     paddingHorizontal: 9,

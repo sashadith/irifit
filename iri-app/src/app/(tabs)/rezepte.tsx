@@ -96,7 +96,7 @@ export default function RezepteScreen() {
     return CATEGORY_ORDER.filter((c) => present.has(c));
   }, [recipes]);
 
-  // NEU-Abzeichen an den fuenf juengsten Rezepten (Sascha 14.08.).
+  // NEU-Abzeichen an den vier juengsten Rezepten (Sascha 14.08.).
   //
   // Mit Frist, und das aus einem konkreten Grund: 156 der 158 Rezepte tragen
   // denselben Zeitstempel vom Import am 18.07. Ohne Frist bekaemen vier
@@ -109,7 +109,7 @@ export default function RezepteScreen() {
         // Zweitschluessel ID: bei gleichem Zeitstempel sonst zufaellige Reihenfolge
         .sort((a, b) => (a.created_at === b.created_at ? b.id - a.id : a.created_at < b.created_at ? 1 : -1))
         .filter((r) => new Date(r.created_at).getTime() >= cutoff)
-        .slice(0, 5)
+        .slice(0, 4)
         .map((r) => r.id),
     );
   }, [recipes]);
