@@ -28,6 +28,8 @@ export default function BroadcastPage() {
   const [uploadPct, setUploadPct] = useState<number | null>(null);
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
   const [sent, setSent] = useState<BroadcastRow[]>([]);
+  /** Gesetzt = wir bearbeiten einen bestehenden Broadcast statt einen neuen zu senden */
+  const [editingId, setEditingId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
@@ -106,6 +108,60 @@ export default function BroadcastPage() {
     }
   };
 
+  /** Bestehenden Broadcast in den Composer holen (Sascha 14.08.) */
+  const startEdit = (b: BroadcastRow) => {
+    setEditingId(b.id);
+    setBody(b.body);
+    setImagePath(b.image_path);
+    setImagePreview(b.imageUrl ?? null);
+    setMessage(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setBody('');
+    setImagePath(null);
+    setImagePreview(null);
+    setMessage(null);
+  };
+
+  /** Änderung speichern — ohne neues sent_at und ohne Push, es ist ja schon raus */
+  const saveEdit = async () => {
+    if (!editingId || !body.trim()) return;
+    setBusy(true);
+    setMessage(null);
+    const { error } = await supabaseBrowser()
+      .from('broadcasts')
+      .update({ body: body.trim(), image_path: imagePath, updated_at: new Date().toISOString() })
+      .eq('id', editingId);
+    if (error) {
+      setMessage({ kind: 'error', text: error.message });
+    } else {
+      setMessage({ kind: 'ok', text: 'Änderung gespeichert — in der App sofort sichtbar.' });
+      cancelEdit();
+      load();
+    }
+    setBusy(false);
+  };
+
+  const removeBroadcast = async (b: BroadcastRow) => {
+    if (!window.confirm('Diesen Broadcast wirklich löschen? Er verschwindet aus der App.')) return;
+    setBusy(true);
+    const supabase = supabaseBrowser();
+    const { error } = await supabase.from('broadcasts').delete().eq('id', b.id);
+    if (error) {
+      setMessage({ kind: 'error', text: error.message });
+    } else {
+      // Bild hinterherräumen, sonst bleibt es für immer im Bucket liegen
+      if (b.image_path) await supabase.storage.from('broadcast-media').remove([b.image_path]);
+      if (editingId === b.id) cancelEdit();
+      setMessage({ kind: 'ok', text: 'Broadcast gelöscht.' });
+      load();
+    }
+    setBusy(false);
+  };
+
   const send = async () => {
     if (!body.trim()) return;
     if (!window.confirm('Broadcast jetzt an alle Abonnentinnen senden?')) return;
@@ -174,7 +230,7 @@ export default function BroadcastPage() {
       <div className="split fixed-right">
         <div className="glass pad">
           <div className="field" style={{ position: 'relative' }}>
-            <label>Nachricht an alle</label>
+            <label>{editingId ? 'Broadcast bearbeiten' : 'Nachricht an alle'}</label>
             <textarea
               ref={bodyRef}
               style={{ minHeight: 140 }}
@@ -255,10 +311,14 @@ export default function BroadcastPage() {
                 Bild entfernen
               </button>
             ) : null}
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}>
-              <input type="checkbox" checked={sendPush} onChange={(e) => setSendPush(e.target.checked)} />
-              Push senden
-            </label>
+            {/* Beim Bearbeiten kein Push-Schalter: die Nachricht ist laengst raus,
+                ein zweiter Push waere fuer die Frauen nur verwirrend */}
+            {editingId ? null : (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}>
+                <input type="checkbox" checked={sendPush} onChange={(e) => setSendPush(e.target.checked)} />
+                Push senden
+              </label>
+            )}
           </div>
 
           {/* Ladebalken fuers Bild — ohne ihn sah es auf dem Telefon aus, als
@@ -274,14 +334,20 @@ export default function BroadcastPage() {
             </div>
           ) : null}
 
+          <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
+          {editingId ? (
+            <button className="btn btn-ghost" onClick={cancelEdit} disabled={busy}>
+              Abbrechen
+            </button>
+          ) : null}
           <button
             className="btn btn-primary"
-            style={{ marginTop: 16 }}
-            onClick={send}
+            onClick={editingId ? saveEdit : send}
             disabled={busy || !body.trim()}
           >
-            Jetzt senden
+            {editingId ? 'Änderung speichern' : 'Jetzt senden'}
           </button>
+          </div>
         </div>
 
         {/* Vorschau im App-Look: Glas-Karte über Pastell, wie die Broadcast-Karte im Coaching-Tab */}
@@ -407,6 +473,7 @@ export default function BroadcastPage() {
               <th>Nachricht</th>
               <th>Bild</th>
               <th>Reaktionen</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -433,6 +500,14 @@ export default function BroadcastPage() {
                     ) : null,
                   )}
                   {Object.keys(b.counts).length === 0 ? <span className="hint">noch keine</span> : null}
+                </td>
+                <td data-label="" className="cell-actions">
+                  <button className="btn btn-ghost btn-small" onClick={() => startEdit(b)} disabled={busy}>
+                    Bearbeiten
+                  </button>
+                  <button className="btn btn-danger btn-small" onClick={() => removeBroadcast(b)} disabled={busy}>
+                    Löschen
+                  </button>
                 </td>
               </tr>
             ))}
