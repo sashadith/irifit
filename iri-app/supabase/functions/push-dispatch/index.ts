@@ -104,21 +104,44 @@ async function sendExpoPushes(
   if (dead.length) await admin.from('push_tokens').delete().in('token', dead);
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method !== 'POST') return new Response('method_not_allowed', { status: 405 });
-  const secret = Deno.env.get('CRON_SECRET');
-  if (!secret || req.headers.get('x-cron-secret') !== secret) {
-    return new Response('unauthorized', { status: 401 });
-  }
+// Der Admin-Bereich ruft die Funktion aus dem Browser (andere Domain) auf
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cron-secret',
+};
 
+Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+  if (req.method !== 'POST') return new Response('method_not_allowed', { status: 405, headers: CORS });
   const admin = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
+  // Zwei Wege herein (Session 28):
+  //  1. der pg_cron-Job mit dem gemeinsamen Geheimnis — alle 15 Minuten
+  //  2. eine Admin-Anmeldung aus dem Admin-Bereich, damit ein frisch
+  //     veroeffentlichter Broadcast SOFORT rausgeht statt bis zu 15 Minuten auf
+  //     den naechsten Cron-Lauf zu warten (Sascha 14.08.: „keine Push bekommen"
+  //     — sie kam, nur 13 Minuten spaeter).
+  // Der Weg ueber das Admin-Token spart ein weiteres Geheimnis auf dem Webserver.
+  const secret = Deno.env.get('CRON_SECRET');
+  const viaCron = Boolean(secret) && req.headers.get('x-cron-secret') === secret;
+  let viaAdmin = false;
+  if (!viaCron) {
+    const jwt = req.headers.get('Authorization')?.replace('Bearer ', '') ?? '';
+    if (jwt) {
+      const { data } = await admin.auth.getUser(jwt);
+      viaAdmin = data.user?.app_metadata?.role === 'admin';
+    }
+  }
+  if (!viaCron && !viaAdmin) {
+    return new Response('unauthorized', { status: 401, headers: CORS });
+  }
+
   // Alle Nutzerinnen mit registrierten Geräten + Präferenzen laden
   const { data: tokens } = await admin.from('push_tokens').select('token, user_id');
-  if (!tokens?.length) return Response.json({ ok: true, sent: 0 });
+  if (!tokens?.length) return Response.json({ ok: true, sent: 0 }, { headers: CORS });
   const tokensByUser = new Map<string, string[]>();
   for (const t of tokens) {
     tokensByUser.set(t.user_id, [...(tokensByUser.get(t.user_id) ?? []), t.token]);
@@ -335,5 +358,5 @@ Deno.serve(async (req: Request) => {
   }
   if (toSend.length) await sendExpoPushes(admin, toSend);
 
-  return Response.json({ ok: true, sent });
+  return Response.json({ ok: true, sent }, { headers: CORS });
 });

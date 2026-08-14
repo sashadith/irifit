@@ -102,7 +102,15 @@ export default function TrainingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ size: file.size, name: `Training – ${selected.title}` }),
       });
-      if (!res.ok) throw new Error(`Upload-URL fehlgeschlagen (${res.status})`);
+      if (!res.ok) {
+        const info = await res.json().catch(() => null);
+        // Haeufigster Fall: die Cloudflare-Zugangsdaten fehlen auf dem Server
+        throw new Error(
+          info?.error === 'cf_env_missing'
+            ? 'Video-Upload ist auf diesem Server nicht eingerichtet: CF_ACCOUNT_ID und CF_STREAM_TOKEN fehlen in den Environment variables der Web App.'
+            : `Upload-URL fehlgeschlagen (${res.status})`,
+        );
+      }
       const { uploadUrl, uid } = (await res.json()) as { uploadUrl: string; uid: string };
 
       await new Promise<void>((resolve, reject) => {

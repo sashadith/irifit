@@ -5,6 +5,7 @@ import { Dancing_Script } from 'next/font/google';
 
 const dancingScript = Dancing_Script({ weight: '600', subsets: ['latin'] });
 
+import { compressImage, uploadWithProgress } from '@/lib/image';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { Broadcast, REACTION_EMOJIS } from '@/lib/types';
 
@@ -23,6 +24,8 @@ export default function BroadcastPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [sendPush, setSendPush] = useState(true);
   const [busy, setBusy] = useState(false);
+  /** Ladebalken fuers Bild — null = kein Upload aktiv */
+  const [uploadPct, setUploadPct] = useState<number | null>(null);
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
   const [sent, setSent] = useState<BroadcastRow[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -80,17 +83,25 @@ export default function BroadcastPage() {
   const uploadImage = async (file: File) => {
     setBusy(true);
     setMessage(null);
+    setUploadPct(0);
     try {
       const supabase = supabaseBrowser();
-      const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]+/g, '-')}`;
-      const { error } = await supabase.storage.from('broadcast-media').upload(path, file);
-      if (error) throw error;
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) throw new Error('Nicht angemeldet.');
+      // Erst verkleinern: ein Handyfoto hat gern 5 MB, als JPEG bleiben ~200 KB
+      const blob = await compressImage(file);
+      const base = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9]+/g, '-');
+      const path = `${Date.now()}-${base}.jpg`;
+      await uploadWithProgress('broadcast-media', path, blob, session.access_token, setUploadPct);
       const { data: signed } = await supabase.storage.from('broadcast-media').createSignedUrl(path, 3600);
       setImagePath(path);
       setImagePreview(signed?.signedUrl ?? null);
     } catch (e) {
       setMessage({ kind: 'error', text: e instanceof Error ? e.message : String(e) });
     } finally {
+      setUploadPct(null);
       setBusy(false);
     }
   };
@@ -110,13 +121,38 @@ export default function BroadcastPage() {
     });
     if (error) {
       setMessage({ kind: 'error', text: error.message });
-    } else {
-      setMessage({ kind: 'ok', text: 'Gesendet — ab sofort in der App sichtbar.' });
-      setBody('');
-      setImagePath(null);
-      setImagePreview(null);
-      load();
+      setBusy(false);
+      return;
     }
+
+    // Push sofort anstossen statt bis zu 15 Minuten auf den naechsten Cron-Lauf
+    // zu warten (Sascha 14.08.: Broadcast 13:02, Push erst 13:15 — er hielt es
+    // fuer kaputt). Der Cron bleibt als Netz darunter: schlaegt das hier fehl,
+    // holt ihn der naechste Lauf ab.
+    let hint = '';
+    if (sendPush) {
+      try {
+        const {
+          data: { session },
+        } = await supabaseBrowser().auth.getSession();
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/push-dispatch`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${session?.access_token ?? ''}` },
+        });
+        const json = await res.json().catch(() => null);
+        hint = res.ok
+          ? ` Push an ${json?.sent ?? '?'} Geräte raus.`
+          : ' Push konnte nicht sofort ausgelöst werden — der Verteiler holt ihn innerhalb von 15 Minuten nach.';
+      } catch {
+        hint = ' Push konnte nicht sofort ausgelöst werden — der Verteiler holt ihn innerhalb von 15 Minuten nach.';
+      }
+    }
+
+    setMessage({ kind: 'ok', text: `Gesendet — ab sofort in der App sichtbar.${hint}` });
+    setBody('');
+    setImagePath(null);
+    setImagePreview(null);
+    load();
     setBusy(false);
   };
 
@@ -221,9 +257,23 @@ export default function BroadcastPage() {
             ) : null}
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}>
               <input type="checkbox" checked={sendPush} onChange={(e) => setSendPush(e.target.checked)} />
-              Push senden (aktiv ab Session 12)
+              Push senden
             </label>
           </div>
+
+          {/* Ladebalken fuers Bild — ohne ihn sah es auf dem Telefon aus, als
+              passiere nichts (Sascha 14.08.) */}
+          {uploadPct !== null ? (
+            <div style={{ marginTop: 12 }}>
+              <div className="progressbar">
+                <div style={{ width: `${uploadPct}%` }} />
+              </div>
+              <p className="hint" style={{ marginTop: 6 }}>
+                Bild wird hochgeladen … {uploadPct}%
+              </p>
+            </div>
+          ) : null}
+
           <button
             className="btn btn-primary"
             style={{ marginTop: 16 }}
