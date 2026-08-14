@@ -17,6 +17,8 @@ export interface RecipeListItem {
   fat_per_serving_g: number | null;
   ingredients: RecipeIngredient[];
   image_path: string | null;
+  /** Fuer das NEU-Abzeichen an den fuenf juengsten Rezepten (Sascha 14.08.) */
+  created_at: string;
 }
 
 export interface RecipeDetail extends RecipeListItem {
@@ -26,7 +28,7 @@ export interface RecipeDetail extends RecipeListItem {
 }
 
 const LIST_COLUMNS =
-  'id, title, category, servings, kcal_per_serving, protein_per_serving_g, carbs_per_serving_g, fat_per_serving_g, ingredients, image_path';
+  'id, title, category, servings, kcal_per_serving, protein_per_serving_g, carbs_per_serving_g, fat_per_serving_g, ingredients, image_path, created_at';
 
 /** Session-Cache: 157 Rezepte einmal laden, dann aus dem Speicher */
 let cache: RecipeListItem[] | null = null;
@@ -39,7 +41,11 @@ export async function fetchRecipes(): Promise<RecipeListItem[]> {
     .from('recipes')
     .select(LIST_COLUMNS)
     .eq('status', 'published')
-    .order('id');
+    // Neueste zuerst (Sascha 14.08.) — sonst steht das NEU-Abzeichen am Ende
+    // einer 158er-Liste und sieht niemand. Zweitschluessel ID, weil 156 Rezepte
+    // denselben Zeitstempel aus dem Import vom 18.07. tragen.
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false });
   if (error) throw error;
   cache = (data ?? []) as RecipeListItem[];
   return cache;

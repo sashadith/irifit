@@ -309,7 +309,8 @@
     "notFound": "Dieses Rezept konnte nicht geladen werden.",
     "macroShort": "{protein} P · {carbs} C · {fat} F",
     "filterFavorites": "Favoriten",
-    "openImage": "{title} — Bild vergrößern"
+    "openImage": "{title} — Bild vergrößern",
+    "badgeNew": "NEU"
   },
   "shopping": {
     "title": "Einkaufsliste",

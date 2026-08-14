@@ -12,10 +12,12 @@ import { colors, font, radius } from '@/theme';
 export interface RecipeCardProps {
   readonly recipe: RecipeListItem;
   readonly onPress: () => void;
+  /** Abzeichen an den fuenf juengsten Rezepten (Sascha 14.08.) */
+  readonly isNew?: boolean;
 }
 
 /** Rezept-Karte im 2er-Grid (Prototyp .rcard) — Gradient bis echte Fotos da sind */
-export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
+export function RecipeCard({ recipe, onPress, isNew }: RecipeCardProps) {
   const [c1, c2] = recipeGradient(recipe.id);
   const servingsLabel =
     recipe.servings === 1
@@ -42,6 +44,11 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
           ) : (
             <LinearGradient colors={[c1, c2]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.image} />
           )}
+          {isNew ? (
+            <View style={styles.newBadge}>
+              <Text style={styles.newBadgeText}>{t('recipes.badgeNew')}</Text>
+            </View>
+          ) : null}
           <View style={styles.body}>
             <Text style={styles.title} numberOfLines={2}>
               {recipe.title}
@@ -60,6 +67,22 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
 }
 
 const styles = StyleSheet.create({
+  // Auf dem Bild oben links — dort ist bei den Rezeptfotos am ehesten Ruhe
+  newBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: colors.tintDeep,
+    borderRadius: radius.pill,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+  },
+  newBadgeText: {
+    fontFamily: font.extrabold,
+    fontSize: 10,
+    letterSpacing: 0.08 * 10,
+    color: colors.white,
+  },
   wrap: {
     width: '48.2%',
   },

@@ -2,10 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 
+/** Wie lange ein Rezept als „neu" gilt */
+const NEW_BADGE_DAYS = 21;
+
 import { IriIcon } from '@/components/icons/IriIcon';
 import { RecipeCard } from '@/components/recipes/RecipeCard';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
 import { Chip } from '@/components/ui/Chip';
+import { RoseHeart } from '@/components/ui/RoseHeart';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { toIsoDate } from '@/features/diary/useDiaryDay';
 import {
@@ -92,6 +96,24 @@ export default function RezepteScreen() {
     return CATEGORY_ORDER.filter((c) => present.has(c));
   }, [recipes]);
 
+  // NEU-Abzeichen an den fuenf juengsten Rezepten (Sascha 14.08.).
+  //
+  // Mit Frist, und das aus einem konkreten Grund: 156 der 158 Rezepte tragen
+  // denselben Zeitstempel vom Import am 18.07. Ohne Frist bekaemen vier
+  // zufaellige Dessert-Rezepte aus diesem Stapel dauerhaft ein NEU — das Wort
+  // waere sofort wertlos. Mit Frist heisst NEU wirklich neu.
+  const newestIds = useMemo(() => {
+    const cutoff = Date.now() - NEW_BADGE_DAYS * 24 * 3600 * 1000;
+    return new Set(
+      [...recipes]
+        // Zweitschluessel ID: bei gleichem Zeitstempel sonst zufaellige Reihenfolge
+        .sort((a, b) => (a.created_at === b.created_at ? b.id - a.id : a.created_at < b.created_at ? 1 : -1))
+        .filter((r) => new Date(r.created_at).getTime() >= cutoff)
+        .slice(0, 5)
+        .map((r) => r.id),
+    );
+  }, [recipes]);
+
   const filtered = useMemo(() => {
     const q = query.trim();
     const allergies = (forMe ? profile?.allergies : undefined) ?? [];
@@ -161,6 +183,8 @@ export default function RezepteScreen() {
           label={t('recipes.filterFavorites')}
           selected={onlyFavorites}
           onPress={() => setOnlyFavorites(!onlyFavorites)}
+          // Dasselbe SVG-Herz wie ueberall — keine Textglyphe (Beta-Befund 09.08.)
+          icon={<RoseHeart size={14} color={onlyFavorites ? colors.white : colors.tint} />}
         />
         <Chip label={t('recipes.filterForMe')} selected={forMe} onPress={() => setForMe(!forMe)} />
         <Chip label={t('recipes.filterVeggie')} selected={veggie} onPress={() => setVeggie(!veggie)} />
@@ -201,7 +225,12 @@ export default function RezepteScreen() {
       ) : (
         <View style={styles.grid}>
           {filtered.map((r) => (
-            <RecipeCard key={r.id} recipe={r} onPress={() => router.push(`/recipe/${r.id}`)} />
+            <RecipeCard
+              key={r.id}
+              recipe={r}
+              isNew={newestIds.has(r.id)}
+              onPress={() => router.push(`/recipe/${r.id}`)}
+            />
           ))}
         </View>
       )}
