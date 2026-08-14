@@ -308,7 +308,8 @@
     "shoppingAdded": "{count} Zutaten auf der Liste ✓",
     "notFound": "Dieses Rezept konnte nicht geladen werden.",
     "macroShort": "{protein} P · {carbs} C · {fat} F",
-    "filterFavorites": "Favoriten"
+    "filterFavorites": "Favoriten",
+    "openImage": "{title} — Bild vergrößern"
   },
   "shopping": {
     "title": "Einkaufsliste",

@@ -7,6 +7,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { GlassView } from '@/components/glass/GlassView';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
+import { ImageViewer } from '@/components/ui/ImageViewer';
 import { SattScoreDots } from '@/components/recipes/SattScoreDots';
 import { Chip } from '@/components/ui/Chip';
 import { GhostButton } from '@/components/ui/GhostButton';
@@ -55,6 +56,7 @@ export default function RecipeDetailScreen() {
   const { session } = useAuth();
 
   const [recipe, setRecipe] = useState<RecipeDetail | null>(null);
+  const [showImage, setShowImage] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [portions, setPortions] = useState(1);
@@ -85,7 +87,7 @@ export default function RecipeDetailScreen() {
       <ScreenScaffold withTabBarInset={false}>
         <Text style={[typography.bodyMuted, styles.notFound]}>{t('recipes.notFound')}</Text>
         <GhostButton label={t('common.back')} onPress={() => router.back()} />
-      </ScreenScaffold>
+    </ScreenScaffold>
     );
   }
   if (!recipe) return <ScreenScaffold withTabBarInset={false} scroll={false}>{null}</ScreenScaffold>;
@@ -152,12 +154,24 @@ export default function RecipeDetailScreen() {
     <ScreenScaffold withTabBarInset={false}>
       <View style={styles.headerImageWrap}>
         {recipe.image_path ? (
-          <Image
-            source={{ uri: recipeImageUrl(recipe.image_path) }}
-            style={styles.headerImage}
-            contentFit="cover"
-            transition={200}
-          />
+          // Quadratisch und antippbar (Sascha 14.08.) — Vollbild wie beim
+          // Broadcast-Foto, gleiche Komponente
+          <Pressable
+            accessibilityRole="imagebutton"
+            accessibilityLabel={t('recipes.openImage', { title: recipe.title })}
+            onPress={() => {
+              Haptics.selectionAsync();
+              setShowImage(true);
+            }}
+            style={({ pressed }) => [styles.headerImage, pressed && styles.headerImagePressed]}
+          >
+            <Image
+              source={{ uri: recipeImageUrl(recipe.image_path) }}
+              style={styles.headerImage}
+              contentFit="cover"
+              transition={200}
+            />
+          </Pressable>
         ) : (
           <LinearGradient colors={[c1, c2]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.headerImage} />
         )}
@@ -274,6 +288,12 @@ export default function RecipeDetailScreen() {
         style={styles.logButton}
       />
       <GhostButton label={t('common.back')} small onPress={() => router.back()} style={styles.backButton} />
+      <ImageViewer
+        visible={showImage}
+        uri={recipe.image_path ? recipeImageUrl(recipe.image_path) : null}
+        onClose={() => setShowImage(false)}
+        accessibilityLabel={recipe.title}
+      />
     </ScreenScaffold>
   );
 }
@@ -287,7 +307,12 @@ const styles = StyleSheet.create({
   headerImageWrap: {
     borderRadius: radius.lg,
     overflow: 'hidden',
-    height: 170,
+    // 1:1 statt fester 170 px (Sascha 14.08.): die Rezeptfotos sind quadratisch
+    // aufgenommen, der schmale Streifen schnitt oben und unten weg
+    aspectRatio: 1,
+  },
+  headerImagePressed: {
+    opacity: 0.9,
   },
   headerImage: {
     flex: 1,

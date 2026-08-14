@@ -3,7 +3,6 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import {
   Alert,
   KeyboardAvoidingView,
-  Modal,
   NativeSyntheticEvent,
   Platform,
   Pressable,
@@ -11,17 +10,16 @@ import {
   Text,
   TextInput,
   TextLayoutEventData,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { IrinaCard } from '@/components/coaching/IrinaCard';
 import { GlassView } from '@/components/glass/GlassView';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
+import { ImageViewer } from '@/components/ui/ImageViewer';
 import { IriAvatar } from '@/components/ui/IriAvatar';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { RoseHeart } from '@/components/ui/RoseHeart';
@@ -167,8 +165,6 @@ export default function CoachingScreen() {
   const [showIrina, setShowIrina] = useState(false);
   const [showBroadcastImage, setShowBroadcastImage] = useState(false);
   const [subLapsed, setSubLapsed] = useState(false);
-  const [broadcastImageDims, setBroadcastImageDims] = useState<{ w: number; h: number } | null>(null);
-  const win = useWindowDimensions();
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -269,10 +265,7 @@ export default function CoachingScreen() {
               <Pressable
                 accessibilityRole="imagebutton"
                 accessibilityLabel={t('coaching.broadcastImage')}
-                onPress={() => {
-                  setBroadcastImageDims(null);
-                  setShowBroadcastImage(true);
-                }}
+                onPress={() => setShowBroadcastImage(true)}
                 style={styles.polaroid}
               >
                 <Image
@@ -510,64 +503,12 @@ export default function CoachingScreen() {
         </GlassView>
       </ScreenScaffold>
       <IrinaCard visible={showIrina} onClose={() => setShowIrina(false)} />
-      {/* Vollbild-Viewer fürs Broadcast-Bild: Tap irgendwo schließt */}
-      <Modal
-        visible={showBroadcastImage && latest?.imageUrl != null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowBroadcastImage(false)}
-      >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('scan.close')}
-          style={styles.imageViewer}
-          onPress={() => setShowBroadcastImage(false)}
-        >
-          {latest?.imageUrl ? (
-            (() => {
-              // Rahmen ans Bildformat anpassen (gleiche Randbreite ringsum).
-              // Bis onLoad die echten Maße liefert: Standard-Verhältnis 4:5 —
-              // NIE ein leerer Spinner (Bugfix 23.07.: 0-Pixel-Bild lud nie).
-              const dims = broadcastImageDims ?? { w: 4, h: 5 };
-              const maxW = win.width * 0.8;
-              const maxH = win.height * 0.58;
-              const scale = Math.min(maxW / dims.w, maxH / dims.h);
-              const frame = { width: dims.w * scale + 12, height: dims.h * scale + 12 };
-              return (
-                <Pressable style={[styles.imageViewerFrame, frame]} onPress={(e) => e.stopPropagation()}>
-                  <Image
-                    source={{ uri: latest.imageUrl }}
-                    style={styles.imageViewerImage}
-                    contentFit="cover"
-                    transition={120}
-                    onLoad={(e) => {
-                      if (e.source.width > 0 && e.source.height > 0) {
-                        setBroadcastImageDims({ w: e.source.width, h: e.source.height });
-                      }
-                    }}
-                    accessibilityLabel={t('coaching.broadcastImage')}
-                  />
-                </Pressable>
-              );
-            })()
-          ) : null}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('common.close')}
-            onPress={() => setShowBroadcastImage(false)}
-            style={({ pressed }) => pressed && styles.pressed}
-          >
-            <LinearGradient
-              colors={colors.roseGradient}
-              start={{ x: 0.2, y: 0 }}
-              end={{ x: 0.8, y: 1 }}
-              style={styles.imageViewerClose}
-            >
-              <Text style={styles.imageViewerCloseText}>{t('common.close')}</Text>
-            </LinearGradient>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <ImageViewer
+        visible={showBroadcastImage}
+        uri={latest?.imageUrl}
+        onClose={() => setShowBroadcastImage(false)}
+        accessibilityLabel={t('coaching.broadcastImage')}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -666,34 +607,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   // App bleibt sichtbar, nur abgedunkelt
-  imageViewer: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.65)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  imageViewerFrame: {
-    minWidth: 120,
-    minHeight: 120,
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    padding: 6,
-  },
-  imageViewerImage: {
-    flex: 1,
-    borderRadius: 11,
-  },
-  imageViewerClose: {
-    marginTop: 18,
-    borderRadius: radius.pill,
-    paddingHorizontal: 26,
-    paddingVertical: 11,
-  },
-  imageViewerCloseText: {
-    fontFamily: font.bold,
-    fontSize: 14,
-    color: colors.white,
-  },
   reactions: {
     flexDirection: 'row',
     gap: 7,
