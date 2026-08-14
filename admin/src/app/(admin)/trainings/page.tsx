@@ -159,7 +159,7 @@ export default function TrainingsPage() {
         </p>
       ) : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, alignItems: 'start' }}>
+      <div className="split">
         <div className="glass" style={{ overflow: 'hidden' }}>
           <table className="table">
             <thead>
@@ -178,10 +178,10 @@ export default function TrainingsPage() {
                   onClick={() => setSelectedId(v.id)}
                   style={selectedId === v.id ? { background: 'rgba(232,127,156,0.12)' } : undefined}
                 >
-                  <td style={{ fontWeight: 600 }}>{v.title}</td>
-                  <td className="hint">{v.tags.length > 0 ? v.tags.join(', ') : '—'}</td>
-                  <td>{v.video_uid ? '🎬' : '—'}</td>
-                  <td>
+                  <td data-label="" style={{ fontWeight: 600 }}>{v.title}</td>
+                  <td data-label="Tags" className="hint">{v.tags.length > 0 ? v.tags.join(', ') : '—'}</td>
+                  <td data-label="Video">{v.video_uid ? '🎬' : '—'}</td>
+                  <td data-label="Status">
                     <span className={`badge ${v.status}`}>
                       {v.status === 'published' ? 'Live' : 'Entwurf'}
                     </span>
@@ -269,7 +269,7 @@ export default function TrainingsPage() {
               </label>
             )}
 
-            <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+            <div style={{ display: 'flex', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
               <button className="btn btn-primary btn-small" onClick={save} disabled={busy}>
                 Speichern
               </button>
@@ -280,7 +280,7 @@ export default function TrainingsPage() {
           </div>
         ) : (
           <div className="glass pad">
-            <p className="hint">Wähle links ein Training aus oder lege ein neues an.</p>
+            <p className="hint">Wähle ein Training aus der Liste oder lege ein neues an.</p>
           </div>
         )}
       </div>

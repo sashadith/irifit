@@ -196,7 +196,7 @@ export function CourseBuilder({ courseId }: { courseId: string }) {
           </div>
           <h1 className="display">{course.title}</h1>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button className="btn btn-ghost" onClick={() => router.push('/kurse')}>
             Zurück
           </button>
@@ -246,7 +246,7 @@ export function CourseBuilder({ courseId }: { courseId: string }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, alignItems: 'start' }}>
+      <div className="split">
         <div className="glass" style={{ overflow: 'hidden' }}>
           <table className="table">
             <thead>
@@ -265,7 +265,7 @@ export function CourseBuilder({ courseId }: { courseId: string }) {
                   onClick={() => setSelectedId(lesson.id)}
                   style={selectedId === lesson.id ? { background: 'rgba(232,127,156,0.12)' } : undefined}
                 >
-                  <td onClick={(e) => e.stopPropagation()}>
+                  <td data-label="" onClick={(e) => e.stopPropagation()}>
                     <button className="btn btn-ghost btn-small" title="Nach oben" onClick={() => move(i, -1)}>
                       ↑
                     </button>{' '}
@@ -273,9 +273,9 @@ export function CourseBuilder({ courseId }: { courseId: string }) {
                       ↓
                     </button>
                   </td>
-                  <td style={{ fontWeight: 600 }}>{lesson.title}</td>
-                  <td>{lesson.video_uid ? '🎬' : '—'}</td>
-                  <td>
+                  <td data-label="" style={{ fontWeight: 600 }}>{lesson.title}</td>
+                  <td data-label="Video">{lesson.video_uid ? '🎬' : '—'}</td>
+                  <td data-label="Status">
                     <span className={`badge ${lesson.status}`}>
                       {lesson.status === 'published' ? 'Live' : 'Entwurf'}
                     </span>
@@ -369,7 +369,7 @@ export function CourseBuilder({ courseId }: { courseId: string }) {
               </label>
             )}
 
-            <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+            <div style={{ display: 'flex', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
               <button className="btn btn-primary btn-small" onClick={saveLesson} disabled={busy}>
                 Lektion speichern
               </button>
@@ -380,7 +380,7 @@ export function CourseBuilder({ courseId }: { courseId: string }) {
           </div>
         ) : (
           <div className="glass pad">
-            <p className="hint">Wähle links eine Lektion aus oder lege eine neue an.</p>
+            <p className="hint">Wähle eine Lektion aus der Liste oder lege eine neue an.</p>
           </div>
         )}
       </div>

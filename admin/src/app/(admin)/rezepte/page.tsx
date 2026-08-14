@@ -45,7 +45,7 @@ export default function RezepteListe() {
         </Link>
       </div>
 
-      <div className="field" style={{ maxWidth: 360 }}>
+      <div className="field field-search">
         <label htmlFor="search">Suche</label>
         <input
           id="search"
@@ -74,7 +74,7 @@ export default function RezepteListe() {
               const url = recipeImageUrl(recipe.image_path);
               return (
                 <tr key={recipe.id} className="row-link" onClick={() => router.push(`/rezepte/${recipe.id}`)}>
-                  <td>
+                  <td data-label="">
                     {url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={url} alt="" className="thumb" loading="lazy" />
@@ -82,13 +82,15 @@ export default function RezepteListe() {
                       <span className="thumb" />
                     )}
                   </td>
-                  <td style={{ fontWeight: 600 }}>{recipe.title}</td>
-                  <td>{recipe.category ?? '—'}</td>
-                  <td>{recipe.kcal_per_serving}</td>
-                  <td>
+                  <td data-label="" style={{ fontWeight: 600 }}>
+                    {recipe.title}
+                  </td>
+                  <td data-label="Kategorie">{recipe.category ?? '—'}</td>
+                  <td data-label="kcal/Portion">{recipe.kcal_per_serving}</td>
+                  <td data-label="Satt-Score">
                     <span className="satt">{sattDots(recipeSattScore(recipe))}</span>
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <span className={`badge ${recipe.status}`}>
                       {recipe.status === 'published' ? 'Live' : 'Entwurf'}
                     </span>

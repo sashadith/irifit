@@ -52,9 +52,70 @@ a {
 
 /* ---- Layout ------------------------------------------------------------ */
 
+/* Breakpoints: 860px = Seitenleiste wird zur Schublade, 760px = Tabellen werden
+   zu Karten. Getrennt, weil ein iPad im Hochformat die Schublade braucht, die
+   Tabellen dort aber noch bequem nebeneinander passen. */
+
 .shell {
   display: flex;
   min-height: 100vh;
+}
+
+/* Kopfleiste nur auf schmalen Geräten — auf dem Desktop trägt die Seitenleiste
+   die Wortmarke selbst. */
+.topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  padding-top: calc(10px + env(safe-area-inset-top, 0px));
+  background: var(--glass-strong);
+  backdrop-filter: blur(22px) saturate(1.4);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  border-bottom: 1px solid var(--stroke);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.navtoggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.navtoggle span {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ink);
+  transition: transform 0.18s, opacity 0.18s;
+}
+
+.navtoggle[aria-expanded='true'] span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.navtoggle[aria-expanded='true'] span:nth-child(2) {
+  opacity: 0;
+}
+
+.navtoggle[aria-expanded='true'] span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.scrim {
+  display: none;
 }
 
 .sidebar {
@@ -283,6 +344,59 @@ a {
   grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 
+/* Suchfeld über Listen: auf dem Desktop schmal, auf dem Telefon volle Breite */
+.field-search {
+  max-width: 380px;
+}
+
+@media (max-width: 760px) {
+  .field-search {
+    max-width: none;
+  }
+}
+
+/* Zutatenzeile im Rezept-Editor: Name, Gramm, Anzeigetext, Löschen */
+.ingredient-row {
+  grid-template-columns: 2fr 90px 1fr 36px;
+}
+
+@media (max-width: 760px) {
+  /* Auf dem Telefon reicht die Breite nicht für vier Felder nebeneinander:
+     Name über die volle Zeile, darunter Gramm + Anzeige, Löschen daneben. */
+  .ingredient-row {
+    grid-template-columns: 1fr 1fr 42px;
+    gap: 8px;
+  }
+
+  .ingredient-row > *:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Zweispaltige Arbeitsflächen (Editor + Vorschau, Liste + Formular).
+   Als Klasse statt Inline-Stil, damit die Media Query sie umbrechen kann. */
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.split.wide-left {
+  grid-template-columns: 2fr 1fr;
+}
+
+.split.fixed-right {
+  grid-template-columns: 1fr 380px;
+}
+
+/* Tabellen breiter als der Bildschirm dürfen scrollen, aber niemals die
+   ganze Seite mitziehen. */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* ---- Tabellen / Listen ------------------------------------------------- */
 
 .table {
@@ -322,6 +436,26 @@ a {
 
 .row-link {
   cursor: pointer;
+}
+
+/* Zelle mit Aktionsknöpfen — auf dem Desktop in einer Zeile, auf dem Telefon
+   umbrechend und über die volle Kartenbreite. */
+.cell-actions {
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .cell-actions {
+    white-space: normal;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 12px !important;
+  }
+
+  .cell-actions .btn {
+    flex: 1 1 auto;
+  }
 }
 
 /* ---- Kleinkram --------------------------------------------------------- */
@@ -408,6 +542,228 @@ a {
 
 .login-card {
   width: 380px;
+  max-width: 100%;
   padding: 34px;
   text-align: center;
+}
+
+/* ---- Tablet ------------------------------------------------------------ */
+
+@media (max-width: 1024px) {
+  .form-row.cols-4 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .split.fixed-right {
+    grid-template-columns: 1fr 320px;
+  }
+}
+
+/* ---- Seitenleiste wird zur Schublade ----------------------------------- */
+
+@media (max-width: 860px) {
+  .shell {
+    flex-direction: column;
+  }
+
+  .topbar {
+    display: flex;
+  }
+
+  .topbar .brand {
+    font-family: var(--font-display);
+    font-size: 26px;
+    letter-spacing: 0.05em;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 268px;
+    max-width: 82vw;
+    height: 100%;
+    z-index: 50;
+    /* Deckend statt Glas: als Schublade liegt sie über dem Inhalt, und selbst
+       bei 3 % Rest-Transparenz schimmerten Überschriften durch die Menüpunkte.
+       Der leichte Rosé-Verlauf hält sie trotzdem im Markenbild. */
+    background: linear-gradient(160deg, #fffafc, #fdf4f7);
+    box-shadow: 0 0 40px rgba(28, 28, 33, 0.18);
+    padding-top: calc(22px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-100%);
+    transition: transform 0.24s ease;
+    overflow-y: auto;
+  }
+
+  .sidebar.open {
+    transform: none;
+  }
+
+  /* Auf dem Desktop steht die Wortmarke in der Leiste, mobil in der Kopfzeile —
+     sonst stünde sie doppelt da, sobald die Schublade offen ist. */
+  .sidebar .brand {
+    display: none;
+  }
+
+  .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+    background: rgba(28, 28, 33, 0.34);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    border: none;
+    padding: 0;
+  }
+
+  /* Größere Ziele für den Daumen */
+  .navlink {
+    padding: 13px 14px;
+    font-size: 15px;
+  }
+
+  .main {
+    padding: 20px 16px 48px;
+    max-width: none;
+  }
+
+  .split,
+  .split.wide-left,
+  .split.fixed-right {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Telefon ----------------------------------------------------------- */
+
+@media (max-width: 760px) {
+  .display {
+    font-size: 26px;
+  }
+
+  .page-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  /* Die Aktion der Kopfzeile („+ Neues Rezept") ist auf dem Telefon der
+     wichtigste Knopf — volle Breite statt rechts angeklemmt. Stehen mehrere
+     nebeneinander (Zurück + Speichern), teilen sie sich die Zeile, statt
+     zwei Vollbreite-Blöcke übereinander zu stapeln. */
+  .page-head > .btn {
+    width: 100%;
+  }
+
+  .page-head .btn {
+    flex: 1 1 auto;
+  }
+
+  .form-row.cols-2,
+  .form-row.cols-3,
+  .form-row.cols-4 {
+    grid-template-columns: 1fr;
+  }
+
+  /* 16px verhindert, dass iOS beim Antippen eines Feldes hineinzoomt. */
+  .field input,
+  .field select,
+  .field textarea {
+    font-size: 16px;
+    padding: 12px 14px;
+  }
+
+  .btn {
+    padding: 12px 20px;
+    min-height: 44px;
+  }
+
+  .btn-small {
+    padding: 9px 16px;
+    min-height: 38px;
+  }
+
+  .glass.pad {
+    padding: 16px;
+  }
+
+  /* Tabellen werden zu Karten: Kopfzeile weg, jede Zeile ein Block, jede Zelle
+     bekommt ihre Spaltenüberschrift aus data-label vorangestellt. Zellen ohne
+     data-label (Bild, Knöpfe) laufen ohne Beschriftung über die volle Breite. */
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody tr {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--track);
+  }
+
+  .table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .table td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 5px 0;
+    border-bottom: none;
+    font-size: 14px;
+  }
+
+  .table td[data-label]::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Leere Beschriftung = reine Inhaltszelle (Vorschaubild, Aktionsknöpfe) */
+  .table td[data-label='']::before {
+    display: none;
+  }
+
+  .table td[data-label=''] {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .table td[data-label='']:empty {
+    display: none;
+  }
+
+  .table tbody tr:hover {
+    background: none;
+  }
+
+  .stat-num {
+    font-size: 34px;
+  }
+
+  .stat-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
 }

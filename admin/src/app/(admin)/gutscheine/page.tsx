@@ -190,7 +190,7 @@ export default function GutscheinePage() {
               const info = redemptions[v.id];
               return (
                 <tr key={v.id}>
-                  <td style={{ fontWeight: 700 }}>
+                  <td data-label="" style={{ fontWeight: 700 }}>
                     {v.code}
                     {v.description ? (
                       <div className="hint" style={{ fontWeight: 400 }}>
@@ -198,25 +198,25 @@ export default function GutscheinePage() {
                       </div>
                     ) : null}
                   </td>
-                  <td>
+                  <td data-label="Wert">
                     {v.free_months} {v.free_months === 1 ? 'Monat' : 'Monate'} gratis
                   </td>
-                  <td>{v.valid_until ? new Date(v.valid_until).toLocaleDateString('de-DE') : 'unbegrenzt'}</td>
-                  <td>
+                  <td data-label="Gültig bis">{v.valid_until ? new Date(v.valid_until).toLocaleDateString('de-DE') : 'unbegrenzt'}</td>
+                  <td data-label="Einlösungen">
                     {info?.count ?? 0}
                     {v.max_redemptions ? ` / ${v.max_redemptions}` : ''}
                   </td>
-                  <td>
+                  <td data-label="Zuletzt">
                     {info?.last
                       ? new Date(info.last).toLocaleDateString('de-DE')
                       : '—'}
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <span className={`badge ${v.active ? 'published' : 'draft'}`}>
                       {v.active ? 'Aktiv' : 'Inaktiv'}
                     </span>
                   </td>
-                  <td style={{ whiteSpace: 'nowrap' }}>
+                  <td data-label="" className="cell-actions">
                     <button className="btn btn-ghost btn-small" onClick={() => toggleActive(v)}>
                       {v.active ? 'Deaktivieren' : 'Aktivieren'}
                     </button>{' '}

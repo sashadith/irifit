@@ -151,7 +151,7 @@ export function RecipeEditor({ recipeId }: { recipeId: number | null }) {
           <div className="eyebrow">{recipeId === null ? 'Neues Rezept' : `Rezept #${recipeId}`}</div>
           <h1 className="display">{recipe.title || 'Ohne Titel'}</h1>
         </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <span className="satt" title="Satt-Score-Vorschau (wie in der App)">
             {sattDots(score)}
           </span>
@@ -170,7 +170,7 @@ export function RecipeEditor({ recipeId }: { recipeId: number | null }) {
         </p>
       ) : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20, alignItems: 'start' }}>
+      <div className="split wide-left">
         <div className="glass pad">
           <div className="form-row cols-2">
             <div className="field">
@@ -211,7 +211,7 @@ export function RecipeEditor({ recipeId }: { recipeId: number | null }) {
             Zutaten (Gramm fürs ganze Rezept)
           </div>
           {recipe.ingredients.map((ing, i) => (
-            <div key={i} className="form-row" style={{ gridTemplateColumns: '2fr 90px 1fr 36px', marginBottom: 8 }}>
+            <div key={i} className="form-row ingredient-row" style={{ marginBottom: 8 }}>
               <input
                 aria-label="Zutat"
                 placeholder="Zutat"

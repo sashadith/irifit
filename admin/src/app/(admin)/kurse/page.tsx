@@ -71,10 +71,10 @@ export default function KurseListe() {
           <tbody>
             {courses.map((course) => (
               <tr key={course.id} className="row-link" onClick={() => router.push(`/kurse/${course.id}`)}>
-                <td style={{ fontWeight: 600 }}>{course.title}</td>
-                <td>{course.lessons?.[0]?.count ?? 0}</td>
-                <td>{course.is_legacy ? `Alt-Kurs (${course.legacy_slug})` : 'Neu'}</td>
-                <td>
+                <td data-label="" style={{ fontWeight: 600 }}>{course.title}</td>
+                <td data-label="Lektionen">{course.lessons?.[0]?.count ?? 0}</td>
+                <td data-label="Typ">{course.is_legacy ? `Alt-Kurs (${course.legacy_slug})` : 'Neu'}</td>
+                <td data-label="Status">
                   <span className={`badge ${course.status}`}>
                     {course.status === 'published' ? 'Live' : 'Entwurf'}
                   </span>

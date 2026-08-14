@@ -68,7 +68,7 @@ export default function NutzerinnenPage() {
         </div>
       </div>
 
-      <div className="field" style={{ maxWidth: 380 }}>
+      <div className="field field-search">
         <label htmlFor="search">Suche (E-Mail oder Name)</label>
         <input id="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="anna@…" />
       </div>
@@ -93,7 +93,7 @@ export default function NutzerinnenPage() {
                 u.subscription_period_end && new Date(u.subscription_period_end) < new Date();
               return (
                 <tr key={u.id} style={u.banned_until ? { opacity: 0.55 } : undefined}>
-                  <td>
+                  <td data-label="">
                     <span style={{ fontWeight: 600 }}>{u.email}</span>
                     {u.is_admin ? (
                       <span className="badge published" style={{ marginLeft: 8 }}>
@@ -110,7 +110,7 @@ export default function NutzerinnenPage() {
                       {u.onboarding_completed_at ? '' : ' · Onboarding offen'}
                     </div>
                   </td>
-                  <td>
+                  <td data-label="Abo">
                     {u.subscription_status ? (
                       <>
                         {SUB_LABEL[u.subscription_status] ?? u.subscription_status}
@@ -126,10 +126,10 @@ export default function NutzerinnenPage() {
                       '—'
                     )}
                   </td>
-                  <td>{u.is_legacy ? 'BLEIB FIT ✓' : '—'}</td>
-                  <td>{u.streak_count ?? '—'}</td>
-                  <td>{new Date(u.created_at).toLocaleDateString('de-DE')}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>
+                  <td data-label="Legacy">{u.is_legacy ? 'BLEIB FIT ✓' : '—'}</td>
+                  <td data-label="Streak">{u.streak_count ?? '—'}</td>
+                  <td data-label="Registriert">{new Date(u.created_at).toLocaleDateString('de-DE')}</td>
+                  <td data-label="" className="cell-actions">
                     {u.is_admin ? (
                       <button
                         className="btn btn-ghost btn-small"

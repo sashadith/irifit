@@ -135,7 +135,7 @@ export default function BroadcastPage() {
         </p>
       ) : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20, alignItems: 'start' }}>
+      <div className="split fixed-right">
         <div className="glass pad">
           <div className="field" style={{ position: 'relative' }}>
             <label>Nachricht an alle</label>
@@ -165,7 +165,10 @@ export default function BroadcastPage() {
                   zIndex: 10,
                   padding: 10,
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(8, 34px)',
+                  // 8 Spalten, aber schrumpffähig: feste 34px liefen auf einem
+                  // 360-px-Android um 4px über den Rand hinaus
+                  gridTemplateColumns: 'repeat(8, minmax(0, 34px))',
+                  maxWidth: '100%',
                   gap: 4,
                   background: 'var(--glass-strong)',
                 }}
@@ -322,7 +325,7 @@ export default function BroadcastPage() {
               >
                 {body.trim() || 'Deine Nachricht erscheint hier …'}
               </p>
-              <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+              <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
                 {REACTION_EMOJIS.map((e) => (
                   <span
                     key={e}
@@ -359,11 +362,11 @@ export default function BroadcastPage() {
           <tbody>
             {sent.map((b) => (
               <tr key={b.id}>
-                <td style={{ whiteSpace: 'nowrap' }}>
+                <td data-label="Datum">
                   {b.sent_at ? new Date(b.sent_at).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}
                 </td>
-                <td style={{ maxWidth: 420 }}>{b.body.length > 120 ? `${b.body.slice(0, 120)}…` : b.body}</td>
-                <td>
+                <td data-label="">{b.body.length > 120 ? `${b.body.slice(0, 120)}…` : b.body}</td>
+                <td data-label="Bild">
                   {b.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={b.imageUrl} alt="" className="thumb" />
@@ -371,7 +374,7 @@ export default function BroadcastPage() {
                     '—'
                   )}
                 </td>
-                <td style={{ whiteSpace: 'nowrap' }}>
+                <td data-label="Reaktionen">
                   {REACTION_EMOJIS.map((e) =>
                     b.counts[e] ? (
                       <span key={e} style={{ marginRight: 8, fontSize: 13 }}>
