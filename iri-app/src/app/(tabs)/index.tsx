@@ -16,6 +16,7 @@ import { CalorieRing } from '@/components/ui/CalorieRing';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { SattScoreDots } from '@/components/recipes/SattScoreDots';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { pickGreeting } from '@/features/diary/greeting';
 import { FoodLog, MealSlot, toIsoDate, useDiaryDay } from '@/features/diary/useDiaryDay';
 import { markPushOffered, registerForPush, shouldOfferPush } from '@/features/notifications/push';
 import { fetchTodaySteps } from '@/features/health/steps';
@@ -120,9 +121,9 @@ export default function HomeScreen() {
     }, [diary.refresh, loadWeight, session?.user.id, refreshProfile]),
   );
 
-  const greeting = profile?.display_name
-    ? t('home.greetingName', { name: profile.display_name })
-    : t('home.greeting');
+  // Wechselnder Gruss (Sascha 14.08.) — pro Tag und Tageszeit stabil, damit er
+  // beim Scrollen nicht springt
+  const greeting = pickGreeting(profile?.display_name, new Date(), session?.user.id);
 
   // Delta = seit der ERSTEN Wiegung (Beta-Befund 09.08.) — erst ab zwei
   // Messungen, sonst „Noch kein Verlauf"
@@ -239,6 +240,7 @@ export default function HomeScreen() {
           kcalGoal={kcalGoal}
           onDeleteLog={diary.deleteLog}
           onSelectLog={setSelectedLog}
+          onAdd={(s) => router.push(`/food-search?slot=${s}&date=${toIsoDate(diary.date)}`)}
         />
       ))}
 

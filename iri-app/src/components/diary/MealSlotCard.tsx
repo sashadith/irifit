@@ -26,10 +26,17 @@ export interface MealSlotCardProps {
   readonly onDeleteLog: (id: string) => void;
   /** Tap auf einen Eintrag → Detail-Sheet mit sichtbarem Löschen (Feedback 23.07.) */
   readonly onSelectLog: (log: FoodLog) => void;
+  /** Plus rechts oben: oeffnet die Suche mit diesem Slot (Sascha 14.08.) */
+  readonly onAdd: (slot: MealSlot) => void;
 }
 
-/** Mahlzeiten-Slot (Prototyp .meal): Icon-Bubble, Einträge bzw. Empfehlung — Eintragen läuft übers zentrale Plus-Menü (Sascha 12.08.) */
-export function MealSlotCard({ slot, logs, kcalGoal, onDeleteLog, onSelectLog }: MealSlotCardProps) {
+/**
+ * Mahlzeiten-Slot (Prototyp .meal): Icon-Bubble, Einträge bzw. Empfehlung.
+ * Das Plus rechts oben ist zurück (Sascha 14.08.) — anders als früher öffnet es
+ * nicht die Kamera, sondern die Suche MIT diesem Slot, wo „Frühstück wie
+ * gestern" ganz oben steht. Das zentrale Plus-Menü bleibt daneben bestehen.
+ */
+export function MealSlotCard({ slot, logs, kcalGoal, onDeleteLog, onSelectLog, onAdd }: MealSlotCardProps) {
   const meta = SLOT_META[slot];
   const slotKcal = logs.reduce((sum, l) => sum + l.kcal, 0);
   const hasLogs = logs.length > 0;
@@ -106,6 +113,18 @@ export function MealSlotCard({ slot, logs, kcalGoal, onDeleteLog, onSelectLog }:
             <Text style={styles.subtitle}>{emptySubtitle}</Text>
           )}
         </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('home.addToSlot', { slot: t(meta.labelKey) })}
+          hitSlop={10}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            onAdd(slot);
+          }}
+          style={({ pressed }) => [styles.addButton, pressed && styles.addButtonPressed]}
+        >
+          <IriIcon name="plus" size={17} color={colors.tintDeep} />
+        </Pressable>
       </GlassView>
     </Pressable>
   );
@@ -121,6 +140,22 @@ const styles = StyleSheet.create({
     gap: 14,
     paddingHorizontal: 16,
     paddingVertical: 14,
+  },
+  // Plus rechts in der Karte, vertikal mittig (Sascha 14.08.). Kein absolutes
+  // Positionieren noetig: .content ist eine Zeile mit alignItems 'center', also
+  // zentriert sich der Knopf von selbst — auch wenn die Karte durch mehrere
+  // Eintraege waechst.
+  addButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(232,127,156,0.14)',
+  },
+  addButtonPressed: {
+    opacity: 0.6,
+    transform: [{ scale: 0.94 }],
   },
   iconBubble: {
     width: 40,

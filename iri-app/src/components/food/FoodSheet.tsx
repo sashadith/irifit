@@ -34,6 +34,12 @@ export interface FoodSheetProps {
   readonly isFavorite: boolean;
   readonly onToggleFavorite: () => void;
   readonly onLogged: () => void;
+  /** Vorgewaehlter Slot, wenn die Suche ueber das Plus einer Mahlzeit kam */
+  readonly presetSlot?: MealSlot;
+  /** Zuletzt eingetragene Menge fuer genau dieses Lebensmittel (Stephanie 13.08.) */
+  readonly lastGrams?: number | null;
+  /** Tag, auf den gebucht wird — der gerade angezeigte, nicht zwingend heute */
+  readonly loggedOn?: string;
 }
 
 // Zwei Scroll-Räder (Sascha 11.08.): links Menge, rechts Einheit g/ml/Stück.
@@ -60,12 +66,25 @@ const nearestGramIndex = (grams: number) => {
 };
 
 /** Portionieren + Eintragen eines Lebensmittels (Barcode-Treffer oder Suchergebnis) */
-export function FoodSheet({ item, source, isFavorite, onToggleFavorite, onLogged }: FoodSheetProps) {
+export function FoodSheet({
+  item,
+  source,
+  isFavorite,
+  onToggleFavorite,
+  onLogged,
+  presetSlot,
+  lastGrams,
+  loggedOn,
+}: FoodSheetProps) {
   const { session } = useAuth();
   const [unit, setUnit] = useState<AmountUnit>(item.unit);
-  const [amountIndex, setAmountIndex] = useState(() => nearestGramIndex(item.servingG ?? 100));
+  // Zuletzt gewaehlte Menge schlaegt die Standardportion — genau das, was
+  // Yazio richtig macht und Lifesum nicht (Stephanie 13.08.)
+  const [amountIndex, setAmountIndex] = useState(() =>
+    nearestGramIndex(lastGrams ?? item.servingG ?? 100),
+  );
   const [pieceIndex, setPieceIndex] = useState(0); // Stück beginnt bei 1
-  const [slot, setSlot] = useState<MealSlot>(defaultSlot());
+  const [slot, setSlot] = useState<MealSlot>(presetSlot ?? defaultSlot());
   const [busy, setBusy] = useState(false);
 
   // Stück × Portionsgröße (falls bekannt, sonst 100 g) → Gramm für die Rechnung
@@ -89,7 +108,7 @@ export function FoodSheet({ item, source, isFavorite, onToggleFavorite, onLogged
     if (!session) return;
     setBusy(true);
     try {
-      await logFood(session.user.id, item, grams, slot, source);
+      await logFood(session.user.id, item, grams, slot, source, loggedOn);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       onLogged();
     } catch {

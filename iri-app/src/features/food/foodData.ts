@@ -1,9 +1,17 @@
-import { MealSlot } from '@/features/diary/useDiaryDay';
+import { MealSlot, toIsoDate } from '@/features/diary/useDiaryDay';
 import { supabase } from '@/lib/supabase';
 
 import { FoodItem, nutrientsForAmount } from './off';
 
 export type FoodSource = 'barcode' | 'search' | 'favorite' | 'manual';
+
+/**
+ * Tag, auf den ein Eintrag gebucht wird. IMMER mitschicken: die Spalte
+ * logged_on hat als Vorgabe current_date — also das SERVER-Datum in UTC. Wer
+ * abends um 23:30 in Deutschland trackt, landete damit schon auf dem naechsten
+ * Tag (aufgefallen 14.08. im Simulator, dessen Datum dem Mac hinterherhing).
+ */
+export const todayIso = (): string => toIsoDate(new Date());
 
 /** Lebensmittel mit Menge in den gewählten Slot eintragen */
 export async function logFood(
@@ -12,10 +20,12 @@ export async function logFood(
   grams: number,
   slot: MealSlot,
   source: FoodSource,
+  loggedOn: string = todayIso(),
 ): Promise<void> {
   const nutrients = nutrientsForAmount(item, grams);
   const { error } = await supabase.from('food_logs').insert({
     user_id: userId,
+    logged_on: loggedOn,
     slot,
     source,
     title: item.brand ? `${item.name} (${item.brand})` : item.name,
@@ -71,10 +81,107 @@ export async function fetchRecentEntries(userId: string): Promise<RecentEntry[]>
   return recents;
 }
 
+export interface SlotMealDay {
+  /** Tagesschlüssel aus food_logs.logged_on */
+  loggedOn: string;
+  entries: RecentEntry[];
+  kcal: number;
+}
+
+/**
+ * „Frühstück wie gestern" (Sascha 14.08., angestossen von Stephanies Feedback:
+ * Yazio hat genau diese Funktion beim letzten Update verloren).
+ *
+ * Liefert die letzten Tage, an denen in DIESEM Slot etwas stand — heute
+ * ausgenommen. Tage mit identischer Zusammenstellung werden übersprungen,
+ * sonst stuenden „wie gestern" und „wie vorgestern" mit derselben Liste
+ * untereinander.
+ */
+export async function fetchSlotHistory(
+  userId: string,
+  slot: MealSlot,
+  maxDays = 3,
+): Promise<SlotMealDay[]> {
+  const today = todayIso();
+  const { data, error } = await supabase
+    .from('food_logs')
+    .select('logged_on, title, kcal, protein_g, carbs_g, fat_g, slot, details, created_at')
+    .eq('user_id', userId)
+    .eq('slot', slot)
+    .lt('logged_on', today)
+    .order('logged_on', { ascending: false })
+    .order('created_at', { ascending: true })
+    .limit(80);
+  if (error) throw error;
+
+  const byDay = new Map<string, RecentEntry[]>();
+  for (const row of data ?? []) {
+    const details = row.details as { food?: FoodItem; grams?: number } | null;
+    const list = byDay.get(row.logged_on) ?? [];
+    list.push({
+      title: row.title,
+      kcal: row.kcal,
+      protein_g: row.protein_g,
+      carbs_g: row.carbs_g,
+      fat_g: row.fat_g,
+      slot: row.slot as MealSlot,
+      food: details?.food,
+      grams: details?.grams,
+      loggedAt: row.created_at,
+    });
+    byDay.set(row.logged_on, list);
+  }
+
+  const days: SlotMealDay[] = [];
+  const seenCombos = new Set<string>();
+  for (const [loggedOn, entries] of byDay) {
+    const combo = entries
+      .map((e) => `${e.title}|${e.grams ?? ''}`)
+      .sort()
+      .join('#');
+    if (seenCombos.has(combo)) continue;
+    seenCombos.add(combo);
+    days.push({ loggedOn, entries, kcal: entries.reduce((sum, e) => sum + e.kcal, 0) });
+    if (days.length >= maxDays) break;
+  }
+  return days;
+}
+
+/** Mehrere frühere Einträge auf einmal in den heutigen Slot übernehmen */
+export async function copyEntriesToSlot(
+  userId: string,
+  entries: readonly RecentEntry[],
+  slot: MealSlot,
+  loggedOn: string = todayIso(),
+): Promise<void> {
+  if (entries.length === 0) return;
+  const { error } = await supabase.from('food_logs').insert(
+    entries.map((entry) => ({
+      user_id: userId,
+      logged_on: loggedOn,
+      slot,
+      source: 'manual' as FoodSource,
+      title: entry.title,
+      kcal: entry.kcal,
+      protein_g: entry.protein_g,
+      carbs_g: entry.carbs_g,
+      fat_g: entry.fat_g,
+      details: entry.food ? { food: entry.food, grams: entry.grams, relog: true } : { relog: true },
+    })),
+  );
+  if (error) throw error;
+}
+
 /** Früheren Eintrag 1:1 erneut loggen */
-export async function relogEntry(userId: string, entry: RecentEntry, slot: MealSlot): Promise<void> {
+export async function relogEntry(
+  userId: string,
+  entry: RecentEntry,
+  slot: MealSlot,
+  loggedOn: string = todayIso(),
+): Promise<void> {
   const { error } = await supabase.from('food_logs').insert({
     user_id: userId,
+    logged_on: loggedOn,
     slot,
     source: 'manual',
     title: entry.title,

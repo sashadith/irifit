@@ -14,7 +14,7 @@ import {
   View,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FoodSheet } from '@/components/food/FoodSheet';
@@ -26,24 +26,45 @@ import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { useAuth } from '@/features/auth/AuthProvider';
 import {
   addFoodFavorite,
+  copyEntriesToSlot,
   fetchFoodFavorites,
   fetchRecentEntries,
+  fetchSlotHistory,
   FoodFavorite,
   foodKey,
   RecentEntry,
   relogEntry,
   removeFoodFavorite,
+  SlotMealDay,
 } from '@/features/food/foodData';
+import { MealSlot } from '@/features/diary/useDiaryDay';
 import { FoodItem, searchFoods } from '@/features/food/off';
 import { analyzeTextMeal, ScanError } from '@/features/scan/api';
 import type { ScanIngredient } from '@/features/scan/types';
-import { t } from '@/i18n';
+import { t, TranslationKey } from '@/i18n';
 import { colors, font, radius, spacing, typography } from '@/theme';
 
 type SheetState = { item: FoodItem; source: 'search' | 'favorite' | 'manual' } | null;
 
+const SLOT_LABEL: Record<MealSlot, TranslationKey> = {
+  breakfast: 'home.slotBreakfast',
+  lunch: 'home.slotLunch',
+  dinner: 'home.slotDinner',
+  snack: 'home.slotSnack',
+};
+
+const isMealSlot = (v: unknown): v is MealSlot =>
+  v === 'breakfast' || v === 'lunch' || v === 'dinner' || v === 'snack';
+
 export default function FoodSearchScreen() {
   const router = useRouter();
+  // Kam die Suche über das Plus einer Mahlzeit? Dann ist der Slot gesetzt und
+  // „Frühstück wie gestern" steht ganz oben (Sascha 14.08.).
+  const params = useLocalSearchParams<{ slot?: string; date?: string }>();
+  const targetSlot = isMealSlot(params.slot) ? params.slot : undefined;
+  // Der Tag, den die Startseite gerade zeigt — sonst landet ein Eintrag beim
+  // Blaettern im falschen Tag (und ohne Angabe im UTC-Tag des Servers)
+  const targetDate = /^\d{4}-\d{2}-\d{2}$/.test(params.date ?? '') ? params.date : undefined;
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
   const userId = session?.user.id;
@@ -64,6 +85,12 @@ export default function FoodSearchScreen() {
   const [aiResult, setAiResult] = useState<{ dish: string; ingredients: ScanIngredient[] } | null>(
     null,
   );
+  // „Wiederholen": frühere Tage dieses Slots + Auswahlfenster mit abwählbaren
+  // Zutaten (Sascha 14.08. — bewusst kein blindes Übernehmen)
+  const [slotDays, setSlotDays] = useState<SlotMealDay[]>([]);
+  const [copyDay, setCopyDay] = useState<SlotMealDay | null>(null);
+  const [dropped, setDropped] = useState<Set<number>>(new Set());
+  const [copyBusy, setCopyBusy] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadLists = useCallback(async () => {
@@ -71,7 +98,10 @@ export default function FoodSearchScreen() {
     const [r, f] = await Promise.all([fetchRecentEntries(userId), fetchFoodFavorites(userId)]);
     setRecents(r);
     setFavorites(f);
-  }, [userId]);
+    if (targetSlot) {
+      fetchSlotHistory(userId, targetSlot).then(setSlotDays).catch(() => setSlotDays([]));
+    }
+  }, [userId, targetSlot]);
 
   useEffect(() => {
     loadLists();
@@ -196,6 +226,48 @@ export default function FoodSearchScreen() {
     };
   }, [aiResult]);
 
+  /** „wie gestern" / „wie vorgestern" / „Mo, 11. Aug" */
+  const dayLabel = (isoDay: string) => {
+    const today = new Date();
+    const day = new Date(`${isoDay}T12:00:00`);
+    const diff = Math.round((today.setHours(12, 0, 0, 0) - day.getTime()) / 86_400_000);
+    if (diff === 1) return t('food.repeatYesterday');
+    if (diff === 2) return t('food.repeatDayBefore');
+    return day.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' });
+  };
+
+  const keptEntries = (day: SlotMealDay) => day.entries.filter((_, i) => !dropped.has(i));
+
+  const openCopy = (day: SlotMealDay) => {
+    Haptics.selectionAsync();
+    setDropped(new Set());
+    setCopyDay(day);
+  };
+
+  const confirmCopy = async () => {
+    if (!copyDay || !userId || !targetSlot) return;
+    const keep = keptEntries(copyDay);
+    if (keep.length === 0) return;
+    setCopyBusy(true);
+    try {
+      await copyEntriesToSlot(userId, keep, targetSlot, targetDate);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setCopyDay(null);
+      router.back();
+    } catch {
+      Alert.alert(t('common.error'), t('food.copyFailed'));
+    } finally {
+      setCopyBusy(false);
+    }
+  };
+
+  /** Zuletzt eingetragene Menge für dieses Lebensmittel — kommt ohne
+   *  Zusatzabfrage aus der ohnehin geladenen „Zuletzt"-Liste (Stephanie 13.08.) */
+  const lastGramsFor = (item: FoodItem) => {
+    const title = item.brand ? `${item.name} (${item.brand})` : item.name;
+    return recents.find((r) => r.title === title)?.grams ?? null;
+  };
+
   // „Nochmal essen"-Untertitel: 255 kcal · 110 g · 11. Aug. 2026 (Sascha 11.08.)
   const recentSubtitle = (entry: RecentEntry) => {
     const parts = [`${entry.kcal} kcal`];
@@ -239,7 +311,21 @@ export default function FoodSearchScreen() {
               <Pressable accessibilityRole="button" accessibilityLabel="✕" onPress={() => setQuery('')} hitSlop={8}>
                 <Text style={styles.clear}>✕</Text>
               </Pressable>
-            ) : null}
+            ) : (
+              /* Barcode direkt im Suchfeld (Sascha 14.08.): null Extra-Taps und
+                 er kostet kein KI-Kontingent */
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('food.scanBarcode')}
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  router.push('/scan?mode=barcode');
+                }}
+                hitSlop={8}
+              >
+                <IriIcon name="barcode" size={19} color={colors.tintDeep} />
+              </Pressable>
+            )}
           </View>
 
           {aiResult && aiItem ? (
@@ -290,6 +376,9 @@ export default function FoodSearchScreen() {
                 isFavorite={Boolean(favoriteFor(sheet.item))}
                 onToggleFavorite={() => toggleFavorite(sheet.item)}
                 onLogged={() => router.back()}
+                presetSlot={targetSlot}
+                lastGrams={lastGramsFor(sheet.item)}
+                loggedOn={targetDate}
               />
               <GhostButton label={t('common.back')} small onPress={() => setSheet(null)} style={styles.topGap} />
             </View>
@@ -353,6 +442,28 @@ export default function FoodSearchScreen() {
             </View>
           ) : (
             <>
+              {targetSlot && slotDays.length > 0 ? (
+                <>
+                  <Text style={[typography.eyebrow, styles.sectionLabel]}>
+                    {t('food.repeatSection', { slot: t(SLOT_LABEL[targetSlot]) })}
+                  </Text>
+                  {slotDays.map((day) => (
+                    <FoodRow
+                      key={day.loggedOn}
+                      title={dayLabel(day.loggedOn)}
+                      subtitle={t('food.repeatMeta', {
+                        count:
+                          day.entries.length === 1
+                            ? t('food.repeatItemsOne')
+                            : t('food.repeatItemsMany', { count: day.entries.length }),
+                        kcal: day.kcal,
+                      })}
+                      onPress={() => openCopy(day)}
+                    />
+                  ))}
+                </>
+              ) : null}
+
               <Text style={[typography.eyebrow, styles.sectionLabel]}>{t('food.recentSection')}</Text>
               {recents.length === 0 ? (
                 <Text style={[typography.bodyMuted, styles.emptyText]}>{t('food.noRecent')}</Text>
@@ -387,9 +498,89 @@ export default function FoodSearchScreen() {
             </>
           )}
 
+          {/* Leise Foto-Zeile (Sascha 14.08.): die KI bleibt der letzte Ausweg,
+              nicht der erste Griff — sonst fotografiert jede statt zu suchen */}
+          {!showSearch && !sheet && !aiResult ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('food.photoHint')}
+              onPress={() => {
+                Haptics.selectionAsync();
+                router.push('/scan?mode=photo');
+              }}
+              style={styles.photoHintRow}
+            >
+              <IriIcon name="cameraAi" size={16} color={colors.muted} />
+              <Text style={styles.photoHintText}>{t('food.photoHint')}</Text>
+            </Pressable>
+          ) : null}
+
           <GhostButton label={t('scan.close')} small onPress={() => router.back()} style={styles.closeButton} />
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Ganze Mahlzeit übernehmen — mit abwählbaren Zutaten (Sascha 14.08.).
+          Bewusst kein blindes Kopieren: Stephanie beschrieb genau den Fall, dass
+          man übernimmt und dann einzelne Mengen anpasst. */}
+      <Modal visible={copyDay !== null} transparent animationType="fade" onRequestClose={() => setCopyDay(null)}>
+        <View style={styles.modalBackdrop}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setCopyDay(null)} />
+          <GlassView strong borderRadius={radius.md} style={styles.modalCard} contentStyle={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {t('food.copyTitle', { slot: targetSlot ? t(SLOT_LABEL[targetSlot]) : '' })}
+            </Text>
+            <Text style={[typography.bodyMuted, styles.copyHint]}>{t('food.copyHint')}</Text>
+
+            {copyDay?.entries.map((entry, i) => {
+              const off = dropped.has(i);
+              return (
+                <Pressable
+                  key={`${entry.title}-${i}`}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: !off }}
+                  accessibilityLabel={entry.title}
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    setDropped((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(i)) next.delete(i);
+                      else next.add(i);
+                      return next;
+                    });
+                  }}
+                  style={styles.copyRow}
+                >
+                  <View style={[styles.copyBox, !off && styles.copyBoxOn]}>
+                    {!off ? <Text style={styles.copyCheck}>✓</Text> : null}
+                  </View>
+                  <View style={styles.copyTexts}>
+                    <Text style={[styles.copyTitle, off && styles.copyOff]} numberOfLines={1}>
+                      {entry.title}
+                    </Text>
+                    <Text style={[styles.copyMeta, off && styles.copyOff]}>
+                      {entry.grams ? `${entry.grams} g · ` : ''}
+                      {entry.kcal} kcal
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+
+            <PrimaryButton
+              label={
+                copyDay && keptEntries(copyDay).length === copyDay.entries.length
+                  ? t('food.copyConfirm')
+                  : t('food.copyConfirmSome', { count: copyDay ? keptEntries(copyDay).length : 0 })
+              }
+              loading={copyBusy}
+              disabled={!copyDay || keptEntries(copyDay).length === 0}
+              onPress={confirmCopy}
+              style={styles.topGap}
+            />
+            <GhostButton label={t('food.copyCancel')} small onPress={() => setCopyDay(null)} style={styles.smallGap} />
+          </GlassView>
+        </View>
+      </Modal>
 
       <Modal visible={aiPromptOpen} transparent animationType="fade" onRequestClose={() => setAiPromptOpen(false)}>
         <KeyboardAvoidingView
@@ -504,6 +695,71 @@ const styles = StyleSheet.create({
   },
   sheetWrap: {
     marginTop: 16,
+  },
+  copyHint: {
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  copyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 9,
+  },
+  copyBox: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: colors.stroke,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  copyBoxOn: {
+    backgroundColor: colors.tintDeep,
+    borderColor: colors.tintDeep,
+  },
+  copyCheck: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  copyTexts: {
+    flex: 1,
+  },
+  copyTitle: {
+    fontFamily: font.semibold,
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.ink,
+  },
+  copyMeta: {
+    fontFamily: font.regular,
+    fontSize: 12.5,
+    color: colors.muted,
+  },
+  // Abgewählte Zutat bleibt sichtbar, nur zurückgenommen — so sieht man, was
+  // man gerade weglässt
+  copyOff: {
+    opacity: 0.38,
+    textDecorationLine: 'line-through',
+  },
+  smallGap: {
+    marginTop: 8,
+  },
+  photoHintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    marginTop: 22,
+    paddingHorizontal: 12,
+  },
+  photoHintText: {
+    fontFamily: font.regular,
+    fontSize: 12.5,
+    color: colors.muted,
+    textAlign: 'center',
   },
   topGap: {
     marginTop: 12,
