@@ -7,6 +7,23 @@ import { recipeSattScore, sattDots } from '@/lib/sattScore';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { Ingredient, Recipe, recipeImageUrl } from '@/lib/types';
 
+/**
+ * Genau die Kategorien, nach denen die App filtert
+ * (iri-app/src/features/recipes/recipesData.ts) — „Alle" ist dort nur der
+ * Filter-Chip, keine echte Kategorie. Freitext hier hiesse: das Rezept taucht
+ * in keinem Filter auf.
+ */
+const RECIPE_CATEGORIES = [
+  'Frühstück',
+  'Hauptgerichte',
+  'Suppen',
+  'Salate',
+  'Beilagen',
+  'Snacks',
+  'Desserts',
+  'Getränke',
+] as const;
+
 const EMPTY: Omit<Recipe, 'id'> = {
   title: '',
   category: null,
@@ -25,6 +42,16 @@ const EMPTY: Omit<Recipe, 'id'> = {
   image_path: null,
   status: 'draft',
 };
+
+/** KI-Sternchen wie in der App: klein unten links, groß oben rechts (Sascha 12.08.) */
+function SparkleIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M16.5 2.5l1.1 2.9 2.9 1.1-2.9 1.1-1.1 2.9-1.1-2.9L12.5 6.5l2.9-1.1z" />
+      <path d="M7 13l.8 2.2L10 16l-2.2.8L7 19l-.8-2.2L4 16l2.2-.8z" />
+    </svg>
+  );
+}
 
 /** Foto clientseitig auf max. 1280 px verkleinern und als JPEG hochladen */
 async function compressImage(file: File): Promise<Blob> {
@@ -46,6 +73,18 @@ export function RecipeEditor({ recipeId }: { recipeId: number | null }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  /**
+   * Gewähltes Foto, das noch nicht im Bucket liegt. Zwei Aufgaben: sofortige
+   * Vorschau (vorher stand nach dem Auswählen weiter „Noch kein Foto") und ein
+   * Zwischenlager für neue Rezepte — die haben noch keine ID, unter der das
+   * Bild abgelegt werden könnte, also wandert es direkt nach dem Anlegen hoch.
+   */
+  const [pendingPhoto, setPendingPhoto] = useState<{ file: File; url: string } | null>(null);
+
+  // Object-URLs wieder freigeben, sonst hält der Browser die Datei im Speicher
+  useEffect(() => () => {
+    if (pendingPhoto) URL.revokeObjectURL(pendingPhoto.url);
+  }, [pendingPhoto]);
 
   useEffect(() => {
     if (recipeId === null) return;
@@ -81,6 +120,17 @@ export function RecipeEditor({ recipeId }: { recipeId: number | null }) {
       const { data, error } = await supabase.from('recipes').insert(payload).select('id').single();
       if (error) setMessage({ kind: 'error', text: error.message });
       else {
+        // Vorgemerktes Foto nachreichen — erst jetzt gibt es eine ID dafür
+        if (pendingPhoto) {
+          try {
+            await uploadPhoto(pendingPhoto.file, data.id, null);
+          } catch (e) {
+            setMessage({
+              kind: 'error',
+              text: `Rezept angelegt, aber das Foto ging nicht hoch: ${e instanceof Error ? e.message : String(e)}`,
+            });
+          }
+        }
         router.replace(`/rezepte/${data.id}`);
         return;
       }
@@ -91,35 +141,114 @@ export function RecipeEditor({ recipeId }: { recipeId: number | null }) {
     setBusy(false);
   };
 
-  const uploadPhoto = async (file: File) => {
+  /** Datei hochladen und am Rezept vermerken. id explizit, weil ein frisch
+   *  angelegtes Rezept seine ID erst nach dem Insert kennt. */
+  const uploadPhoto = async (file: File, id: number, previousPath: string | null) => {
+    const blob = await compressImage(file);
+    // Neuer Dateiname pro Upload: bustet den 1-Jahres-Cache in der App
+    const path = `${id}-${Date.now()}.jpg`;
+    const supabase = supabaseBrowser();
+    const { error: uploadError } = await supabase.storage
+      .from('recipe-images')
+      .upload(path, blob, { contentType: 'image/jpeg', cacheControl: '31536000' });
+    if (uploadError) throw uploadError;
+    const { error: dbError } = await supabase.from('recipes').update({ image_path: path }).eq('id', id);
+    if (dbError) throw dbError;
+    if (previousPath && previousPath !== path) {
+      await supabase.storage.from('recipe-images').remove([previousPath]);
+    }
+    return path;
+  };
+
+  /** Foto ausgewählt: sofort anzeigen, bei bestehendem Rezept gleich hochladen */
+  const pickPhoto = async (file: File) => {
+    if (pendingPhoto) URL.revokeObjectURL(pendingPhoto.url);
+    setPendingPhoto({ file, url: URL.createObjectURL(file) });
+    setMessage(null);
+
     if (recipeId === null) {
-      setMessage({ kind: 'error', text: 'Bitte zuerst speichern, dann Foto hochladen.' });
+      setMessage({ kind: 'ok', text: 'Foto gemerkt — es wird beim Anlegen mit hochgeladen.' });
+      return;
+    }
+    setBusy(true);
+    try {
+      const path = await uploadPhoto(file, recipeId, recipe.image_path);
+      set('image_path', path);
+      setPendingPhoto(null);
+      setMessage({ kind: 'ok', text: 'Foto aktualisiert.' });
+    } catch (e) {
+      setMessage({ kind: 'error', text: e instanceof Error ? e.message : String(e) });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /**
+   * Rezept vom Modell redigieren lassen: Titel, Beschreibung, Zubereitung und
+   * Zutaten werden vereinheitlicht, die Nährwerte für EINE Portion berechnet.
+   * Der Satt-Score kommt nicht von der KI — den rechnet dieselbe Formel wie in
+   * der App aus kcal, Eiweiß und Gesamtgewicht, sobald die Werte stehen.
+   */
+  const polish = async () => {
+    const usable = recipe.ingredients.filter((i) => i.name.trim() !== '');
+    if (usable.length === 0) {
+      setMessage({ kind: 'error', text: 'Trag zuerst die Zutaten ein — daraus rechnet die KI.' });
       return;
     }
     setBusy(true);
     setMessage(null);
     try {
-      const blob = await compressImage(file);
-      // Neuer Dateiname pro Upload: bustet den 1-Jahres-Cache in der App
-      const path = `${recipeId}-${Date.now()}.jpg`;
       const supabase = supabaseBrowser();
-      const { error: uploadError } = await supabase.storage
-        .from('recipe-images')
-        .upload(path, blob, { contentType: 'image/jpeg', cacheControl: '31536000' });
-      if (uploadError) throw uploadError;
-      const oldPath = recipe.image_path;
-      const { error: dbError } = await supabase
-        .from('recipes')
-        .update({ image_path: path })
-        .eq('id', recipeId);
-      if (dbError) throw dbError;
-      if (oldPath && oldPath !== path) {
-        await supabase.storage.from('recipe-images').remove([oldPath]);
-      }
-      set('image_path', path);
-      setMessage({ kind: 'ok', text: 'Foto aktualisiert.' });
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/polish-recipe`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token ?? ''}`,
+        },
+        body: JSON.stringify({
+          title: recipe.title,
+          description: recipe.description,
+          instructions: recipe.instructions,
+          category: recipe.category,
+          ingredients: usable,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? `HTTP ${res.status}`);
+
+      setRecipe((r) => ({
+        ...r,
+        title: json.title ?? r.title,
+        description: json.description ?? r.description,
+        instructions: json.instructions ?? r.instructions,
+        category: json.category ?? r.category,
+        ingredients: json.ingredients ?? r.ingredients,
+        // Eine Rezepteingabe ist immer eine Portion (Sascha 14.08.)
+        servings: 1,
+        kcal_per_serving: Math.round(json.nutrition?.kcal ?? r.kcal_per_serving),
+        kcal_total: Math.round(json.nutrition?.kcal ?? r.kcal_per_serving),
+        protein_per_serving_g: json.nutrition?.protein_g ?? r.protein_per_serving_g,
+        carbs_per_serving_g: json.nutrition?.carbs_g ?? r.carbs_per_serving_g,
+        fat_per_serving_g: json.nutrition?.fat_g ?? r.fat_per_serving_g,
+      }));
+      setMessage({
+        kind: 'ok',
+        text: json.notes
+          ? `Überarbeitet. Hinweis der KI: ${json.notes}`
+          : 'Überarbeitet — bitte durchlesen und dann speichern.',
+      });
     } catch (e) {
-      setMessage({ kind: 'error', text: e instanceof Error ? e.message : String(e) });
+      const raw = e instanceof Error ? e.message : String(e);
+      const text =
+        raw === 'forbidden'
+          ? 'Nur Admins dürfen das.'
+          : raw === 'no_ingredients'
+            ? 'Ohne Zutaten kann die KI nichts rechnen.'
+            : `KI-Aufruf fehlgeschlagen: ${raw}`;
+      setMessage({ kind: 'error', text });
     } finally {
       setBusy(false);
     }
@@ -142,7 +271,8 @@ export function RecipeEditor({ recipeId }: { recipeId: number | null }) {
 
   if (!loaded) return <p className="hint">Lädt …</p>;
 
-  const imageUrl = recipeImageUrl(recipe.image_path);
+  // Vorschau: das eben gewählte Foto schlägt den Bucket-Stand
+  const imageUrl = pendingPhoto?.url ?? recipeImageUrl(recipe.image_path);
 
   return (
     <>
@@ -179,16 +309,14 @@ export function RecipeEditor({ recipeId }: { recipeId: number | null }) {
             </div>
             <div className="field">
               <label>Kategorie</label>
-              <input
-                value={recipe.category ?? ''}
-                onChange={(e) => set('category', e.target.value || null)}
-                list="kategorien"
-              />
-              <datalist id="kategorien">
-                {['Frühstück', 'Mittagessen', 'Abendessen', 'Snack', 'Dessert'].map((c) => (
-                  <option key={c} value={c} />
+              <select value={recipe.category ?? ''} onChange={(e) => set('category', e.target.value || null)}>
+                <option value="">— bitte wählen —</option>
+                {RECIPE_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
                 ))}
-              </datalist>
+              </select>
             </div>
           </div>
           <div className="field">
@@ -217,7 +345,7 @@ export function RecipeEditor({ recipeId }: { recipeId: number | null }) {
                 placeholder="Zutat"
                 value={ing.name}
                 onChange={(e) => setIngredient(i, { name: e.target.value })}
-                style={inputStyle}
+                className="ing-input"
               />
               <input
                 aria-label="Gramm"
@@ -225,14 +353,14 @@ export function RecipeEditor({ recipeId }: { recipeId: number | null }) {
                 type="number"
                 value={ing.gramm ?? ''}
                 onChange={(e) => setIngredient(i, { gramm: e.target.value === '' ? null : Number(e.target.value) })}
-                style={inputStyle}
+                className="ing-input"
               />
               <input
                 aria-label="Anzeige"
                 placeholder="Anzeige, z. B. 1 EL (10 g)"
                 value={ing.menge_anzeige}
                 onChange={(e) => setIngredient(i, { menge_anzeige: e.target.value })}
-                style={inputStyle}
+                className="ing-input"
               />
               <button
                 className="btn btn-danger btn-small"
@@ -243,12 +371,24 @@ export function RecipeEditor({ recipeId }: { recipeId: number | null }) {
               </button>
             </div>
           ))}
-          <button
-            className="btn btn-ghost btn-small"
-            onClick={() => set('ingredients', [...recipe.ingredients, { name: '', gramm: null, menge_anzeige: '' }])}
-          >
-            + Zutat
-          </button>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              className="btn btn-ghost btn-small"
+              onClick={() =>
+                set('ingredients', [...recipe.ingredients, { name: '', gramm: null, menge_anzeige: '' }])
+              }
+            >
+              + Zutat
+            </button>
+            <button className="btn btn-primary btn-small" onClick={polish} disabled={busy}>
+              <SparkleIcon />
+              {busy ? 'IriFit KI rechnet …' : 'Mit KI berechnen'}
+            </button>
+          </div>
+          <p className="hint" style={{ marginTop: 8 }}>
+            Bessert Titel, Beschreibung, Zubereitung und Zutaten aus und füllt die Nährwerte für eine
+            Portion. Danach bitte durchlesen — gespeichert wird erst mit „Speichern".
+          </p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -271,7 +411,7 @@ export function RecipeEditor({ recipeId }: { recipeId: number | null }) {
               hidden
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) uploadPhoto(file);
+                if (file) pickPhoto(file);
                 e.target.value = '';
               }}
             />
@@ -390,13 +530,3 @@ export function RecipeEditor({ recipeId }: { recipeId: number | null }) {
   );
 }
 
-const inputStyle: React.CSSProperties = {
-  fontFamily: 'var(--font-ui)',
-  fontSize: 14,
-  color: 'var(--ink)',
-  background: 'rgba(255,255,255,0.7)',
-  border: '1px solid var(--stroke)',
-  borderRadius: 13,
-  padding: '8px 12px',
-  outline: 'none',
-};

@@ -355,21 +355,48 @@ a {
   }
 }
 
-/* Zutatenzeile im Rezept-Editor: Name, Gramm, Anzeigetext, Löschen */
+/* Zutatenzeile im Rezept-Editor: Name, Gramm, Anzeigetext, Löschen.
+   minmax(0, …) statt blossem fr: Grid-Kinder schrumpfen sonst NIE unter die
+   Eigenbreite eines <input> — genau daran wurde die Seite auf dem Telefon
+   breiter als der Bildschirm, sobald eine Zutat dazukam. */
 .ingredient-row {
-  grid-template-columns: 2fr 90px 1fr 36px;
+  grid-template-columns: minmax(0, 2fr) 90px minmax(0, 1fr) 36px;
+}
+
+.ing-input {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--stroke);
+  border-radius: 13px;
+  padding: 8px 12px;
+  outline: none;
+  width: 100%;
+  min-width: 0;
+}
+
+.ing-input:focus {
+  border-color: var(--tint);
+  box-shadow: 0 0 0 3px rgba(232, 127, 156, 0.18);
 }
 
 @media (max-width: 760px) {
   /* Auf dem Telefon reicht die Breite nicht für vier Felder nebeneinander:
      Name über die volle Zeile, darunter Gramm + Anzeige, Löschen daneben. */
   .ingredient-row {
-    grid-template-columns: 1fr 1fr 42px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 42px;
     gap: 8px;
   }
 
   .ingredient-row > *:first-child {
     grid-column: 1 / -1;
+  }
+
+  /* 16px, sonst zoomt iOS beim Antippen hinein — dieselbe Regel wie bei .field */
+  .ing-input {
+    font-size: 16px;
+    padding: 11px 13px;
   }
 }
 
