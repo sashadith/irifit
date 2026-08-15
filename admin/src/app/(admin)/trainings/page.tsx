@@ -18,6 +18,54 @@ interface TrainingVideo {
   created_at: string;
 }
 
+/**
+ * Standbild aus dem hochgeladenen Video (Sascha 15.08.). Cloudflare kodiert
+ * nach dem Upload noch ein paar Minuten — solange antwortet die Route mit 409
+ * und wir fragen alle 15 Sekunden erneut, hoechstens vier Minuten lang.
+ *
+ * Wichtig: die Elternkomponente gibt `key={uid}` mit, damit ein neues Video
+ * einen frischen Mount bekommt statt einen Zustand aus dem alten.
+ */
+function VideoThumb({ uid }: { uid: string }) {
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const RETRIES = 16;
+
+  useEffect(() => {
+    if (!failed || attempt >= RETRIES) return;
+    const timer = setTimeout(() => {
+      setFailed(false);
+      setAttempt((a) => a + 1);
+    }, 15000);
+    return () => clearTimeout(timer);
+  }, [failed, attempt]);
+
+  if (failed && attempt >= RETRIES) {
+    return <p className="hint">Kein Standbild verfügbar.</p>;
+  }
+  if (failed) {
+    return <p className="hint">Cloudflare kodiert das Video noch — Vorschau folgt …</p>;
+  }
+  return (
+    /* eslint-disable-next-line @next/next/no-img-element -- signierter Proxy, kein statisches Bild */
+    <img
+      src={`/api/stream/thumbnail?uid=${uid}&v=${attempt}`}
+      alt="Standbild aus dem Video"
+      width={90}
+      height={160}
+      onError={() => setFailed(true)}
+      style={{
+        width: 90,
+        height: 160,
+        objectFit: 'cover',
+        borderRadius: 10,
+        border: '1px solid rgba(0,0,0,0.08)',
+        background: 'rgba(0,0,0,0.04)',
+      }}
+    />
+  );
+}
+
 export default function TrainingsPage() {
   const [videos, setVideos] = useState<TrainingVideo[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -248,11 +296,18 @@ export default function TrainingsPage() {
             <div className="eyebrow" style={{ margin: '6px 0 8px' }}>
               Video (Hochformat 9:16)
             </div>
-            <p className="hint" style={{ marginBottom: 8 }}>
-              {selected.video_uid
-                ? `Verknüpft: ${selected.video_uid.slice(0, 8)}… (signierte Wiedergabe aktiv)`
-                : 'Noch kein Video verknüpft.'}
-            </p>
+            {selected.video_uid ? (
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 10 }}>
+                <VideoThumb key={selected.video_uid} uid={selected.video_uid} />
+                <p className="hint" style={{ margin: 0 }}>
+                  Verknüpft: {selected.video_uid.slice(0, 8)}… (signierte Wiedergabe aktiv)
+                </p>
+              </div>
+            ) : (
+              <p className="hint" style={{ marginBottom: 8 }}>
+                Noch kein Video verknüpft.
+              </p>
+            )}
             {uploadPct !== null ? (
               <div style={{ marginBottom: 10 }}>
                 <div className="progressbar">

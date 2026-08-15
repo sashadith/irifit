@@ -19,7 +19,10 @@ export default function RezepteListe() {
     supabaseBrowser()
       .from('recipes')
       .select('*')
-      .order('title')
+      // Neueste oben (Sascha 15.08.) — wie in der App; Zweitschluessel ID, weil
+      // die Import-Rezepte alle denselben Zeitstempel tragen
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
       .then(({ data, error: e }) => {
         if (e) setError(e.message);
         else setRecipes((data ?? []) as Recipe[]);
@@ -68,6 +71,7 @@ export default function RezepteListe() {
               <th>kcal/Portion</th>
               <th>Satt-Score</th>
               <th>Status</th>
+              <th>Angelegt</th>
             </tr>
           </thead>
           <tbody>
@@ -95,6 +99,13 @@ export default function RezepteListe() {
                     <span className={`badge ${recipe.status}`}>
                       {recipe.status === 'published' ? 'Live' : 'Entwurf'}
                     </span>
+                  </td>
+                  <td data-label="Angelegt" style={{ whiteSpace: 'nowrap' }}>
+                    {new Date(recipe.created_at).toLocaleDateString('de-DE', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })}
                   </td>
                 </tr>
               );

@@ -24,7 +24,10 @@ const RECIPE_CATEGORIES = [
   'Getränke',
 ] as const;
 
-const EMPTY: Omit<Recipe, 'id'> = {
+/** Was der Editor bearbeitet: id und created_at vergibt die Datenbank */
+type RecipeDraft = Omit<Recipe, 'id' | 'created_at'>;
+
+const EMPTY: RecipeDraft = {
   title: '',
   category: null,
   description: null,
@@ -68,7 +71,7 @@ async function compressImage(file: File): Promise<Blob> {
 
 export function RecipeEditor({ recipeId }: { recipeId: number | null }) {
   const router = useRouter();
-  const [recipe, setRecipe] = useState<Omit<Recipe, 'id'>>(EMPTY);
+  const [recipe, setRecipe] = useState<RecipeDraft>(EMPTY);
   const [loaded, setLoaded] = useState(recipeId === null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
@@ -100,7 +103,7 @@ export function RecipeEditor({ recipeId }: { recipeId: number | null }) {
       });
   }, [recipeId]);
 
-  const set = <K extends keyof Omit<Recipe, 'id'>>(key: K, value: Omit<Recipe, 'id'>[K]) =>
+  const set = <K extends keyof RecipeDraft>(key: K, value: RecipeDraft[K]) =>
     setRecipe((r) => ({ ...r, [key]: value }));
 
   const setIngredient = (index: number, patch: Partial<Ingredient>) =>

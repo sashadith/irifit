@@ -22,6 +22,8 @@ export interface Recipe {
   tags: string[];
   image_path: string | null;
   status: 'draft' | 'published';
+  /** Fuer die Datumsspalte und die Sortierung in der Liste (Sascha 15.08.) */
+  created_at: string;
 }
 
 export interface Course {

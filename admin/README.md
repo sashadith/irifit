@@ -70,8 +70,10 @@ danach im Panel. Gesetzt sind `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_
 `SUPABASE_SERVICE_ROLE_KEY` (Saschas Entscheidung — die Nutzerverwaltung soll im Web
 laufen). Der Service-Role-Key wird nur serverseitig in `/api/users` gelesen und landet
 nicht im Browser-Bundle; er ist der einzige Grund, warum diese Variable NICHT mit
-`NEXT_PUBLIC_` beginnen darf. `CF_ACCOUNT_ID`/`CF_STREAM_TOKEN` fehlen weiterhin —
-Kurs-Video-Upload bleibt ein lokales Werkzeug.
+`NEXT_PUBLIC_` beginnen darf. Seit 14.08. stehen auch `CF_ACCOUNT_ID` und
+`CF_STREAM_TOKEN` dort — damit laufen der Trainings-Video-Upload und die
+Standbild-Vorschau (`/api/stream/thumbnail`) direkt im Web-Admin. Achtung: Hostinger
+übernimmt importierte Variablen erst nach einem Klick auf **Apply changes**.
 
 Folge davon: **jeder** Panel-Admin kann Nutzerinnen einsehen, Admin-Rechte vergeben und
 Konten sperren, also auch Irina. Wer das einschränken will, muss den Menüpunkt und die
