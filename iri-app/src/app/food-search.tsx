@@ -38,6 +38,7 @@ import {
   SlotMealDay,
 } from '@/features/food/foodData';
 import { MealSlot } from '@/features/diary/useDiaryDay';
+import { slotForNow } from '@/features/diary/slot';
 import { FoodItem, searchFoods } from '@/features/food/off';
 import { analyzeTextMeal, ScanError } from '@/features/scan/api';
 import type { ScanIngredient } from '@/features/scan/types';
@@ -154,7 +155,9 @@ export default function FoodSearchScreen() {
     if (!userId) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
-      await relogEntry(userId, entry, entry.slot);
+      // Tageszeit schlaegt den alten Slot (Sascha 15.08.): wer morgens etwas
+      // nachtraegt, das er gestern mittags ass, will es im Fruehstueck sehen
+      await relogEntry(userId, entry, targetSlot ?? slotForNow(), targetDate);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.back();
     } catch {

@@ -34,6 +34,7 @@ import {
   fetchCourses,
   fetchMyQuestions,
   fetchTrainings,
+  prefetchStreamUrl,
   isNewTraining,
   Question,
   REACTION_EMOJIS,
@@ -180,6 +181,10 @@ export default function CoachingScreen() {
     setCompleted(done);
     setQuestions(q);
     setTrainings(tv);
+    // Standbilder der obersten Trainings schon holen, waehrend die Liste
+    // gelesen wird (Sascha 15.08.) — beim Antippen ist dann sofort ein Bild da.
+    // Nur die ersten vier, damit wir nicht fuer jede Kachel eine Signatur ziehen.
+    tv.slice(0, 4).forEach((v) => prefetchStreamUrl({ trainingId: v.id }));
     isSubscriptionLapsed(userId).then(setSubLapsed);
   }, [userId]);
 

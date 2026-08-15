@@ -33,6 +33,7 @@ import { playSound } from '@/features/sound/sounds';
 import { sattScore } from '@/features/recipes/sattScore';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { MealSlot } from '@/features/diary/useDiaryDay';
+import { slotForNow } from '@/features/diary/slot';
 import {
   addFoodFavorite,
   fetchFoodFavorites,
@@ -66,14 +67,6 @@ const SLOT_LABELS: Record<MealSlot, TranslationKey> = {
   snack: 'home.slotSnack',
 };
 
-/** Vorbelegung des Mahlzeiten-Slots nach Uhrzeit */
-function defaultSlot(now = new Date()): MealSlot {
-  const minutes = now.getHours() * 60 + now.getMinutes();
-  if (minutes < 10.5 * 60) return 'breakfast';
-  if (minutes < 15 * 60) return 'lunch';
-  if (minutes < 21.5 * 60) return 'dinner';
-  return 'snack';
-}
 
 const CONFIDENCE_LABEL: Record<ScanResult['confidence'], TranslationKey> = {
   high: 'scan.confidenceHigh',
@@ -100,7 +93,7 @@ export default function ScanScreen() {
   const [ingredients, setIngredients] = useState<ScanIngredient[]>([]);
   const [scan, setScan] = useState<ScanResult | null>(null);
   const [note, setNote] = useState('');
-  const [slot, setSlot] = useState<MealSlot>(defaultSlot());
+  const [slot, setSlot] = useState<MealSlot>(slotForNow());
   const [busy, setBusy] = useState(false);
   const [foodItem, setFoodItem] = useState<FoodItem | null>(null);
   const [favorites, setFavorites] = useState<FoodFavorite[]>([]);

@@ -1,3 +1,4 @@
+import { Image } from 'react-native';
 import { supabase } from '@/lib/supabase';
 
 // ---------------------------------------------------------------------------
@@ -193,15 +194,51 @@ export interface StreamSource {
   thumbnailUrl: string | null;
 }
 
+/**
+ * Zwischenspeicher für signierte Adressen (Sascha 15.08.: „dauert zu lange bis
+ * das Standbild da ist"). Vorher wurde bei JEDEM Öffnen die Edge Function
+ * gefragt, und bis sie antwortete, zeigte der Player nur einen Spinner — auch
+ * beim zweiten Aufruf desselben Videos.
+ *
+ * Das Token gilt 2 Stunden; wir halten es 110 Minuten, damit es nie knapp wird.
+ */
+const streamCache = new Map<string, { source: StreamSource; expiresAt: number }>();
+const STREAM_TTL_MS = 110 * 60 * 1000;
+
+const streamKey = (target: { lessonId: string } | { trainingId: string }) =>
+  'lessonId' in target ? `l:${target.lessonId}` : `t:${target.trainingId}`;
+
 /** Signierte HLS- + Thumbnail-URL holen (Edge Function prüft den Zugriff serverseitig) */
 export async function fetchStreamUrl(
   target: { lessonId: string } | { trainingId: string },
 ): Promise<StreamSource> {
+  const key = streamKey(target);
+  const hit = streamCache.get(key);
+  if (hit && hit.expiresAt > Date.now()) return hit.source;
+
   const { data, error } = await supabase.functions.invoke('stream-token', {
     body: target,
   });
   if (error || !data?.hlsUrl) throw new Error('stream_token_failed');
-  return { hlsUrl: data.hlsUrl as string, thumbnailUrl: (data.thumbnailUrl as string) ?? null };
+  const source: StreamSource = {
+    hlsUrl: data.hlsUrl as string,
+    thumbnailUrl: (data.thumbnailUrl as string) ?? null,
+  };
+  streamCache.set(key, { source, expiresAt: Date.now() + STREAM_TTL_MS });
+  return source;
+}
+
+/**
+ * Adresse UND Standbild schon holen, während die Nutzerin noch die Liste
+ * ansieht — dann steht beim Antippen sofort ein Bild statt eines Spinners.
+ * Fehler werden bewusst geschluckt: das ist reine Vorarbeit.
+ */
+export function prefetchStreamUrl(target: { lessonId: string } | { trainingId: string }): void {
+  fetchStreamUrl(target)
+    .then((source) => {
+      if (source.thumbnailUrl) Image.prefetch(source.thumbnailUrl).catch(() => {});
+    })
+    .catch(() => {});
 }
 
 // ---------------------------------------------------------------------------
