@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics';
 
 import { GlassView } from '@/components/glass/GlassView';
 import { IriIcon, IriIconName } from '@/components/icons/IriIcon';
+import { macroShort } from '@/features/diary/macros';
 import { FoodLog, MealSlot } from '@/features/diary/useDiaryDay';
 import { t, TranslationKey } from '@/i18n';
 import { colors, font, radius } from '@/theme';
@@ -42,8 +43,8 @@ export function MealSlotCard({ slot, logs, kcalGoal, onDeleteLog, onSelectLog, o
   const hasLogs = logs.length > 0;
   // Slot-Makros hinter den kcal (Sascha 12.08.): 27K · 1E · 0F
   const macroSum = (key: 'carbs_g' | 'protein_g' | 'fat_g') =>
-    Math.round(logs.reduce((sum, l) => sum + (l[key] ?? 0), 0));
-  const slotMacros = `${macroSum('carbs_g')}K · ${macroSum('protein_g')}E · ${macroSum('fat_g')}F`;
+    logs.reduce((sum, l) => sum + (l[key] ?? 0), 0);
+  const slotMacros = macroShort(macroSum('carbs_g'), macroSum('protein_g'), macroSum('fat_g'));
 
   const emptySubtitle =
     meta.range[0] === 0

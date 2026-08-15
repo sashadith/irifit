@@ -27,6 +27,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { GhostButton } from '@/components/ui/GhostButton';
 import { RoseHeart } from '@/components/ui/RoseHeart';
+import { macroShareShort } from '@/features/diary/macros';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { deletePhoto, listPhotos, ProgressPhoto, uploadPhoto } from '@/features/progress/photos';
 import { fetchWeekAvgSteps } from '@/features/health/steps';
@@ -323,27 +324,27 @@ export default function ProgressScreen() {
                   die Abweichung sichtbar */}
               <Text style={styles.macroRowLabel}>{t('progress.macroActual')}</Text>
               <View style={styles.macroBar}>
-                <View style={[styles.macroSegment, { flex: Math.max(stats.proteinShare, 0.02), backgroundColor: colors.tintDeep }]} />
                 <View style={[styles.macroSegment, { flex: Math.max(stats.carbsShare, 0.02), backgroundColor: colors.carbs }]} />
+                <View style={[styles.macroSegment, { flex: Math.max(stats.proteinShare, 0.02), backgroundColor: colors.tintDeep }]} />
                 <View style={[styles.macroSegment, { flex: Math.max(stats.fatShare, 0.02), backgroundColor: colors.water }]} />
               </View>
               <View style={styles.macroLegend}>
-                <Text style={styles.macroLegendText}>P {Math.round(stats.proteinShare * 100)} %</Text>
-                <Text style={styles.macroLegendText}>C {Math.round(stats.carbsShare * 100)} %</Text>
-                <Text style={styles.macroLegendText}>F {Math.round(stats.fatShare * 100)} %</Text>
+                <Text style={styles.macroLegendText}>{macroShareShort(stats.carbsShare, 'carbs')}</Text>
+                <Text style={styles.macroLegendText}>{macroShareShort(stats.proteinShare, 'protein')}</Text>
+                <Text style={styles.macroLegendText}>{macroShareShort(stats.fatShare, 'fat')}</Text>
               </View>
               {goalShares ? (
                 <>
                   <Text style={styles.macroRowLabel}>{t('progress.macroTarget')}</Text>
                   <View style={[styles.macroBar, styles.macroBarTarget]}>
-                    <View style={[styles.macroSegment, { flex: Math.max(goalShares.p, 0.02), backgroundColor: colors.tintDeep, opacity: 0.45 }]} />
                     <View style={[styles.macroSegment, { flex: Math.max(goalShares.c, 0.02), backgroundColor: colors.carbs, opacity: 0.45 }]} />
+                    <View style={[styles.macroSegment, { flex: Math.max(goalShares.p, 0.02), backgroundColor: colors.tintDeep, opacity: 0.45 }]} />
                     <View style={[styles.macroSegment, { flex: Math.max(goalShares.f, 0.02), backgroundColor: colors.water, opacity: 0.45 }]} />
                   </View>
                   <View style={styles.macroLegend}>
-                    <Text style={styles.macroLegendText}>P {Math.round(goalShares.p * 100)} %</Text>
-                    <Text style={styles.macroLegendText}>C {Math.round(goalShares.c * 100)} %</Text>
-                    <Text style={styles.macroLegendText}>F {Math.round(goalShares.f * 100)} %</Text>
+                    <Text style={styles.macroLegendText}>{macroShareShort(goalShares.c, 'carbs')}</Text>
+                    <Text style={styles.macroLegendText}>{macroShareShort(goalShares.p, 'protein')}</Text>
+                    <Text style={styles.macroLegendText}>{macroShareShort(goalShares.f, 'fat')}</Text>
                   </View>
                 </>
               ) : null}

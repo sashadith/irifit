@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { GlassView } from '@/components/glass/GlassView';
 import { GhostButton } from '@/components/ui/GhostButton';
+import { macroShort } from '@/features/diary/macros';
 import { FoodLog, LogSource } from '@/features/diary/useDiaryDay';
 import { t, TranslationKey } from '@/i18n';
 import { colors, font, radius, spacing, typography } from '@/theme';
@@ -33,10 +34,7 @@ export function LogDetailSheet({ log, onClose, onDelete }: LogDetailSheetProps) 
   const time = new Date(log.created_at);
   const timeLabel = `${time.getHours()}:${String(time.getMinutes()).padStart(2, '0')}`;
 
-  const macroParts: string[] = [];
-  if (log.protein_g != null) macroParts.push(t('home.macroProteinShort', { g: Math.round(log.protein_g) }));
-  if (log.carbs_g != null) macroParts.push(t('home.macroCarbsShort', { g: Math.round(log.carbs_g) }));
-  if (log.fat_g != null) macroParts.push(t('home.macroFatShort', { g: Math.round(log.fat_g) }));
+  const macroLine = macroShort(log.carbs_g, log.protein_g, log.fat_g);
 
   const confirmDelete = () => {
     Alert.alert(t('home.deleteEntryTitle'), t('home.entryKcal', { title: log.title, kcal: log.kcal }), [
@@ -65,7 +63,7 @@ export function LogDetailSheet({ log, onClose, onDelete }: LogDetailSheetProps) 
               {log.grams ? `${log.grams} ${log.unit ?? 'g'} · ` : ''}
               {t('home.entryKcalOnly', { kcal: log.kcal })}
             </Text>
-            {macroParts.length > 0 ? <Text style={styles.meta}>{macroParts.join(' · ')}</Text> : null}
+            {macroLine ? <Text style={styles.meta}>{macroLine}</Text> : null}
             <Text style={styles.meta}>
               {t('home.logSheetTime', { time: timeLabel })} · {t(SOURCE_LABEL[log.source] ?? 'home.sourceManual')}
             </Text>

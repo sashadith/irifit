@@ -6,8 +6,10 @@ import { GlassView } from '@/components/glass/GlassView';
 import { Chip } from '@/components/ui/Chip';
 import { WHEEL_ITEM_H, WheelPicker } from '@/components/ui/WheelPicker';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { macroShort } from '@/features/diary/macros';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { MealSlot } from '@/features/diary/useDiaryDay';
+import { slotForNow } from '@/features/diary/slot';
 import { FoodSource, logFood } from '@/features/food/foodData';
 import { FoodItem, nutrientsForAmount } from '@/features/food/off';
 import { t, TranslationKey } from '@/i18n';
@@ -20,13 +22,6 @@ const SLOT_LABELS: Record<MealSlot, TranslationKey> = {
   snack: 'home.slotSnack',
 };
 
-function defaultSlot(now = new Date()): MealSlot {
-  const minutes = now.getHours() * 60 + now.getMinutes();
-  if (minutes < 10.5 * 60) return 'breakfast';
-  if (minutes < 15 * 60) return 'lunch';
-  if (minutes < 21.5 * 60) return 'dinner';
-  return 'snack';
-}
 
 export interface FoodSheetProps {
   readonly item: FoodItem;
@@ -84,7 +79,7 @@ export function FoodSheet({
     nearestGramIndex(lastGrams ?? item.servingG ?? 100),
   );
   const [pieceIndex, setPieceIndex] = useState(0); // Stück beginnt bei 1
-  const [slot, setSlot] = useState<MealSlot>(presetSlot ?? defaultSlot());
+  const [slot, setSlot] = useState<MealSlot>(presetSlot ?? slotForNow());
   const [busy, setBusy] = useState(false);
 
   // Stück × Portionsgröße (falls bekannt, sonst 100 g) → Gramm für die Rechnung
@@ -148,9 +143,7 @@ export function FoodSheet({
         {t('food.per100', {
           unit: item.unit,
           kcal: item.kcal100,
-          protein: item.protein100,
-          carbs: item.carbs100,
-          fat: item.fat100,
+          macros: macroShort(item.carbs100, item.protein100, item.fat100),
         })}
       </Text>
 

@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { GlassView } from '@/components/glass/GlassView';
 import { SattScoreDots } from '@/components/recipes/SattScoreDots';
 import { GhostButton } from '@/components/ui/GhostButton';
+import { macroShort } from '@/features/diary/macros';
 import { RecipeListItem } from '@/features/recipes/recipesData';
 import { recipeSattScore, sattScore } from '@/features/recipes/sattScore';
 import { matchRecipes } from '@/features/scan/inventoryMatch';
@@ -153,9 +154,7 @@ export function InventoryResultView({ data, recipes, onRetake }: InventoryResult
             <Text style={styles.suggestionMacros}>
               {t('scan.inventorySuggestionMacros', {
                 kcal: Math.round(suggestion.kcal).toLocaleString('de-DE'),
-                protein: Math.round(suggestion.protein_g),
-                carbs: Math.round(suggestion.carbs_g),
-                fat: Math.round(suggestion.fat_g),
+                macros: macroShort(suggestion.carbs_g, suggestion.protein_g, suggestion.fat_g),
               })}
             </Text>
             <View style={styles.suggestionSatt}>

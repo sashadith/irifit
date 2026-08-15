@@ -12,8 +12,10 @@ import { SattScoreDots } from '@/components/recipes/SattScoreDots';
 import { Chip } from '@/components/ui/Chip';
 import { GhostButton } from '@/components/ui/GhostButton';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { macroShort } from '@/features/diary/macros';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { MealSlot } from '@/features/diary/useDiaryDay';
+import { slotForNow } from '@/features/diary/slot';
 import {
   fetchRecipeDetail,
   fetchRecipeFavoriteIds,
@@ -35,13 +37,6 @@ const SLOT_LABELS: Record<MealSlot, TranslationKey> = {
   snack: 'home.slotSnack',
 };
 
-function defaultSlot(now = new Date()): MealSlot {
-  const minutes = now.getHours() * 60 + now.getMinutes();
-  if (minutes < 10.5 * 60) return 'breakfast';
-  if (minutes < 15 * 60) return 'lunch';
-  if (minutes < 21.5 * 60) return 'dinner';
-  return 'snack';
-}
 
 /** "1. Schritt eins. 2. Schritt zwei." → nummerierte Einzelschritte */
 function splitSteps(instructions: string | null): string[] {
@@ -60,7 +55,7 @@ export default function RecipeDetailScreen() {
   const [loaded, setLoaded] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [portions, setPortions] = useState(1);
-  const [slot, setSlot] = useState<MealSlot>(defaultSlot());
+  const [slot, setSlot] = useState<MealSlot>(slotForNow());
   const [busy, setBusy] = useState(false);
   const [shoppingFeedback, setShoppingFeedback] = useState<number | null>(null);
 
@@ -197,11 +192,11 @@ export default function RecipeDetailScreen() {
         <Text style={[typography.displayLg, styles.title]}>{recipe.title}</Text>
         <Text style={styles.macroLine}>
           {recipe.kcal_per_serving} kcal {t('recipes.perServing')} ·{' '}
-          {t('recipes.macroShort', {
-            protein: Math.round(recipe.protein_per_serving_g ?? 0),
-            carbs: Math.round(recipe.carbs_per_serving_g ?? 0),
-            fat: Math.round(recipe.fat_per_serving_g ?? 0),
-          })}
+          {macroShort(
+            recipe.carbs_per_serving_g ?? 0,
+            recipe.protein_per_serving_g ?? 0,
+            recipe.fat_per_serving_g ?? 0,
+          )}
         </Text>
         <View style={styles.sattRow}>
           <SattScoreDots score={satt} withLabel size={7} />
