@@ -7,6 +7,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -132,17 +133,27 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  /* Generationszaehler: Beim Legacy-Login laufen zwei Abfragen gegeneinander —
+     dieser Effekt (startet, sobald die Sitzung im Zustand landet) und
+     refreshLegacy() nach dem Anspruch. Ohne Zaehler kann die aeltere, noch
+     leere Antwort die juengere ueberschreiben. Es gewinnt immer die letzte. */
+  const legacyGen = useRef(0);
+  const ladeLegacy = useCallback(async (userId: string) => {
+    const gen = ++legacyGen.current;
+    const l = await fetchMyLegacyAccess(userId).catch(() => null);
+    if (gen === legacyGen.current) setLegacy(l);
+  }, []);
+
   useEffect(() => {
     if (!session) return;
     let cancelled = false;
     Promise.all([
       ensureProfile(session.user.id),
-      fetchMyLegacyAccess(session.user.id).catch(() => null),
+      ladeLegacy(session.user.id),
     ])
-      .then(([p, l]) => {
+      .then(([p]) => {
         if (cancelled) return;
         setProfile(p);
-        setLegacy(l);
       })
       .catch((e) => console.warn('Profil laden fehlgeschlagen', e))
       .finally(() => {
@@ -153,17 +164,30 @@ export function AuthProvider({ children }: PropsWithChildren) {
     };
   }, [session?.user.id]);
 
+  /**
+   * Beide Auffrischer holen die Nutzer-ID vom Supabase-Client statt aus dem
+   * React-Zustand. Grund (Sascha 16.08., Legacy-Login getestet): Nach
+   * verifyOtp() steht die Sitzung sofort im Client, aber `session` hier erst
+   * nach dem naechsten Render. Der Login-Screen rief refreshLegacy() aus einer
+   * Closure auf, in der session noch null war — die Funktion stieg still aus,
+   * `legacy` blieb null und /legacy warf die Kaeuferin zurueck auf den
+   * Willkommensbildschirm, obwohl der Anspruch serverseitig laengst stand.
+   * Leere Abhaengigkeitsliste: die Funktionen sind damit stabil und koennen
+   * gar keine veraltete Sitzung mehr sehen.
+   */
   const refreshProfile = useCallback(async () => {
-    if (!session) return;
-    const p = await ensureProfile(session.user.id);
-    setProfile(p);
-  }, [session?.user.id]);
+    const { data } = await supabase.auth.getSession();
+    const userId = data.session?.user.id;
+    if (!userId) return;
+    setProfile(await ensureProfile(userId));
+  }, []);
 
   const refreshLegacy = useCallback(async () => {
-    if (!session) return;
-    const l = await fetchMyLegacyAccess(session.user.id).catch(() => null);
-    setLegacy(l);
-  }, [session?.user.id]);
+    const { data } = await supabase.auth.getSession();
+    const userId = data.session?.user.id;
+    if (!userId) return;
+    await ladeLegacy(userId);
+  }, [ladeLegacy]);
 
   const completeOnboarding = useCallback(async () => {
     if (!session) return;
