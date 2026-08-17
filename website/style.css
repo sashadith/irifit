@@ -78,7 +78,13 @@ header.nav{position:sticky; top:0; z-index:50; backdrop-filter:blur(18px) satura
 /* Sektionen */
 /* scroll-margin: sonst schiebt die klebende Kopfleiste beim Ankersprung
    die erste Zeile der Sektion unter sich */
-section{padding:56px 0; scroll-margin-top:76px}
+section{padding:56px 0}
+/* scroll-margin fuer JEDES Sprungziel, nicht nur fuer <section>: der Knopf
+   "App laden" zeigt auf #laden an den Store-Badges — die verschwanden beim
+   Sprung komplett hinter der klebenden Kopfleiste (Befund Sascha 15.08.).
+   Bei #laden etwas grosszuegiger, damit die Badges samt Hinweiszeile stehen. */
+section, [id]{scroll-margin-top:76px}
+#laden{scroll-margin-top:118px}
 .section-head{text-align:center; max-width:640px; margin:0 auto 34px}
 .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:20px}
 .grid-2{display:grid; grid-template-columns:repeat(2,1fr); gap:20px}
@@ -142,6 +148,41 @@ footer{padding:44px 0 34px; border-top:1px solid rgba(120,90,105,.12); margin-to
 @media(max-width:640px){.legal .card{padding:26px 22px}}
 .back{display:inline-flex; align-items:center; gap:7px; font-weight:700; font-size:14.5px; margin-bottom:18px}
 
+/* Stimmen — Spalten von Hand statt column-count.
+   Zwei Anlaeufe mit CSS-Spalten sind in Safari gescheitert: mal riss es Loecher,
+   mal starteten die Spalten auf unterschiedlicher Hoehe (Sascha 15.08., zweimal
+   per Screenshot belegt). Der Fragmentierungsalgorithmus ist dort schlicht nicht
+   verlaesslich. Drei feste Spalten mit je drei Karten rechnet kein Browser aus,
+   die stehen ueberall gleich. Die Zuordnung im HTML ist nach Textlaenge sortiert,
+   damit die Spalten unten etwa gleich enden.
+   Schmale Schirme: display:contents loest die Spalten auf, dann liegen die neun
+   Karten direkt im Raster und fliessen sauber in zwei bzw. eine Spalte. */
+.voices{display:flex; gap:20px; align-items:flex-start; margin-top:34px}
+.vcol{flex:1 1 0; min-width:0; display:flex; flex-direction:column; gap:20px}
+.voice{margin:0; padding:26px 28px 22px;
+  backdrop-filter:none; -webkit-backdrop-filter:none;
+  background:rgba(255,255,255,.78)}
+@media(max-width:900px){
+  .voices{display:grid; grid-template-columns:repeat(2,1fr); align-items:start}
+  .vcol{display:contents}
+}
+@media(max-width:620px){.voices{grid-template-columns:1fr}}
+/* Verlaufsstrich aus der Wortmarke statt Anfuehrungszeichen. Zwei Versuche
+   davor: absolut positioniert landete das „ mitten im Text, und als eigene
+   Zeile blieb es winzig — Antic Didone setzt Anfuehrungszeichen sehr klein. */
+.voice .mark{display:block; width:34px; height:3px; border-radius:2px;
+  background:linear-gradient(90deg,var(--tint),var(--tint-deep)); margin-bottom:18px}
+.voice blockquote{margin:0 0 16px; font-size:15.5px; color:#3a3a42}
+.voice .meta{display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  border-top:1px solid rgba(120,90,105,.12); padding-top:14px}
+.voice .who{font-size:12.5px; font-weight:600; color:var(--muted)}
+.kg{display:inline-flex; align-items:center; gap:6px; padding:5px 13px; border-radius:999px;
+  background:linear-gradient(135deg,rgba(232,127,156,.2),rgba(210,85,120,.12));
+  border:1px solid rgba(210,85,120,.2); color:var(--tint-deep);
+  font-size:12.5px; font-weight:700; white-space:nowrap}
+.voices-note{text-align:center; font-size:12.5px; color:var(--muted2);
+  max-width:640px; margin:30px auto 0; line-height:1.55}
+
 /* Screenshot-Galerie */
 .shots{display:grid; grid-template-columns:repeat(4,1fr); gap:22px; justify-items:center}
 .shots figure{margin:0; text-align:center}
@@ -153,3 +194,38 @@ footer{padding:44px 0 34px; border-top:1px solid rgba(120,90,105,.12); margin-to
   .shots img{max-width:200px}
 }
 @media(max-width:420px){.shots{grid-template-columns:1fr}}
+
+/* Standlinie unter Irinas Freistellern (Sascha 15.08.): ein duenner Strich in
+   den Markenfarben, der nach aussen ausblendet. Die Beine sind unten hart
+   beschnitten — die Linie gibt ihnen einen Boden, statt sie abbrechen zu lassen.
+   inline-block, damit sich der Rahmen exakt auf die gerenderte Bildbreite zieht;
+   feste Pixelwerte je Breakpoint waeren bei srcset sofort falsch. */
+.photo-strip{position:relative; display:inline-block; line-height:0; max-width:100%}
+/* Nicht ueber die volle Bildbreite: der Freisteller hat links und rechts
+   transparenten Rand, ein Strich ueber die ganze Box haengt neben ihr in der
+   Luft. 8 % Einzug je Seite, und er sitzt buendig auf der Unterkante (Sascha 15.08.). */
+.photo-strip::after{
+  content:''; position:absolute; left:8%; right:8%; bottom:0; height:1.5px; border-radius:2px;
+  background:linear-gradient(90deg, rgba(232,127,156,0) 0%, rgba(232,127,156,.9) 18%,
+    var(--tint-deep) 50%, rgba(232,127,156,.9) 82%, rgba(232,127,156,0) 100%);
+  pointer-events:none;
+}
+
+/* Einblenden beim Scrollen (Sascha 15.08.).
+   Die Klasse .reveal setzt NUR das Skript — ohne JavaScript bleibt die Seite
+   sichtbar statt leer. Wer im System "Bewegung reduzieren" gesetzt hat,
+   bekommt gar keine Animation; bei einer Abnehm-App sitzen genug Nutzerinnen
+   mit Migraene oder Schwindel, das ist keine Kosmetik. */
+@media (prefers-reduced-motion: no-preference){
+  .reveal{opacity:0; transform:translateY(20px);
+    transition:opacity .75s cubic-bezier(.22,.61,.36,1), transform .75s cubic-bezier(.22,.61,.36,1)}
+  .reveal.in{opacity:1; transform:none}
+  /* Bilder kommen etwas tiefer und minimal kleiner herein */
+  .reveal-img{opacity:0; transform:translateY(26px) scale(.97);
+    transition:opacity .85s cubic-bezier(.22,.61,.36,1), transform .85s cubic-bezier(.22,.61,.36,1)}
+  .reveal-img.in{opacity:1; transform:none}
+  /* Auf dem Handy kuerzere Wege, sonst wirkt es zaeh */
+  @media(max-width:620px){
+    .reveal{transform:translateY(12px)} .reveal-img{transform:translateY(16px) scale(.985)}
+  }
+}

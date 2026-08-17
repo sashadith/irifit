@@ -14,7 +14,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Antic+Didone&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/style.css?v=2026081303">
+<link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/style.css?v=2026081507">
 </head>
 <body>
 
@@ -25,10 +29,11 @@
       <a href="#app">Die App</a>
       <a href="#screens">Screenshots</a>
       <a href="#kurse">Kurse</a>
+      <a href="#stimmen">Stimmen</a>
       <a href="#irina">Über Irina</a>
       <a href="#faq">Fragen</a>
     </nav>
-    <a href="#laden" class="btn btn-primary" style="padding:11px 22px; font-size:14px">App laden</a>
+    <a href="#start" class="btn btn-primary" style="padding:11px 22px; font-size:14px">App laden</a>
   </div>
 </header>
 
@@ -60,8 +65,8 @@
         </p>
       </div>
       <div class="hero-photo">
-        <img src="/img/iri-1.webp" srcset="/img/iri-1@small.webp 450w, /img/iri-1.webp 900w"
-             sizes="(max-width:860px) 290px, 430px" alt="Irina Dith" width="900" height="1350" fetchpriority="high">
+        <span class="photo-strip"><img src="/img/iri-1.webp" srcset="/img/iri-1@small.webp 450w, /img/iri-1.webp 900w"
+             sizes="(max-width:860px) 290px, 430px" alt="Irina Dith" width="900" height="1350" fetchpriority="high"></span>
       </div>
     </div>
   </section>
@@ -69,7 +74,7 @@
   <!-- Zahlen -->
   <section style="padding-top:20px">
     <div class="card stats">
-      <div class="stat"><b>150.000+</b><span>Frauen folgen Irina</span></div>
+      <div class="stat"><b>250.000+</b><span>Frauen folgen Irina</span></div>
       <div class="stat"><b>150+</b><span>Rezepte in der App</span></div>
       <div class="stat"><b>5</b><span>Kursmodule &amp; Workouts</span></div>
     </div>
@@ -146,13 +151,112 @@
     </div>
   </section>
 
+  <!-- Stimmen — echte Rückmeldungen aus den Kursen 2023/2024.
+       Bewusst nur Text: keine Namen, keine Gesichter, keine Körperfotos.
+       Die Originale liegen bei Irina, Rechtschreibung leicht geglättet. -->
+  <section id="stimmen">
+    <div class="section-head">
+      <div class="eyebrow">Stimmen</div>
+      <h2>Was Frauen nach dem Kurs schreiben</h2>
+      <p style="color:var(--muted)">Nachrichten aus den Kursen 2023, 2024 und 2025, ungefiltert und nur gekürzt.</p>
+    </div>
+
+    <!-- Nur EINE Zahl: Kursmodule und Rezepte stehen schon in der
+         Statistik-Karte oben, doppelt wirkt es wie Fuellmaterial. -->
+    <div class="stat" style="text-align:center; margin:-6px 0 4px">
+      <b>2.100+</b><span>Frauen haben den Kurs seit 2023 gemacht</span>
+    </div>
+
+    <div class="voices">
+      <div class="vcol">
+        <figure class="card voice">
+        <span class="mark" aria-hidden="true"></span>
+        <blockquote>Ich habe so ein tolles Körpergefühl, und das mit so viel Essen. Ich war immer skeptisch und dachte: naja, wenn ich zwei Kilo abnehme, wäre das schon was. Und nach vier Wochen sind es einfach schon 5,6 kg. Wovor ich Angst hatte, Lust auf Süßes oder die ‚Fressattacken‘, gibt es nicht, weil ich einfach satt bin!</blockquote>
+        <figcaption class="meta">
+          <span class="kg">−5,6 kg in 4 Wochen</span>
+          <span class="who">Teilnehmerin • 2024</span>
+        </figcaption>
+        </figure>
+        <figure class="card voice">
+        <span class="mark" aria-hidden="true"></span>
+        <blockquote>Ich habe mich so viel besser gefühlt, viel leichter und gesünder, als ich nach deinem Programm gelebt habe. Ich bin so glücklich, dass ich es genommen habe, und fange nach dem Wochenende wieder an. Ich habe es jetzt ja verstanden, weil du das echt so gut erklärt hast.</blockquote>
+        <figcaption class="meta">
+          <span class="who">Teilnehmerin • 2025</span>
+        </figcaption>
+        </figure>
+        <figure class="card voice">
+        <span class="mark" aria-hidden="true"></span>
+        <blockquote>Im Mai wog ich 82 kg, jetzt bin ich bei 65 bis 66 kg und esse immer noch 1.800 Kalorien. Ich möchte eigentlich runter auf 1.600, aber ich esse einfach viel zu gerne.</blockquote>
+        <figcaption class="meta">
+          <span class="kg">82 → 65 kg</span>
+          <span class="who">Teilnehmerin • 2024</span>
+        </figcaption>
+        </figure>
+      </div>
+      <div class="vcol">
+        <figure class="card voice">
+        <span class="mark" aria-hidden="true"></span>
+        <blockquote>Ich bin seit bestimmt 17 Jahren immer mal wieder auf Diät. Pillen, Tees, Pulver, Shakes, sogar Diäten, die von Ärzten konzipiert wurden. Immer musste ich verzichten, war gefrustet, und am Ende war natürlich der Jo-Jo-Effekt da. Zum ersten Mal hat eine „Diät" richtig Spaß gemacht. Ich sitze abends tanzend und glücklich vor meinem Essen und weiß, dass ich mir danach noch ein Eis gönnen kann und trotzdem abnehme.</blockquote>
+        <figcaption class="meta">
+          <span class="who">Teilnehmerin • 2023</span>
+        </figcaption>
+        </figure>
+        <figure class="card voice">
+        <span class="mark" aria-hidden="true"></span>
+        <blockquote>Ich habe sehr viel lernen können. Du bist so toll und authentisch, du bist echt! Ich bin zwar noch nicht an meinem Ziel, aber ich werde dranbleiben. Jetzt weiß ich ja dank dir, wie es läuft.</blockquote>
+        <figcaption class="meta">
+          <span class="who">Teilnehmerin • 2024</span>
+        </figcaption>
+        </figure>
+        <figure class="card voice">
+        <span class="mark" aria-hidden="true"></span>
+        <blockquote>Ich bin so glücklich, diesen Weg mit dir gegangen zu sein. Meine restlichen 3 kg zum Wunschgewicht greife ich nach Ostern an. Ich hatte ja die beste Lehrerin und weiß, wie es jetzt geht.</blockquote>
+        <figcaption class="meta">
+          <span class="who">Teilnehmerin • 2025</span>
+        </figcaption>
+        </figure>
+      </div>
+      <div class="vcol">
+        <figure class="card voice">
+        <span class="mark" aria-hidden="true"></span>
+        <blockquote>Dank dir esse ich nicht nur bewusster, sondern habe nach 15 Jahren Pause die Freude an der Bewegung wiedergefunden. Ich liebe das Walken, es ist fast zu einer Sucht geworden, und ich bin ein wenig traurig, wenn es mal nur 10.000 Schritte werden. Ich spiele auch wieder Beachvolleyball, nach 15 Jahren — einfach weil ich mich wieder wohler in meinem Körper fühle.</blockquote>
+        <figcaption class="meta">
+          <span class="who">Teilnehmerin • 2023</span>
+        </figcaption>
+        </figure>
+        <figure class="card voice">
+        <span class="mark" aria-hidden="true"></span>
+        <blockquote>Es hat viel Spaß gemacht und mich endlich wieder zur fitten Lisa zurückgebracht. Zugenommen hatte ich nur in der Schwangerschaft, aber satte 30 kg. Jetzt ist die Maus 14 Monate alt und es ist alles weg. Wohlfühlfaktor um 100 % gestiegen!</blockquote>
+        <figcaption class="meta">
+          <span class="kg">30 kg wieder runter</span>
+          <span class="who">Teilnehmerin • 2025</span>
+        </figcaption>
+        </figure>
+        <figure class="card voice">
+        <span class="mark" aria-hidden="true"></span>
+        <blockquote>Wahnsinn, das Ergebnis, ich bin so glücklich darüber! Und das, obwohl ich gesundheitlich zweimal angeschlagen war. Das Programm ist jeden Cent wert, und man lernt sich und seinen Körper neu kennen und weiß, was er braucht.</blockquote>
+        <figcaption class="meta">
+          <span class="kg">63,8 → 59,3 kg</span>
+          <span class="who">Teilnehmerin • 2023</span>
+        </figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <p class="voices-note">
+      Echte Nachrichten von Kursteilnehmerinnen, auf ihren Wunsch ohne Namen und ohne Fotos
+      veröffentlicht. Es sind Einzelergebnisse: Wie schnell du abnimmst, hängt von deinem
+      Startgewicht, deinem Alltag und deiner Konsequenz ab.
+    </p>
+  </section>
+
   <!-- Über Irina -->
   <section id="irina">
     <div class="card" style="padding:40px">
       <div class="about">
         <div class="about-photo">
-          <img src="/img/iri-4.webp" srcset="/img/iri-4@small.webp 450w, /img/iri-4.webp 900w"
-               sizes="(max-width:860px) 250px, 360px" alt="Irina Dith" width="900" height="1350" loading="lazy">
+          <span class="photo-strip"><img src="/img/iri-4.webp?v=2" srcset="/img/iri-4@small.webp?v=2 450w, /img/iri-4.webp?v=2 900w"
+               sizes="(max-width:860px) 250px, 360px" alt="Irina Dith" width="900" height="1352" loading="lazy"></span>
         </div>
         <div>
           <div class="eyebrow">Über Irina</div>
@@ -209,7 +313,7 @@
   </section>
 
   <!-- CTA -->
-  <section>
+  <section id="start">
     <div class="cta">
       <h2>Starte deinen Weg — heute</h2>
       <p style="color:var(--muted); max-width:520px; margin:0 auto 26px">
@@ -230,7 +334,7 @@
 
   <footer>
     <div class="foot">
-      <div>© 2026 SecretBrand Solutions LTD · IriFit</div>
+      <div>© 2026 Irina Dith · Created with ♥︎ by SecretBrand Solutions LTD</div>
       <div class="foot-links">
         <a href="/datenschutz.html">Datenschutz</a>
         <a href="/agb.html">AGB</a>
@@ -241,5 +345,97 @@
   </footer>
 
 </div>
+
+<script>
+/* IriFit Web — Sprungziele, Einblendungen, Zahlen-Ticker.
+   Bewusst ohne Bibliothek: ~60 Zeilen, kein Ladebalken vor dem ersten Bild. */
+(function () {
+  var ruhig = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* 1) Ankersprung selbst rechnen.
+     Safari sprang beim Klick auf "App laden" eine Sektion zu frueh (Befund
+     Sascha 15.08.): Es bestimmt die Zielposition, bevor Bilder und Schriften
+     die Seite fertig aufgebaut haben. Beim Klick ist die Hoehe bekannt. */
+  function ziel(el, id) {
+    var kopf = document.querySelector('header.nav');
+    var abstand = (kopf ? kopf.offsetHeight : 66) + (id === 'start' ? 26 : 12);
+    return el.getBoundingClientRect().top + window.pageYOffset - abstand;
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (!a) return;
+    var id = a.getAttribute('href').slice(1);
+    if (!id) return;
+    var el = document.getElementById(id);
+    if (!el) return;
+    e.preventDefault();
+    window.scrollTo({ top: ziel(el, id), behavior: ruhig ? 'auto' : 'smooth' });
+    history.replaceState(null, '', '#' + id);
+  });
+  // Direktaufruf mit #anker: nach dem Laden nachkorrigieren
+  window.addEventListener('load', function () {
+    var id = location.hash.slice(1);
+    if (!id) return;
+    var el = document.getElementById(id);
+    if (el) window.scrollTo({ top: ziel(el, id), behavior: 'auto' });
+  });
+
+  if (ruhig) return;
+
+  /* 2) Einblenden beim Scrollen, gruppenweise versetzt */
+  var gruppen = [
+    ['.section-head', 'reveal'],
+    ['.stats .stat', 'reveal'],
+    ['.grid-3 .card', 'reveal'],
+    ['.grid-2 .card', 'reveal'],
+    ['.shots figure', 'reveal-img'],
+    ['.vcol .voice', 'reveal'],
+    ['#irina .card', 'reveal'],
+    ['details', 'reveal'],
+    ['.cta', 'reveal']
+  ];
+  var beobachter = new IntersectionObserver(function (eintraege) {
+    eintraege.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add('in');
+      beobachter.unobserve(e.target);
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+
+  gruppen.forEach(function (g) {
+    document.querySelectorAll(g[0]).forEach(function (el, i) {
+      el.classList.add(g[1]);
+      el.style.transitionDelay = Math.min(i, 5) * 80 + 'ms';
+      beobachter.observe(el);
+    });
+  });
+
+  /* 3) Zahlen zaehlen hoch — passt zu einer App, die mitzaehlt */
+  function ticker(el) {
+    var m = el.textContent.trim().match(/^(\D*)([\d.]+)(.*)$/);
+    if (!m) return;
+    var ziel = parseInt(m[2].replace(/\./g, ''), 10);
+    // Kleine Zahlen nicht hochzaehlen: bei der 5 sieht man 0,1,2,3,4,5 und denkt an einen Fehler
+    if (!ziel || ziel < 20 || ziel > 9999999) return;
+    var start = null, dauer = 1100;
+    function schritt(t) {
+      if (start === null) start = t;
+      var p = Math.min((t - start) / dauer, 1);
+      var e = 1 - Math.pow(1 - p, 3);                 // sanft auslaufend
+      el.textContent = m[1] + Math.round(ziel * e).toLocaleString('de-DE') + m[3];
+      if (p < 1) requestAnimationFrame(schritt);
+    }
+    requestAnimationFrame(schritt);
+  }
+  var zahlen = new IntersectionObserver(function (eintraege) {
+    eintraege.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      ticker(e.target);
+      zahlen.unobserve(e.target);
+    });
+  }, { threshold: 0.6 });
+  document.querySelectorAll('.stat b').forEach(function (el) { zahlen.observe(el); });
+})();
+</script>
 </body>
 </html>
