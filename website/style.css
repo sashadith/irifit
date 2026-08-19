@@ -229,3 +229,31 @@ footer{padding:44px 0 34px; border-top:1px solid rgba(120,90,105,.12); margin-to
     .reveal{transform:translateY(12px)} .reveal-img{transform:translateY(16px) scale(.985)}
   }
 }
+
+/* Kontaktformular */
+.kontakt{max-width:620px; margin:0 auto; padding:32px}
+.kontakt .feld{margin-bottom:16px}
+.kontakt label{display:block; font-size:12px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); margin-bottom:7px}
+/* Rand bewusst NICHT --stroke: das ist weiss und verschwindet auf der
+   weissen Karte spurlos. Ein warmes Grau zeichnet die Felder ab, ohne den
+   weichen Eindruck der Seite zu brechen. */
+.kontakt input, .kontakt textarea{
+  width:100%; font-family:var(--body); font-size:15.5px; color:var(--ink);
+  background:rgba(255,255,255,.92); border:1px solid rgba(120,90,105,.18);
+  border-radius:14px; padding:13px 15px; outline:none;
+  box-shadow:inset 0 1px 2px rgba(120,90,105,.05);
+  transition:border-color .18s, box-shadow .18s}
+.kontakt input::placeholder, .kontakt textarea::placeholder{color:var(--muted2)}
+.kontakt textarea{resize:vertical; min-height:130px; line-height:1.55}
+.kontakt input:focus, .kontakt textarea:focus{
+  border-color:var(--tint); box-shadow:0 0 0 3px rgba(232,127,156,.16)}
+.kontakt button{width:100%; justify-content:center; margin-top:4px}
+/* Honigtopf: nicht display:none — manche Skripte ueberspringen versteckte
+   Felder. So steht es ausserhalb des Bildes, wird aber mit ausgefuellt. */
+.honig{position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden}
+.kontakt-hinweis{margin:14px 0 0; font-size:14.5px; font-weight:600; color:var(--muted)}
+.kontakt-hinweis.ok{color:#2E7D5B}
+.kontakt-hinweis.fehler{color:var(--tint-deep)}
+.kontakt-klein{margin:16px 0 0; font-size:12.5px; color:var(--muted2); line-height:1.5}
+@media(max-width:520px){.kontakt{padding:24px 20px}}

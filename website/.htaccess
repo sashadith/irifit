@@ -18,3 +18,15 @@
     Header set Cache-Control "public, max-age=2592000"
   </FilesMatch>
 </IfModule>
+
+# Zugangsdaten des Mailversands: PHP fuehrt die Datei ohnehin aus statt sie
+# auszuliefern — diese Regel ist die zweite Sicherung, falls PHP je ausfaellt
+# und der Server die Datei dann als Text ausgeben wuerde.
+<Files "smtp-config.php">
+  Require all denied
+</Files>
+
+# Die PHPMailer-Bibliothek wird nur eingebunden, nie direkt aufgerufen
+<FilesMatch "^(PHPMailer|SMTP|Exception)\.php$">
+  Require all denied
+</FilesMatch>
