@@ -15,6 +15,7 @@ const LINKS = [
   { href: '/qa', label: 'Q&A' },
   { href: '/gutscheine', label: 'Gutscheine' },
   { href: '/nutzerinnen', label: 'Nutzerinnen' },
+  { href: '/analyse', label: 'Analyse' },
 ];
 
 /** Wortmarke FINAL (IRI-Branding.html, 22.07.): Antic Didone, „Iri" Rosé + „Fit" Slogan-Grau */
