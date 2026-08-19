@@ -4,7 +4,13 @@
 // Regeln: Ruhezeiten aus gelerntem Rhythmus (Fallback 21–9 Uhr lokal),
 // max. 1 Push je Art und Tag (push_log-Unique), Deep-Link in jedem Push,
 // Irinas Ton (per Du, kein Druck). Secrets: CRON_SECRET.
+//
+// Seit 17.08. (Punkt 14) meldet derselbe Lauf neue Q&A-Fragen per Telegram an
+// Irina — der Job laeuft ohnehin alle 15 Minuten, das spart einen zweiten
+// Cron-Job und einen zweiten HTTP-Endpunkt.
 import { createClient, SupabaseClient } from 'npm:@supabase/supabase-js@2';
+
+import { escapeHtml, notifyTelegram } from '../_shared/telegram.ts';
 
 interface ProfileRow {
   id: string;
@@ -139,6 +145,38 @@ Deno.serve(async (req: Request) => {
     return new Response('unauthorized', { status: 401, headers: CORS });
   }
 
+  /* ── Telegram: neue Frage im Q&A ────────────────────────────────────────
+     Steht VOR dem Laden der Push-Tokens. Weiter unten steigt die Funktion aus,
+     wenn niemand ein Gerät registriert hat — die Meldung an Irina haengt aber
+     nicht daran, ob Nutzerinnen Push erlaubt haben.
+     Der Fragetext geht mit: Er stammt von einer Nutzerin, ist aber genau das,
+     was Irina braucht, um zu entscheiden, ob sie sofort antwortet. Gekuerzt auf
+     200 Zeichen, ohne Name und ohne ID. */
+  const dreiTage = new Date(Date.now() - 3 * 86400e3).toISOString();
+  const { data: neueFragen } = await admin
+    .from('questions')
+    .select('id, body')
+    .eq('status', 'new')
+    .is('telegram_sent_at', null)
+    .gte('created_at', dreiTage)
+    .order('created_at', { ascending: true })
+    .limit(5);
+  for (const q of neueFragen ?? []) {
+    const kurz = q.body.length > 200 ? `${q.body.slice(0, 197)}…` : q.body;
+    const { ok } = await notifyTelegram(`💬 <b>Neue Frage</b>\n\n<i>${escapeHtml(kurz)}</i>`);
+    // Nur abhaken, wenn die Meldung wirklich raus ist. Ist der Bot nicht
+    // eingerichtet, kostet der Versuch keine Netzanfrage — notifyTelegram
+    // steigt vorher aus. Die Frage bleibt also offen und wird gemeldet, sobald
+    // die Secrets stehen. Gegen Endlosversuche bei einem dauerhaft kaputten Bot
+    // schuetzt das Fenster von drei Tagen oben.
+    if (ok) {
+      await admin
+        .from('questions')
+        .update({ telegram_sent_at: new Date().toISOString() })
+        .eq('id', q.id);
+    }
+  }
+
   // Alle Nutzerinnen mit registrierten Geräten + Präferenzen laden
   const { data: tokens } = await admin.from('push_tokens').select('token, user_id');
   if (!tokens?.length) return Response.json({ ok: true, sent: 0 }, { headers: CORS });
@@ -249,6 +287,34 @@ Deno.serve(async (req: Request) => {
       data: { route: 'manage-subscription' },
       userId: s.user_id,
       kind: 'trial',
+    });
+  }
+
+  // ── 3b) Gratismonat (Gutschein) endet morgen (Sascha 17.08.) ─────────────
+  // Gutschein-Zugaenge stehen auf 'active' mit product_id 'voucher' und
+  // fielen durch die Trial-Abfrage oben. Anders als beim Trial wird hier
+  // nichts abgebucht — der Push ist keine Warnung, sondern die zweite
+  // Verkaufschance. Ziel ist /renew, der Verlaengerungsbildschirm.
+  const { data: voucherEnds } = await admin
+    .from('subscriptions')
+    .select('user_id, current_period_end')
+    .eq('status', 'active')
+    .eq('product_id', 'voucher')
+    .gte('current_period_end', in18h)
+    .lte('current_period_end', in42h)
+    .in('user_id', userIds);
+  for (const s of voucherEnds ?? []) {
+    const p = profileById.get(s.user_id);
+    if (!p) continue;
+    const { hour } = localNow(p.timezone);
+    if (hour >= 21 || hour < 9) continue;
+    queue.push({
+      to: tokensByUser.get(s.user_id)!,
+      title: 'Dein Gratismonat endet morgen',
+      body: 'Schön, dass du dabei warst! Wenn du bleiben willst: Ein Tap genügt — Rezepte, Kurs und Trainings laufen einfach weiter.',
+      data: { route: '/renew' },
+      userId: s.user_id,
+      kind: 'voucher_end',
     });
   }
 

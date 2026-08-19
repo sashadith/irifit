@@ -6,8 +6,76 @@
 // RevenueCat besitzt kein Supabase-JWT).
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
+import { notifyTelegram } from '../_shared/telegram.ts';
+
 const ENTITLEMENT = 'pro';
 const PRODUCTS = ['irifit_monthly', 'irifit_yearly'];
+
+const PRODUKT_NAME: Record<string, string> = {
+  irifit_yearly: 'Jahresabo',
+  irifit_monthly: 'Monatsabo',
+  voucher: 'Gutschein',
+};
+
+function produktName(productId: string | null | undefined): string {
+  return PRODUKT_NAME[productId ?? ''] ?? 'Abo';
+}
+
+function datumKurz(iso: string | null): string | null {
+  if (!iso) return null;
+  return new Date(iso).toLocaleDateString('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'Europe/Berlin',
+  });
+}
+
+/**
+ * Meldung fuer den Telegram-Chat — oder null, wenn das Ereignis keine wert ist.
+ *
+ * Bewusst still: die normale Verlaengerung. Bei 200 Abos waeren das 200
+ * Nachrichten im Monat, die niemand mehr liest — und dann geht die Kuendigung
+ * darin unter. Verlaengerungen stehen im Tagesbericht.
+ *
+ * Der Uebergang Test → zahlend bekommt eine eigene Meldung: Das ist die Zahl,
+ * an der sich entscheidet, ob die Preise stimmen.
+ */
+function meldung(
+  event: RcEvent,
+  neuerStatus: string,
+  vorherStatus: string | null,
+): string | null {
+  const produkt = produktName(event.product_id);
+  const bis = datumKurz(event.expiration_at_ms ? new Date(event.expiration_at_ms).toISOString() : null);
+  const trial = event.period_type === 'TRIAL';
+
+  switch (event.type) {
+    case 'INITIAL_PURCHASE':
+      return trial
+        ? `🎉 <b>Neuer Test</b> — ${produkt}${bis ? `, Test endet ${bis}` : ''}`
+        : `🎉 <b>Neues ${produkt}</b>${bis ? `, läuft bis ${bis}` : ''}`;
+    case 'RENEWAL':
+      if (vorherStatus === 'trialing' && !trial) {
+        return `💚 <b>Aus Test wurde Abo</b> — ${produkt}${bis ? `, bis ${bis}` : ''}`;
+      }
+      return null;
+    case 'PRODUCT_CHANGE':
+      return `🔁 <b>Tarifwechsel</b> zu ${produkt}${bis ? `, bis ${bis}` : ''}`;
+    case 'CANCELLATION':
+      return `🔕 <b>Kündigung</b> — ${produkt}${bis ? `, Zugang bleibt bis ${bis}` : ''}`;
+    case 'UNCANCELLATION':
+      return `↩️ <b>Kündigung zurückgenommen</b> — ${produkt}`;
+    case 'BILLING_ISSUE':
+      return `⚠️ <b>Zahlungsproblem</b> — ${produkt}${bis ? `, Kulanz bis ${bis}` : ''}`;
+    case 'SUBSCRIPTION_PAUSED':
+      return `⏸ <b>Abo pausiert</b> — ${produkt}`;
+    case 'EXPIRATION':
+      return `➖ <b>Abo abgelaufen</b> — ${produkt}`;
+    default:
+      return null;
+  }
+}
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -98,6 +166,14 @@ Deno.serve(async (req: Request) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
+  // Status VOR dem Upsert lesen: nur so laesst sich der Uebergang
+  // Test → zahlend erkennen, und der ist die wichtigste Meldung von allen.
+  const { data: vorher } = await admin
+    .from('subscriptions')
+    .select('status')
+    .eq('user_id', userId)
+    .maybeSingle();
+
   const { error } = await admin.from('subscriptions').upsert(
     {
       user_id: userId,
@@ -112,6 +188,24 @@ Deno.serve(async (req: Request) => {
     { onConflict: 'user_id' },
   );
   if (error) return json({ error: 'upsert_failed' }, 500);
+
+  /* Telegram-Meldung (Punkt 14). Steht NACH dem Upsert und ausserhalb der
+     Fehlerbehandlung: Ein stummer Bot darf einen bestaetigten Kauf nicht
+     ungueltig machen. Scheitert der Versand, steht das im Function-Log. */
+  const text = meldung(event, mapped.status, vorher?.status ?? null);
+  if (text) {
+    const { count } = await admin
+      .from('subscriptions')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['trialing', 'active', 'in_grace']);
+    const { count: imTest } = await admin
+      .from('subscriptions')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'trialing');
+    await notifyTelegram(
+      `${text}\n\nJetzt <b>${count ?? 0}</b> mit Zugang, davon ${imTest ?? 0} im Test.`,
+    );
+  }
 
   return json({ ok: true, type: event.type, status: mapped.status });
 });

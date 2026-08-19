@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { Voucher } from '@/lib/types';
@@ -8,6 +8,15 @@ import { Voucher } from '@/lib/types';
 interface RedemptionInfo {
   count: number;
   last: string | null;
+}
+
+/** Eine Zeile aus stats_voucher_redemptions (E-Mail kommt aus auth.users) */
+interface RedemptionDetail {
+  email: string;
+  name: string | null;
+  eingeloest: string;
+  zugang_bis: string | null;
+  noch_aktiv: boolean;
 }
 
 const EMPTY_FORM = {
@@ -25,6 +34,10 @@ export default function GutscheinePage() {
   const [showForm, setShowForm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
+  // Aufgeklappter Gutschein + geladene Einlösungen (Sascha 17.08.).
+  // null im Cache = Abfrage läuft noch.
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [details, setDetails] = useState<Record<string, RedemptionDetail[] | null>>({});
 
   const load = useCallback(async () => {
     const supabase = supabaseBrowser();
@@ -77,6 +90,26 @@ export default function GutscheinePage() {
       load();
     }
     setBusy(false);
+  };
+
+  /** Zeile auf-/zuklappen; die Einlösungen kommen beim ersten Öffnen aus der DB */
+  const toggleDetails = async (v: Voucher) => {
+    if (expanded === v.id) {
+      setExpanded(null);
+      return;
+    }
+    setExpanded(v.id);
+    if (details[v.id] !== undefined) return; // schon geladen oder lädt gerade
+    setDetails((d) => ({ ...d, [v.id]: null }));
+    const { data, error } = await supabaseBrowser().rpc('stats_voucher_redemptions', {
+      p_voucher_id: v.id,
+    });
+    if (error) {
+      setMessage({ kind: 'error', text: error.message });
+      setDetails((d) => ({ ...d, [v.id]: [] }));
+      return;
+    }
+    setDetails((d) => ({ ...d, [v.id]: (data ?? []) as RedemptionDetail[] }));
   };
 
   const toggleActive = async (v: Voucher) => {
@@ -188,12 +221,22 @@ export default function GutscheinePage() {
           <tbody>
             {vouchers.map((v) => {
               const info = redemptions[v.id];
+              const offen = expanded === v.id;
+              const rows = details[v.id];
               return (
-                <tr key={v.id}>
+                <Fragment key={v.id}>
+                <tr
+                  className="row-link"
+                  onClick={() => toggleDetails(v)}
+                  title="Einlösungen anzeigen"
+                >
                   <td data-label="" style={{ fontWeight: 700 }}>
+                    <span style={{ color: 'var(--muted)', display: 'inline-block', width: 16 }}>
+                      {offen ? '▾' : '▸'}
+                    </span>
                     {v.code}
                     {v.description ? (
-                      <div className="hint" style={{ fontWeight: 400 }}>
+                      <div className="hint" style={{ fontWeight: 400, paddingLeft: 16 }}>
                         {v.description}
                       </div>
                     ) : null}
@@ -217,14 +260,83 @@ export default function GutscheinePage() {
                     </span>
                   </td>
                   <td data-label="" className="cell-actions">
-                    <button className="btn btn-ghost btn-small" onClick={() => toggleActive(v)}>
+                    {/* stopPropagation: die Knöpfe sollen die Zeile nicht aufklappen */}
+                    <button
+                      className="btn btn-ghost btn-small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleActive(v);
+                      }}
+                    >
                       {v.active ? 'Deaktivieren' : 'Aktivieren'}
                     </button>{' '}
-                    <button className="btn btn-danger btn-small" onClick={() => remove(v)}>
+                    <button
+                      className="btn btn-danger btn-small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        remove(v);
+                      }}
+                    >
                       Löschen
                     </button>
                   </td>
                 </tr>
+                {offen ? (
+                  <tr>
+                    <td colSpan={7} style={{ background: 'rgba(232,127,156,0.05)', padding: '10px 14px 16px' }}>
+                      {rows === null || rows === undefined ? (
+                        <span className="hint">Lade Einlösungen …</span>
+                      ) : rows.length === 0 ? (
+                        <span className="hint">Noch keine Einlösungen.</span>
+                      ) : (
+                        <table className="table" style={{ margin: 0 }}>
+                          <thead>
+                            <tr>
+                              <th>E-Mail</th>
+                              <th>Name</th>
+                              <th>Eingelöst</th>
+                              <th>Zugang bis</th>
+                              <th>Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {rows.map((r) => (
+                              <tr key={`${r.email}-${r.eingeloest}`}>
+                                <td data-label="E-Mail">{r.email}</td>
+                                <td data-label="Name">{r.name ?? '—'}</td>
+                                <td data-label="Eingelöst">
+                                  {new Date(r.eingeloest).toLocaleDateString('de-DE')}{' '}
+                                  {new Date(r.eingeloest).toLocaleTimeString('de-DE', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}{' '}
+                                  Uhr
+                                </td>
+                                <td data-label="Zugang bis">
+                                  {r.zugang_bis
+                                    ? `${new Date(r.zugang_bis).toLocaleDateString('de-DE')} ${new Date(
+                                        r.zugang_bis,
+                                      ).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr`
+                                    : '—'}
+                                </td>
+                                <td data-label="Status">
+                                  <span className={`badge ${r.noch_aktiv ? 'published' : 'draft'}`}>
+                                    {r.noch_aktiv ? 'Aktiv' : 'Abgelaufen'}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                      <p className="hint" style={{ margin: '10px 0 0' }}>
+                        „Zugang bis" ist der aktuelle Stand des Kontos — kauft jemand nach dem
+                        Gutschein ein Abo, steht hier das Abo-Ende.
+                      </p>
+                    </td>
+                  </tr>
+                ) : null}
+                </Fragment>
               );
             })}
           </tbody>

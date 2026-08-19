@@ -3,6 +3,8 @@
 // und voucher_redemptions — beides per RLS clientseitig nicht beschreibbar.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
+import { escapeHtml, notifyTelegram } from '../_shared/telegram.ts';
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -103,6 +105,16 @@ Deno.serve(async (req: Request) => {
     { onConflict: 'user_id' },
   );
   if (subError) return json({ error: 'grant_failed' }, 500);
+
+  /* Telegram (Punkt 14). Der Code darf raus — er gehoert keiner Person und ist
+     genau die Information, die zaehlt: welche Aktion zieht. Die Nutzerin
+     bleibt anonym. Zaehlerstand mit, damit man das Kontingent im Blick hat. */
+  await notifyTelegram(
+    `🎟 <b>Gutschein eingelöst</b> — <code>${escapeHtml(code)}</code>, ` +
+      `${voucher.free_months} ${voucher.free_months === 1 ? 'Monat' : 'Monate'} frei\n\n` +
+      `Dieser Code wurde ${voucher.redemption_count + 1}× benutzt` +
+      `${voucher.max_redemptions ? ` von ${voucher.max_redemptions}` : ''}.`,
+  );
 
   return json({ ok: true, free_months: voucher.free_months, active_until: end.toISOString() });
 });
