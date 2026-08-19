@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.irinadith.irifit",
-      "buildNumber": "17",
+      "buildNumber": "20",
       "config": {
         "usesNonExemptEncryption": false
       },

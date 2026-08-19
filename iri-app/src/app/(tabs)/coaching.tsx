@@ -676,7 +676,8 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   moduleActive: {
-    borderColor: colors.ink,
+    // Rosé statt Schwarz — gleiche Aenderung wie im Fragebogen (Sascha 17.08.)
+    borderColor: colors.tintDeep,
   },
   moduleNumber: {
     width: 40,

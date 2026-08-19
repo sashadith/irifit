@@ -17,8 +17,19 @@ import { colors, font } from '@/theme';
  * aus der Mitte weg (rotateX), schrumpft und blendet aus. Kein natives
  * Modul nötig, läuft im bestehenden Dev-Client.
  */
-export const WHEEL_ITEM_H = 24; // 30 % kleinere Trommel (Sascha 11.08.)
-const VISIBLE = 5; // ungerade, damit eine Zeile exakt in der Mitte liegt
+/**
+ * 24 px bei fuenf Zeilen — der Versuch vom 17.08. mit 42 px bei drei Zeilen
+ * und 27er-Schrift ist zurueckgedreht (Sascha: „sieht schlimm aus"). Die
+ * Trommel verlor mit drei Zeilen ihren Rad-Charakter, und das Auswahlband im
+ * FoodSheet sass auf der falschen Zeile. Auch breitere Raeder (160/130 statt
+ * 104/92) fielen durch: Jedes Rad zentriert seinen Inhalt, Zahl und Einheit
+ * rueckten dadurch optisch auseinander. Es bleibt beim Original — gegen
+ * „schwer zu treffen" (16.08.) hilft bereits, dass die Tastatur beim
+ * Treffer-Tap jetzt verschwindet und das Rad frei liegt.
+ */
+export const WHEEL_ITEM_H = 24;
+export const WHEEL_VISIBLE = 5; // ungerade, damit eine Zeile exakt in der Mitte liegt
+const VISIBLE = WHEEL_VISIBLE;
 
 export interface WheelPickerProps {
   readonly values: readonly string[];
@@ -144,7 +155,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    top: WHEEL_ITEM_H * 2,
+    top: WHEEL_ITEM_H * ((VISIBLE - 1) / 2),
     height: WHEEL_ITEM_H,
     borderRadius: WHEEL_ITEM_H / 2,
     backgroundColor: 'rgba(255,255,255,0.92)',

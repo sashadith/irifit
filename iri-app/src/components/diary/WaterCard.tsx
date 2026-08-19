@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, {
@@ -147,6 +148,9 @@ function TumblerGlass({
   );
 }
 
+/** Nach so viel Ruhe ohne Tap legt sich die Wasseroberflaeche flach */
+const WAVE_REST_MS = 6000;
+
 const GAP = 1; // v7: minimale Luecke (Sascha 09.08.)
 const MAX_GLASS_W = 46;
 
@@ -162,14 +166,49 @@ export function WaterCard({ currentMl, goalMl, glassMl, onSetAmount }: WaterCard
   const phase = useSharedValue(0);
   const [rowWidth, setRowWidth] = useState(0);
 
-  // EIN Zeitgeber für alle Gläser: 0→2π linear wiederholt = nahtloser Loop
-  useEffect(() => {
+  /* Animation bei Interaktion, Ruhe danach (Sascha 18.08.: Home heizte das
+     Geraet auf, iOS dimmte den Bildschirm). Die Endlos-Welle liess jedes
+     gefuellte Glas in JEDEM Bild seinen SVG-Pfad neu berechnen — und zwang
+     nebenbei den ganzen Blur-Stapel der Seite zum staendigen Neuzeichnen.
+     Jetzt schwappt die Welle beim Oeffnen und bei jedem Tap wie gehabt und
+     legt sich nach WAVE_REST_MS flach; danach kostet die Karte nichts mehr. */
+  const [lively, setLively] = useState(true);
+  const restTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flattenTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const wake = useCallback(() => {
+    if (restTimer.current) clearTimeout(restTimer.current);
+    if (flattenTimer.current) clearTimeout(flattenTimer.current);
+    setLively(true);
+    cancelAnimation(phase);
     phase.value = withRepeat(
-      withTiming(Math.PI * 2, { duration: 3500, easing: Easing.linear }),
+      withTiming(phase.value + Math.PI * 2, { duration: 3500, easing: Easing.linear }),
       -1,
     );
-    return () => cancelAnimation(phase);
-  }, [phase]);
+    restTimer.current = setTimeout(() => {
+      // Erst die Amplitude weich auf 0, DANN den Zeitgeber stoppen — sonst
+      // friert die Welle mitten im Schwung ein
+      amplitude.value = withTiming(0, { duration: 900, easing: Easing.out(Easing.cubic) });
+      setLively(false);
+      flattenTimer.current = setTimeout(() => cancelAnimation(phase), 950);
+    }, WAVE_REST_MS);
+  }, [amplitude, phase]);
+
+  /* Bei jedem Tab-Fokus wecken, nicht nur beim ersten Aufbau (Sascha 18.08.:
+     „beim Umschalten von Rezepte auf Home sehe ich keine Wasserbewegung").
+     Die Tabs halten ihre Screens am Leben — ein Mount-Effekt feuert also nur
+     ein einziges Mal. Beim Verlassen des Tabs stoppt alles sofort. */
+  useFocusEffect(
+    useCallback(() => {
+      wake();
+      return () => {
+        if (restTimer.current) clearTimeout(restTimer.current);
+        if (flattenTimer.current) clearTimeout(flattenTimer.current);
+        cancelAnimation(phase);
+        amplitude.value = 1.6; // naechster Fokus startet mit der Ruhe-Welle
+      };
+    }, [wake, phase, amplitude]),
+  );
 
   const onRowLayout = (e: LayoutChangeEvent) => setRowWidth(e.nativeEvent.layout.width);
   const glassW = rowWidth
@@ -179,6 +218,7 @@ export function WaterCard({ currentMl, goalMl, glassMl, onSetAmount }: WaterCard
   const tapGlass = (index: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     playSound('water');
+    wake();
     // Nachschwappen: kurz hoch, dann gemütlich zurück zur Ruhe-Welle
     amplitude.value = withSequence(
       withTiming(5, { duration: 130, easing: Easing.out(Easing.quad) }),
@@ -216,7 +256,7 @@ export function WaterCard({ currentMl, goalMl, glassMl, onSetAmount }: WaterCard
                     phase={phase}
                     index={i}
                     filled={isFull}
-                    withBubbles={i === filled - 1}
+                    withBubbles={lively && i === filled - 1}
                     width={glassW}
                   />
                 </Pressable>

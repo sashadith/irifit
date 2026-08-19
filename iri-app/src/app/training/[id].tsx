@@ -6,6 +6,7 @@ import { StreamPlayer } from '@/components/coaching/StreamPlayer';
 import { GlassView } from '@/components/glass/GlassView';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
 import { GhostButton } from '@/components/ui/GhostButton';
+import { track } from '@/features/analytics/track';
 import {
   fetchStreamUrl,
   fetchTrainings,
@@ -32,8 +33,12 @@ export default function TrainingScreen() {
         if (!cancelled) setVideo(all.find((v) => v.id === id) ?? null);
         const streamSource = await fetchStreamUrl({ trainingId: id });
         if (!cancelled) setSource(streamSource);
+        // Trainings haben keine Fortschrittstabelle — hier ist die einzige
+        // Stelle, an der ueberhaupt sichtbar wird, welches Video laeuft.
+        track('training_start', { training_id: id });
       } catch {
         if (!cancelled) setFailed(true);
+        track('app_error', { where: 'training.load', code: 'stream_failed' });
       }
     })();
     return () => {

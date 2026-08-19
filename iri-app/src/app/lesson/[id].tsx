@@ -8,6 +8,7 @@ import { GlassView } from '@/components/glass/GlassView';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
 import { GhostButton } from '@/components/ui/GhostButton';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { track } from '@/features/analytics/track';
 import { useAuth } from '@/features/auth/AuthProvider';
 import {
   Course,
@@ -54,8 +55,13 @@ export default function LessonScreen() {
         setIsCompleted(done.has(id));
         const streamSource = await fetchStreamUrl({ lessonId: id });
         if (!cancelled) setSource(streamSource);
+        // Abgeschlossene Lektionen stehen in lesson_progress. Was dort fehlt:
+        // die Lektionen, die geoeffnet und nicht beendet wurden — und genau
+        // deren Anteil sagt, welches Video zu lang oder zu zaeh ist.
+        track('lesson_start', { lesson_id: id });
       } catch {
         if (!cancelled) setVideoFailed(true);
+        track('app_error', { where: 'lesson.load', code: 'stream_failed' });
       }
     })();
     return () => {

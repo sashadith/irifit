@@ -13,6 +13,7 @@ import { Chip } from '@/components/ui/Chip';
 import { GhostButton } from '@/components/ui/GhostButton';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { macroShort } from '@/features/diary/macros';
+import { track } from '@/features/analytics/track';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { MealSlot } from '@/features/diary/useDiaryDay';
 import { slotForNow } from '@/features/diary/slot';
@@ -62,6 +63,9 @@ export default function RecipeDetailScreen() {
   useEffect(() => {
     const recipeId = Number(id);
     if (!Number.isFinite(recipeId)) return;
+    // Welche Rezepte werden geoeffnet? Zusammen mit den Tagebucheintraegen
+    // ergibt das den Abstand zwischen "angesehen" und "gekocht" (Punkt 15).
+    track('recipe_open', { recipe_id: recipeId });
     fetchRecipeDetail(recipeId)
       .then((r) => {
         setRecipe(r);

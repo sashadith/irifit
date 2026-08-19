@@ -7,7 +7,7 @@ const NEW_BADGE_DAYS = 21;
 
 import { IriIcon } from '@/components/icons/IriIcon';
 import { RecipeCard } from '@/components/recipes/RecipeCard';
-import { ScreenScaffold } from '@/components/ScreenScaffold';
+import { ScreenListScaffold } from '@/components/ScreenScaffold';
 import { Chip } from '@/components/ui/Chip';
 import { RoseHeart } from '@/components/ui/RoseHeart';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -23,6 +23,8 @@ import { fetchRecipeFavoriteIds } from '@/features/recipes/recipesData';
 import { matchesSearch } from '@/features/search/match';
 import { suggestRecipes } from '@/features/recipes/suggest';
 import { loadShoppingList } from '@/features/shopping/shoppingList';
+import { LockedScreen } from '@/components/subscription/LockedScreen';
+import { useSubscriptionGate } from '@/features/subscription/useSubscriptionGate';
 import { t } from '@/i18n';
 import { supabase } from '@/lib/supabase';
 import { colors, font, radius, spacing, typography } from '@/theme';
@@ -32,6 +34,7 @@ type KcalFilter = null | 350 | 500;
 export default function RezepteScreen() {
   const router = useRouter();
   const { session, profile } = useAuth();
+  const { lapsed } = useSubscriptionGate();
 
   const [recipes, setRecipes] = useState<RecipeListItem[]>([]);
   const [query, setQuery] = useState('');
@@ -136,13 +139,22 @@ export default function RezepteScreen() {
     return suggestRecipes(recipes, {
       remainingKcal,
       remainingProteinG: remainingProtein,
-      daySeed: toIsoDate(new Date()),
+      // Tag UND Stunde (Sascha 16.08.: „etwas oefter wechseln"). Vorher wechselte
+      // die Auswahl nur einmal taeglich; jetzt bis zu 24-mal, ohne im selben
+      // Moment zu springen — innerhalb einer Stunde bleibt sie stabil.
+      seed: `${toIsoDate(new Date())}-${new Date().getHours()}`,
       count: 2,
     });
   }, [recipes, remainingKcal, remainingProtein, query, category]);
 
-  return (
-    <ScreenScaffold>
+  // Abgelaufener Zugang: alles zu (Sascha 17.08.)
+  if (lapsed) return <LockedScreen />;
+
+  /* Kopfbereich als Listen-Kopf: scrollt mit wie bisher, nur die Karten
+     darunter kommen jetzt aus der virtualisierten Liste (Sascha 18.08. —
+     vorher wurden alle 158 Karten samt Bildern sofort gerendert). */
+  const listenKopf = (
+    <>
       <View style={styles.headerRow}>
         <Text style={typography.displayLg}>{t('recipes.title')}</Text>
         <Pressable
@@ -201,8 +213,10 @@ export default function RezepteScreen() {
       </View>
 
       {suggestions.length > 0 ? (
-        <>
-          <Text style={[typography.eyebrow, styles.sectionLabel]}>{t('recipes.suggestTitle')}</Text>
+        /* Eigener, getoenter Kasten statt loser Ueberschrift (Sascha 16.08.):
+           vorher ging der Vorschlag optisch in der Rezeptliste darunter unter. */
+        <View style={styles.suggestBox}>
+          <Text style={styles.suggestTitle}>{t('recipes.suggestTitle')}</Text>
           <Text style={styles.suggestSubtitle}>
             {t('recipes.suggestSubtitle', { kcal: (remainingKcal ?? 0).toLocaleString('de-DE') })}
           </Text>
@@ -211,30 +225,36 @@ export default function RezepteScreen() {
               <RecipeCard key={`s-${r.id}`} recipe={r} onPress={() => router.push(`/recipe/${r.id}`)} />
             ))}
           </View>
-          <View style={styles.suggestDivider} />
-        </>
+        </View>
       ) : null}
+    </>
+  );
 
-      {loadFailed && recipes.length === 0 ? (
-        <View>
-          <Text style={[typography.bodyMuted, styles.empty]}>{t('recipes.loadError')}</Text>
-          <Chip label={t('recipes.retry')} selected={false} onPress={loadRecipes} />
-        </View>
-      ) : filtered.length === 0 && recipes.length > 0 ? (
-        <Text style={[typography.bodyMuted, styles.empty]}>{t('recipes.noResults')}</Text>
-      ) : (
-        <View style={styles.grid}>
-          {filtered.map((r) => (
-            <RecipeCard
-              key={r.id}
-              recipe={r}
-              isNew={newestIds.has(r.id)}
-              onPress={() => router.push(`/recipe/${r.id}`)}
-            />
-          ))}
-        </View>
+  return (
+    <ScreenListScaffold
+      data={filtered}
+      keyExtractor={(r) => String(r.id)}
+      numColumns={2}
+      columnWrapperStyle={styles.listRow}
+      ListHeaderComponent={listenKopf}
+      renderItem={({ item }) => (
+        <RecipeCard
+          recipe={item}
+          isNew={newestIds.has(item.id)}
+          onPress={() => router.push(`/recipe/${item.id}`)}
+        />
       )}
-    </ScreenScaffold>
+      ListEmptyComponent={
+        loadFailed && recipes.length === 0 ? (
+          <View>
+            <Text style={[typography.bodyMuted, styles.empty]}>{t('recipes.loadError')}</Text>
+            <Chip label={t('recipes.retry')} selected={false} onPress={loadRecipes} />
+          </View>
+        ) : recipes.length > 0 ? (
+          <Text style={[typography.bodyMuted, styles.empty]}>{t('recipes.noResults')}</Text>
+        ) : null
+      }
+    />
   );
 }
 
@@ -298,25 +318,62 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 10,
   },
-  sectionLabel: {
-    marginTop: 8,
+  /* Tiefe statt Tapete (17.08.): Bei 0,09 Deckkraft ging der Kasten im rosa
+     Verlauf des Hintergrunds unter — sichtbar war nur der Rand. Jetzt kraeftiger
+     getoent, deutlicherer Rand und ein weicher Schatten, damit der Block ueber
+     der Liste zu liegen scheint. */
+  suggestBox: {
+    backgroundColor: 'rgba(232,127,156,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(232,127,156,0.34)',
+    shadowColor: 'rgba(190,80,115,0.18)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 3,
+    borderRadius: radius.lg,
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 14,
+    marginTop: 6,
+    marginBottom: 18,
+  },
+  /* Eigene Ueberschrift statt der Rubrikzeile (Sascha 17.08.): normal
+     geschrieben, keine Grossbuchstaben, keine gesperrte Laufweite. Deshalb
+     nicht mehr typography.eyebrow — dort steckt das textTransform drin.
+     Es ist eine Frage an die Nutzerin, keine Rubrik; als Frage soll sie auch
+     aussehen. Rose, damit der Kasten einen erkennbaren Kopf hat. */
+  suggestTitle: {
+    fontFamily: font.bold,
+    fontSize: 15.5,
+    color: colors.tintDeep,
+    textAlign: 'center',
   },
   suggestSubtitle: {
     fontFamily: font.regular,
     fontSize: 12.5,
     color: colors.muted,
+    textAlign: 'center',
     marginTop: 3,
-    marginBottom: 10,
+    marginBottom: 12,
   },
-  suggestDivider: {
-    height: 1,
-    backgroundColor: colors.track,
-    marginVertical: 16,
-  },
+  /* Zwei Karten je Reihe, egal wie breit der Container ist.
+     Vorher: gap 12 px bei Karten mit 48,2 % Breite. 2 × 48,2 % = 96,4 %, fuer
+     den Abstand blieben 3,6 % — im Vorschlagskasten (17.08.) sind das 11,95 px
+     und damit 0,05 px zu wenig fuer die 12. Ergebnis: Umbruch, eine Karte pro
+     Reihe, halber Kasten leer (Screenshot Sascha).
+     Jetzt verteilt space-between den Rest selbst. Ein Umbruch ist damit
+     unmoeglich, und eine einzelne Karte in der letzten Reihe bleibt links. */
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    justifyContent: 'space-between',
+    rowGap: 12,
+  },
+  /* Eine FlatList-Reihe mit zwei Karten — gleiche Optik wie .grid */
+  listRow: {
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
   empty: {
     paddingVertical: 20,

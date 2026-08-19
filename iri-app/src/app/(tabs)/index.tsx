@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -17,9 +17,12 @@ import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { SattScoreDots } from '@/components/recipes/SattScoreDots';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { pickGreeting } from '@/features/diary/greeting';
+import { LockedScreen } from '@/components/subscription/LockedScreen';
+import { useSubscriptionGate } from '@/features/subscription/useSubscriptionGate';
 import { FoodLog, MealSlot, toIsoDate, useDiaryDay } from '@/features/diary/useDiaryDay';
 import { markPushOffered, registerForPush, shouldOfferPush } from '@/features/notifications/push';
 import { fetchTodaySteps } from '@/features/health/steps';
+import { celebrateStepGoal, STEP_GOAL } from '@/features/health/stepGoal';
 import { maybeAskForReview, recordUsageDay } from '@/features/rating/rating';
 import { playSound } from '@/features/sound/sounds';
 import { updateStreak } from '@/features/progress/streak';
@@ -35,6 +38,7 @@ const SLOTS: MealSlot[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 export default function HomeScreen() {
   const router = useRouter();
   const { session, profile, refreshProfile } = useAuth();
+  const { lapsed } = useSubscriptionGate();
   const diary = useDiaryDay();
   const [selectedLog, setSelectedLog] = useState<FoodLog | null>(null);
   const [latestWeight, setLatestWeight] = useState<number | null>(null);
@@ -88,17 +92,21 @@ export default function HomeScreen() {
   // Health haengt dem Live-Zaehler ein paar Minuten hinterher (Apple buendelt);
   // wir fragen bei Tab-Fokus UND bei Rueckkehr aus dem Hintergrund neu ab (12.08.).
   const [steps, setSteps] = useState<number | null>(null);
-  useFocusEffect(
-    useCallback(() => {
-      fetchTodaySteps().then(setSteps);
-    }, []),
-  );
+  // Nach jedem Abruf pruefen, ob die 10.000 gerissen sind (Sascha 16.08.).
+  // celebrateStepGoal() feiert von sich aus nur einmal pro Tag.
+  const ladeSchritte = useCallback(() => {
+    fetchTodaySteps().then((wert) => {
+      setSteps(wert);
+      celebrateStepGoal(wert);
+    });
+  }, []);
+  useFocusEffect(ladeSchritte);
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') fetchTodaySteps().then(setSteps);
+      if (state === 'active') ladeSchritte();
     });
     return () => sub.remove();
-  }, []);
+  }, [ladeSchritte]);
 
   // Nach Rückkehr aus dem Scan-Modal o. Ä. frische Daten zeigen
   // + Streak neu berechnen (milde Regel mit Joker, Session 7)
@@ -121,9 +129,22 @@ export default function HomeScreen() {
     }, [diary.refresh, loadWeight, session?.user.id, refreshProfile]),
   );
 
-  // Wechselnder Gruss (Sascha 14.08.) — pro Tag und Tageszeit stabil, damit er
-  // beim Scrollen nicht springt
-  const greeting = pickGreeting(profile?.display_name, new Date(), session?.user.id);
+  /**
+   * Wechselnder Gruss. Bis 16.08. war er pro Tag und Tageszeit stabil, damit er
+   * beim Scrollen nicht springt — Sascha wollte ihn bei JEDEM Home-Aufruf neu.
+   * Beides geht: Der Zaehler steigt nur beim Fokussieren des Bildschirms, der
+   * Gruss selbst liegt im Zustand und bleibt waehrend des Besuchs stehen.
+   */
+  const [greetingSeed, setGreetingSeed] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      setGreetingSeed((n) => n + 1);
+    }, []),
+  );
+  const greeting = useMemo(
+    () => pickGreeting(profile?.display_name, new Date(), session?.user.id, greetingSeed),
+    [profile?.display_name, session?.user.id, greetingSeed],
+  );
 
   // Delta = seit der ERSTEN Wiegung (Beta-Befund 09.08.) — erst ab zwei
   // Messungen, sonst „Noch kein Verlauf"
@@ -147,10 +168,17 @@ export default function HomeScreen() {
       ? suggestRecipes(recipes, {
           remainingKcal: remaining,
           remainingProteinG: remainingProtein,
-          daySeed: toIsoDate(new Date()),
+          // Wie auf der Rezeptseite: Tag plus Stunde. Diese Karte erscheint erst
+          // ab 15 Uhr, hat also ohnehin nur wenige Stunden am Tag — ohne die
+          // Stunde stand abends immer dasselbe Paar da.
+          seed: `${toIsoDate(new Date())}-${new Date().getHours()}`,
           count: 2,
         })
       : [];
+
+  // Abgelaufener Zugang: alles zu (Sascha 17.08.) — steht nach allen Hooks,
+  // damit deren Reihenfolge stabil bleibt
+  if (lapsed) return <LockedScreen />;
 
   return (
     <ScreenScaffold>
@@ -164,9 +192,15 @@ export default function HomeScreen() {
 
       <GlassView style={styles.ringCard} contentStyle={styles.ringContent}>
         {steps !== null && diary.isToday ? (
-          <View style={styles.stepsChip}>
-            <IriIcon name="steps" size={15} color={colors.tintDeep} />
-            <Text style={styles.stepsText}>{steps.toLocaleString('de-DE')}</Text>
+          <View style={[styles.stepsChip, steps >= STEP_GOAL && styles.stepsChipDone]}>
+            <IriIcon
+              name="steps"
+              size={15}
+              color={steps >= STEP_GOAL ? colors.water : colors.tintDeep}
+            />
+            <Text style={[styles.stepsText, steps >= STEP_GOAL && styles.stepsTextDone]}>
+              {steps.toLocaleString('de-DE')}
+            </Text>
           </View>
         ) : null}
         <CalorieRing value={remaining} label={t('home.remaining')} progress={1 - progress} />
@@ -269,7 +303,17 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.9)',
+    // Muss ueber dem Kalorienring liegen, sonst verschwindet der Chip dahinter
     zIndex: 1,
+  },
+  /* Ziel erreicht: Chip in Wasserblau — dieselbe Farbe wie die Glaeser,
+     damit „geschafft" in der App ueberall gleich aussieht (Sascha 16.08.) */
+  stepsChipDone: {
+    backgroundColor: 'rgba(90,200,222,0.16)',
+    borderColor: 'rgba(90,200,222,0.55)',
+  },
+  stepsTextDone: {
+    color: colors.water,
   },
   stepsText: {
     fontFamily: font.bold,

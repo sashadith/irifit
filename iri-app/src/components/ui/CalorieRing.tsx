@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
   cancelAnimation,
@@ -24,6 +25,8 @@ export interface CalorieRingProps {
 }
 
 const STROKE = 14;
+/** Nach so viel Ruhe stoppt der Fluessigkeits-Loop (Blaeschen + Puls) */
+const FLOW_REST_MS = 6000;
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 /**
@@ -46,10 +49,31 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
     animated.value = withTiming(clamped, { duration: 800, easing: Easing.out(Easing.cubic) });
   }, [clamped, animated]);
 
-  useEffect(() => {
-    flow.value = withRepeat(withTiming(1, { duration: 5200, easing: Easing.linear }), -1);
-    return () => cancelAnimation(flow);
-  }, [flow]);
+  /* Animation bei Interaktion, Ruhe danach (Sascha 18.08., Waermestau auf
+     dem Home): Der Endlos-Fluss schrieb in jedem Bild neue SVG-Werte fuer
+     Leuchtpunkt und Blaeschen. Jetzt laeuft er nach jedem Wertwechsel (Oeffnen,
+     Eintrag) FLOW_REST_MS lang, dann blenden die Blaeschen aus und der
+     Zeitgeber stoppt — der Punkt an der Spitze bleibt stehen, nur ohne Puls. */
+  const alive = useSharedValue(1);
+  // Fokus-Effekt statt Mount-Effekt: Die Tabs halten den Screen am Leben,
+  // beim Zurueckwechseln soll der Fluss wieder anlaufen (Sascha 18.08.)
+  useFocusEffect(
+    useCallback(() => {
+      alive.value = 1;
+      cancelAnimation(flow);
+      flow.value = withRepeat(withTiming(1, { duration: 5200, easing: Easing.linear }), -1);
+      let stopTimer: ReturnType<typeof setTimeout> | undefined;
+      const rest = setTimeout(() => {
+        alive.value = withTiming(0, { duration: 700 });
+        stopTimer = setTimeout(() => cancelAnimation(flow), 750);
+      }, FLOW_REST_MS);
+      return () => {
+        clearTimeout(rest);
+        if (stopTimer) clearTimeout(stopTimer);
+        cancelAnimation(flow);
+      };
+    }, [flow, alive, clamped]),
+  );
 
   const arcProps = useAnimatedProps(() => ({
     strokeDashoffset: c * (1 - animated.value),
@@ -60,7 +84,7 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
   const tipProps = useAnimatedProps(() => {
     'worklet';
     const angle = animated.value * Math.PI * 2;
-    const pulse = 1 + 0.18 * Math.sin(flow.value * Math.PI * 4);
+    const pulse = 1 + 0.18 * Math.sin(flow.value * Math.PI * 4) * alive.value;
     return {
       cx: cx + r * Math.cos(angle),
       cy: cx + r * Math.sin(angle),
@@ -81,7 +105,7 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
       return {
         cx: cx + (r + radial) * Math.cos(angle),
         cy: cx + (r + radial) * Math.sin(angle),
-        opacity: animated.value > 0.06 ? 0.55 * fade : 0,
+        opacity: animated.value > 0.06 ? 0.55 * fade * alive.value : 0,
       };
     });
   const bubble1 = bubbleProps(0, -2.5);

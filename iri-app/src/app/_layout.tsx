@@ -13,6 +13,8 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 
+import { SwitcherShield } from '@/components/SwitcherShield';
+import { ScreenTracker } from '@/features/analytics/useScreenTracking';
 import { AuthProvider } from '@/features/auth/AuthProvider';
 import { NotificationObserver } from '@/features/notifications/NotificationObserver';
 import { initSounds } from '@/features/sound/sounds';
@@ -56,6 +58,7 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <NotificationObserver />
+      <ScreenTracker />
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
@@ -72,6 +75,7 @@ export default function RootLayout() {
         <Stack.Screen name="lesson/[id]" />
         <Stack.Screen name="training/[id]" />
       </Stack>
+      <SwitcherShield />
     </AuthProvider>
   );
 }

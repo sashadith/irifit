@@ -16,7 +16,7 @@ import {
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassView } from '@/components/glass/GlassView';
@@ -29,6 +29,7 @@ import { IriIcon } from '@/components/icons/IriIcon';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { FoodSheet } from '@/components/food/FoodSheet';
 import { SattScoreDots } from '@/components/recipes/SattScoreDots';
+import { track } from '@/features/analytics/track';
 import { playSound } from '@/features/sound/sounds';
 import { sattScore } from '@/features/recipes/sattScore';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -53,6 +54,7 @@ import {
   ScanResult,
   sumIngredients,
 } from '@/features/scan/types';
+import { useSubscriptionGate } from '@/features/subscription/useSubscriptionGate';
 import { t, TranslationKey } from '@/i18n';
 import { supabase } from '@/lib/supabase';
 import { colors, font, radius, spacing, typography } from '@/theme';
@@ -78,6 +80,7 @@ export default function ScanScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
+  const { lapsed } = useSubscriptionGate();
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
 
@@ -113,15 +116,25 @@ export default function ScanScreen() {
     correction?: { previous: ScanResult; note?: string },
   ) => {
     setPhase('analyzing');
+    // Nachrechnen mit Hinweis ist kein neuer Scan, sondern eine Korrektur —
+    // sonst zaehlt der Trichter jeden Nachbesserungsversuch als Start.
+    if (!correction) track('scan_started', { mode: 'food' });
     try {
       const response = await analyzeFood(img, correction);
       setScan(response.result);
       setIngredients(response.result.ingredients);
       setPhase('result');
+      track('scan_result', {
+        mode: 'food',
+        confidence: response.result.confidence,
+        zutaten: response.result.ingredients.length,
+        korrektur: correction != null,
+      });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       playSound('scan');
     } catch (e) {
       const code = e instanceof ScanError ? e.code : 'unknown';
+      track('app_error', { where: 'scan.analyzeFood', code });
       if (code === 'fair_use_exceeded') {
         Alert.alert(t('scan.fairUseTitle'), t('scan.fairUseText', { limit: 300 }));
         router.back();
@@ -176,13 +189,20 @@ export default function ScanScreen() {
 
   const runInventory = async (img: { base64: string; mediaType: string }) => {
     setPhase('analyzing');
+    track('scan_started', { mode: 'inventory' });
     try {
       const response = await analyzeInventory(img);
       setInventory(response.result);
       setPhase('inventory');
+      track('scan_result', {
+        mode: 'inventory',
+        confidence: response.result.confidence,
+        zutaten: response.result.ingredients.length,
+      });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (e) {
       const code = e instanceof ScanError ? e.code : 'unknown';
+      track('app_error', { where: 'scan.analyzeInventory', code });
       if (code === 'fair_use_exceeded') {
         Alert.alert(t('scan.fairUseTitle'), t('scan.fairUseText', { limit: 300 }));
         router.back();
@@ -277,6 +297,13 @@ export default function ScanScreen() {
         },
       });
       if (error) throw error;
+      // korrigiert = sie hat an den Zutaten der KI etwas geaendert. Der Anteil
+      // sagt, wie gut die Erkennung wirklich ist — besser als jede Konfidenz,
+      // die das Modell sich selbst gibt.
+      track('scan_saved', {
+        confidence: scan.confidence,
+        korrigiert: JSON.stringify(ingredients) !== JSON.stringify(scan.ingredients),
+      });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.back();
     } catch {
@@ -285,6 +312,10 @@ export default function ScanScreen() {
       setBusy(false);
     }
   };
+
+  // Abgelaufener Zugang (Sascha 17.08.): raus zum Verlaengerungsbildschirm.
+  // Der Redirect steht nach allen Hooks, damit deren Reihenfolge stabil bleibt.
+  if (lapsed) return <Redirect href="/renew" />;
 
   // --- Kamera-Phase -------------------------------------------------------
 

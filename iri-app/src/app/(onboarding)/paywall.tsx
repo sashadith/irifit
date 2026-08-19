@@ -10,6 +10,7 @@ import { GhostButton } from '@/components/ui/GhostButton';
 import { GlassInput } from '@/components/ui/GlassInput';
 import { IriAvatar } from '@/components/ui/IriAvatar';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { track } from '@/features/analytics/track';
 import { useAuth } from '@/features/auth/AuthProvider';
 import {
   fetchOffers,
@@ -65,6 +66,13 @@ export default function PaywallScreen() {
     };
   }, [session?.user.id]);
 
+  // Einmal je Aufruf zaehlen, nicht bei jedem Render (Punkt 15). Der Wert von
+  // storeReady steht hier noch nicht fest — er kommt gleich mit
+  // paywall_purchase_result, falls sie kauft.
+  useEffect(() => {
+    track('paywall_view');
+  }, []);
+
   // Das Gutschein-Feld liegt unter dem Falz — ohne Nachscrollen verdeckt es die Tastatur
   // komplett. Erst NACH dem Resize durch die Tastatur (keyboardDidShow) ans Ende scrollen.
   useEffect(() => {
@@ -106,6 +114,7 @@ export default function PaywallScreen() {
     setBusy(true);
     try {
       const outcome = await purchasePlan(plan);
+      track('paywall_purchase_result', { plan, outcome });
       if (outcome === 'success') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         await finish();
@@ -135,6 +144,8 @@ export default function PaywallScreen() {
     setBusy(true);
     try {
       const result = await redeemVoucher(voucherCode);
+      // Nur ob es geklappt hat und woran es lag — nie der Code selbst.
+      track('paywall_voucher_result', { ok: result.ok, error: result.error ?? null });
       if (result.ok) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         Alert.alert(
@@ -159,6 +170,7 @@ export default function PaywallScreen() {
   const selectPlan = (next: Plan) => {
     Haptics.selectionAsync();
     setPlan(next);
+    track('paywall_plan_selected', { plan: next });
   };
 
   const yearlyPrice = offers?.yearly?.priceString ?? t('onboarding.paywall.yearlyFallbackPrice');

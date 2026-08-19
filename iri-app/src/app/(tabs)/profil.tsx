@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, LayoutChangeEvent, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Alert,
+  LayoutChangeEvent,
+  Linking,
+  Pressable,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 
@@ -16,6 +25,7 @@ import { IriIcon } from '@/components/icons/IriIcon';
 import { GlobeIcon, InstagramIcon, TikTokIcon } from '@/components/icons/SocialIcons';
 import { RoseHeart } from '@/components/ui/RoseHeart';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { setAnalyticsOptOut } from '@/features/analytics/track';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { t } from '@/i18n';
 import { supabase } from '@/lib/supabase';
@@ -39,6 +49,7 @@ export default function ProfilScreen() {
     profile?.water_goal_ml != null ? (profile.water_goal_ml / 1000).toLocaleString('de-DE') : '',
   );
   const [saving, setSaving] = useState(false);
+  const [analyticsOff, setAnalyticsOff] = useState(profile?.analytics_opt_out ?? false);
 
   const kcalNum = Number.parseInt(kcal, 10);
   const kcalValid = !kcal || (Number.isFinite(kcalNum) && kcalNum >= 1200 && kcalNum <= 10000);
@@ -77,6 +88,33 @@ export default function ProfilScreen() {
     } finally {
       setSaving(false);
     }
+  };
+
+  /**
+   * Nutzungsstatistik an/aus. Der Schalter zeigt "an" — gespeichert wird der
+   * Widerspruch, deshalb die Umkehrung.
+   *
+   * Lokal wird sofort umgeschaltet, damit der Zaehler ab diesem Moment
+   * schweigt; das Profil zieht nach, damit die Entscheidung auf jedem Geraet
+   * gilt. Scheitert das Speichern, faellt der Schalter zurueck — sonst waere
+   * abgeschaltet, was serverseitig noch als eingeschaltet gilt.
+   */
+  const toggleAnalytics = async (an: boolean) => {
+    const aus = !an;
+    setAnalyticsOff(aus);
+    await setAnalyticsOptOut(aus);
+    if (!session) return;
+    const { error } = await supabase
+      .from('profiles')
+      .update({ analytics_opt_out: aus })
+      .eq('id', session.user.id);
+    if (error) {
+      setAnalyticsOff(!aus);
+      await setAnalyticsOptOut(!aus);
+      Alert.alert(t('common.error'), t('profile.saveFailed'));
+      return;
+    }
+    await refreshProfile();
   };
 
   // S16: Makro-Voreinstellungen — Anteile von kcal, umgerechnet in Gramm (4/4/9 kcal je g).
@@ -137,6 +175,12 @@ export default function ProfilScreen() {
     if (activeIndex >= 0) placeSeg(activeIndex, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeIndex]);
+
+  // Der Schalter wird gesetzt, bevor das Profil geladen ist (Startwert false).
+  // Sobald es da ist, den echten Wert uebernehmen.
+  useEffect(() => {
+    if (profile) setAnalyticsOff(profile.analytics_opt_out);
+  }, [profile?.analytics_opt_out]);
 
   const segStyle = useAnimatedStyle(() => ({
     left: segLeft.value,
@@ -422,6 +466,22 @@ export default function ProfilScreen() {
           onPress={() => router.push('/legal?doc=terms')}
           style={styles.smallGap}
         />
+        {/* Widerspruch gegen die Nutzungsstatistik (Art. 21 DSGVO, Punkt 15).
+            Steht hier und nicht bei den Erinnerungen: Es ist keine Einstellung
+            am Produkt, sondern eine am eigenen Datenschutz. */}
+        <View style={styles.analyticsRow}>
+          <View style={styles.analyticsText}>
+            <Text style={styles.analyticsLabel}>{t('profile.analytics')}</Text>
+            <Text style={styles.hint}>{t('profile.analyticsHint')}</Text>
+          </View>
+          <Switch
+            value={!analyticsOff}
+            onValueChange={toggleAnalytics}
+            trackColor={{ false: colors.track, true: colors.tintDeep }}
+            thumbColor={colors.white}
+            accessibilityLabel={t('profile.analytics')}
+          />
+        </View>
       </GlassView>
 
       {/* Blitzableiter (Session 24): Kritik soll HIER landen, nicht im Store */}
@@ -624,6 +684,21 @@ const styles = StyleSheet.create({
   },
   smallGap: {
     marginTop: 10,
+  },
+  analyticsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 16,
+  },
+  analyticsText: {
+    flex: 1,
+  },
+  analyticsLabel: {
+    fontFamily: font.semibold,
+    fontSize: 14,
+    color: colors.ink,
+    marginBottom: 2,
   },
   deleteGap: {
     marginTop: 14,

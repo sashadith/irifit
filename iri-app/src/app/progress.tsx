@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -16,7 +17,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Sharing from 'expo-sharing';
 import ViewShot from 'react-native-view-shot';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 
 import { GlassView } from '@/components/glass/GlassView';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
@@ -29,6 +30,7 @@ import { GhostButton } from '@/components/ui/GhostButton';
 import { RoseHeart } from '@/components/ui/RoseHeart';
 import { macroShareShort } from '@/features/diary/macros';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { useSubscriptionGate } from '@/features/subscription/useSubscriptionGate';
 import { deletePhoto, listPhotos, ProgressPhoto, uploadPhoto } from '@/features/progress/photos';
 import { fetchWeekAvgSteps } from '@/features/health/steps';
 import { fetchWeekStats, WeekStats } from '@/features/progress/stats';
@@ -48,6 +50,7 @@ const PERIODS: { key: Period; labelKey: TranslationKey; days: number | null }[] 
 export default function ProgressScreen() {
   const router = useRouter();
   const { session, profile, refreshProfile } = useAuth();
+  const { lapsed } = useSubscriptionGate();
   const userId = session?.user.id;
 
   const [weights, setWeights] = useState<WeightEntry[]>([]);
@@ -89,6 +92,9 @@ export default function ProgressScreen() {
 
   const submitWeight = async () => {
     if (!userId) return;
+    // Tastatur zuerst weg (Sascha 16.08.): sonst steht sie nach dem Eintragen
+    // weiter im Bild und verdeckt Kurve und Verlauf
+    Keyboard.dismiss();
     const value = Number(weightInput.replace(',', '.'));
     if (!Number.isFinite(value) || value < 30 || value > 350) {
       Alert.alert(t('common.error'), t('progress.addWeightInvalid'));
@@ -198,6 +204,10 @@ export default function ProgressScreen() {
   const tileW = gridW > 0 ? Math.floor((gridW - 2 * 10) / 3) : 100;
 
   // Soll-Verteilung aus den Profil-Zielen (4/4/9 kcal je Gramm)
+  // Abgelaufener Zugang (Sascha 17.08.): raus zum Verlaengerungsbildschirm.
+  // Der Redirect steht nach allen Hooks, damit deren Reihenfolge stabil bleibt.
+  if (lapsed) return <Redirect href="/renew" />;
+
   const goalShares = (() => {
     const p = (profile?.protein_goal_g ?? 0) * 4;
     const c = (profile?.carbs_goal_g ?? 0) * 4;

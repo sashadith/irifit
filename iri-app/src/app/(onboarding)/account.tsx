@@ -89,6 +89,8 @@ export default function AccountScreen() {
             {t('onboarding.account.alreadySignedInText', { email: session.user.email ?? '' })}
           </Text>
         </GlassView>
+        {/* Luft zwischen Hinweiskarte und Feld (Sascha 17.08.) */}
+        <View style={styles.nameGap} />
         <GlassInput
           label={t('onboarding.account.name')}
           value={name}
@@ -215,6 +217,9 @@ const styles = StyleSheet.create({
   },
   form: {
     marginTop: spacing.lg,
+  },
+  nameGap: {
+    height: spacing.lg,
   },
   divider: {
     fontFamily: font.semibold,

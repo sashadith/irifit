@@ -57,7 +57,9 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   innerSelected: {
-    borderColor: colors.ink,
+    // Rosé statt Schwarz (Sascha 17.08.): Schwarz war der einzige harte
+    // Kontrast im ganzen Bogen und wirkte wie ein Fremdkoerper
+    borderColor: colors.tintDeep,
   },
   iconBubble: {
     width: 38,

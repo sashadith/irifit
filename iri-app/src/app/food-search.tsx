@@ -14,7 +14,7 @@ import {
   View,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FoodSheet } from '@/components/food/FoodSheet';
@@ -23,6 +23,8 @@ import { IriIcon } from '@/components/icons/IriIcon';
 import { Wallpaper } from '@/components/Wallpaper';
 import { GhostButton } from '@/components/ui/GhostButton';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { track } from '@/features/analytics/track';
+import { useSubscriptionGate } from '@/features/subscription/useSubscriptionGate';
 import { useAuth } from '@/features/auth/AuthProvider';
 import {
   addFoodFavorite,
@@ -68,6 +70,7 @@ export default function FoodSearchScreen() {
   const targetDate = /^\d{4}-\d{2}-\d{2}$/.test(params.date ?? '') ? params.date : undefined;
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
+  const { lapsed } = useSubscriptionGate();
   const userId = session?.user.id;
 
   const [query, setQuery] = useState('');
@@ -93,6 +96,7 @@ export default function FoodSearchScreen() {
   const [dropped, setDropped] = useState<Set<number>>(new Set());
   const [copyBusy, setCopyBusy] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const noHitRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadLists = useCallback(async () => {
     if (!userId) return;
@@ -122,7 +126,17 @@ export default function FoodSearchScreen() {
       try {
         const items = await searchFoods(trimmed);
         setResults(items);
+        /* Erfolglose Suchen melden — sie sagen, welches Lebensmittel fehlt
+           (Punkt 15). Eigener, laengerer Timer: Beim Tippen von "Skyr" liefern
+           auch "Sk" und "Sky" keinen Treffer. Gemeldet wird nur, was nach
+           1,5 s Ruhe noch im Feld steht, und erst ab drei Zeichen. */
+        if (items.length === 0 && trimmed.length >= 3) {
+          noHitRef.current = setTimeout(() => {
+            track('search_no_hit', { term: trimmed.slice(0, 60) });
+          }, 1500);
+        }
       } catch {
+        track('app_error', { where: 'food-search.searchFoods', code: 'request_failed' });
         Alert.alert(t('common.error'), t('food.searchError'));
       } finally {
         setSearching(false);
@@ -130,6 +144,7 @@ export default function FoodSearchScreen() {
     }, 450);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (noHitRef.current) clearTimeout(noHitRef.current);
     };
   }, [query]);
 
@@ -163,6 +178,16 @@ export default function FoodSearchScreen() {
     } catch {
       Alert.alert(t('common.error'), t('food.searchError'));
     }
+  };
+
+  /**
+   * Treffer antippen: erst Tastatur weg, dann das Blatt oeffnen. Vorher blieb
+   * sie stehen und verdeckte das Mengenrad — man kam kaum ans Einstellen
+   * (Sascha 16.08.). Gilt fuer Suchtreffer, "Zuletzt" und Favoriten.
+   */
+  const oeffneSheet = (naechstes: NonNullable<SheetState>) => {
+    Keyboard.dismiss();
+    setSheet(naechstes);
   };
 
   // Freitext → KI (Session 22): '100 g Hähnchenbrust gebraten, 10 g Öl' wird
@@ -286,6 +311,10 @@ export default function FoodSearchScreen() {
     }
     return parts.join(' · ');
   };
+
+  // Abgelaufener Zugang (Sascha 17.08.): raus zum Verlaengerungsbildschirm.
+  // Der Redirect steht nach allen Hooks, damit deren Reihenfolge stabil bleibt.
+  if (lapsed) return <Redirect href="/renew" />;
 
   return (
     <View style={styles.flex}>
@@ -421,7 +450,7 @@ export default function FoodSearchScreen() {
                       key={`${foodKey(item)}-${i}`}
                       title={item.name}
                       subtitle={`${item.brand ? `${item.brand} · ` : ''}${item.kcal100} kcal / 100 g`}
-                      onPress={() => setSheet({ item, source: 'search' })}
+                      onPress={() => oeffneSheet({ item, source: 'search' })}
                     />
                   ))}
                   <Pressable
@@ -478,7 +507,7 @@ export default function FoodSearchScreen() {
                     subtitle={recentSubtitle(entry)}
                     onPress={() =>
                       entry.food
-                        ? setSheet({ item: entry.food, source: 'search' })
+                        ? oeffneSheet({ item: entry.food, source: 'search' })
                         : relog(entry)
                     }
                   />
@@ -494,7 +523,7 @@ export default function FoodSearchScreen() {
                     key={favorite.id}
                     title={favorite.item.name}
                     subtitle={`${favorite.item.brand ? `${favorite.item.brand} · ` : ''}${favorite.item.kcal100} kcal / 100 g`}
-                    onPress={() => setSheet({ item: favorite.item, source: 'favorite' })}
+                    onPress={() => oeffneSheet({ item: favorite.item, source: 'favorite' })}
                   />
                 ))
               )}

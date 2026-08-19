@@ -35,7 +35,7 @@ export function ProgressCard({ deltaKg, targetWeightKg, onPress }: ProgressCardP
         <GlassView
           borderRadius={radius.md}
           style={[styles.card, pressed && styles.pressed]}
-          contentStyle={styles.content}
+          contentStyle={[styles.content, styles.tinted]}
         >
           <View style={styles.iconBubble}>
             <IriIcon name="chart" size={20} color={colors.tintDeep} />
@@ -65,13 +65,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
+  /* Abgesetzt von den Mahlzeiten-Karten (Sascha 16.08.): Die stehen auf
+     klarem Glas, diese hier bekommt einen Rose-Hauch und einen getoenten Rand.
+     Bewusst dezent — es ist derselbe Bildschirm, kein zweiter Bereich. */
+  tinted: {
+    backgroundColor: 'rgba(232,127,156,0.09)',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(232,127,156,0.22)',
+  },
   iconBubble: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.65)',
+    /* Blase gefuellt statt milchig — hebt das Symbol vom getoenten Grund ab */
+    backgroundColor: 'rgba(255,255,255,0.9)',
     borderWidth: 1,
-    borderColor: colors.stroke,
+    borderColor: 'rgba(232,127,156,0.28)',
     alignItems: 'center',
     justifyContent: 'center',
   },

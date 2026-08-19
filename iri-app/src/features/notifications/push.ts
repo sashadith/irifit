@@ -113,6 +113,9 @@ const KNOWN_PUSH_ROUTES = [
   '/(tabs)/profil',
   '/scan',
   '/progress',
+  // Ziel der Gratismonat-Erinnerung (17.08.). Aeltere Builds kennen den Pfad
+  // nicht und fallen auf die Startseite zurueck — verkraftbar.
+  '/renew',
   '/food-search',
   '/reminders',
 ];

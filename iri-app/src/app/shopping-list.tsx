@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { Redirect, useFocusEffect, useRouter } from 'expo-router';
 
 import { GlassView } from '@/components/glass/GlassView';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
@@ -13,9 +13,11 @@ import {
 } from '@/features/shopping/shoppingList';
 import { t } from '@/i18n';
 import { colors, font, radius, spacing, typography } from '@/theme';
+import { useSubscriptionGate } from '@/features/subscription/useSubscriptionGate';
 
 export default function ShoppingListScreen() {
   const router = useRouter();
+  const { lapsed } = useSubscriptionGate();
   const [items, setItems] = useState<ShoppingItem[]>([]);
 
   useFocusEffect(
@@ -45,6 +47,10 @@ export default function ShoppingListScreen() {
   };
 
   const checkedCount = items.filter((i) => i.checked).length;
+
+  // Abgelaufener Zugang (Sascha 17.08.): raus zum Verlaengerungsbildschirm.
+  // Der Redirect steht nach allen Hooks, damit deren Reihenfolge stabil bleibt.
+  if (lapsed) return <Redirect href="/renew" />;
 
   return (
     <ScreenScaffold withTabBarInset={false}>

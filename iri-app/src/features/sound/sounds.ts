@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createAudioPlayer } from 'expo-audio';
+import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 
 /**
  * App-Töne (Session 18). Bewusst sparsam: nur drei Momente, alle kurz und leise.
@@ -21,6 +21,17 @@ const players: Partial<Record<SoundName, ReturnType<typeof createAudioPlayer>>> 
 
 /** Beim App-Start einmal aufrufen — lädt die gespeicherte Einstellung */
 export async function initSounds() {
+  /* Als MISCHTON anmelden (Sascha 18.08.: „Wassertropfen stoppt Spotify").
+     Ohne das behandelt iOS jede tonausgebende App als Hauptdarsteller und
+     pausiert laufende Musik oder Podcasts — fuer drei kurze UI-Toene absurd.
+     mixWithOthers legt unsere Toene ueber die Musik, ohne sie anzufassen;
+     Android hat kein echtes Mischen dieser Art, dort senkt duckOthers die
+     Musik fuer den Moment kurz ab statt sie zu stoppen. */
+  await setAudioModeAsync({
+    interruptionMode: 'mixWithOthers',
+    interruptionModeAndroid: 'duckOthers',
+    playsInSilentMode: false,
+  }).catch(() => {});
   const stored = await AsyncStorage.getItem(SOUND_ENABLED_KEY);
   enabled = stored !== 'off';
 }

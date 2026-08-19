@@ -11,6 +11,7 @@ import {
   useState,
 } from 'react';
 
+import { syncAnalyticsOptOut } from '@/features/analytics/track';
 import { fetchMyLegacyAccess, LegacyAccess } from '@/features/auth/legacy';
 import { calcTargets } from '@/features/onboarding/calorieGoal';
 import {
@@ -43,6 +44,7 @@ export interface Profile {
   push_water: boolean;
   push_weekly: boolean;
   reminder_evening_time: string | null;
+  analytics_opt_out: boolean;
 }
 
 interface AuthContextValue {
@@ -61,7 +63,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const PROFILE_COLUMNS =
-  'id, display_name, kcal_goal, protein_goal_g, carbs_goal_g, fat_goal_g, water_goal_ml, water_glass_ml, streak_count, streak_longest, allergies, diet_preference, birth_year, start_weight_kg, target_weight_kg, onboarding_completed_at, timezone, push_broadcast, push_streak, push_meal_evening, push_water, push_weekly, reminder_evening_time';
+  'id, display_name, kcal_goal, protein_goal_g, carbs_goal_g, fat_goal_g, water_goal_ml, water_glass_ml, streak_count, streak_longest, allergies, diet_preference, birth_year, start_weight_kg, target_weight_kg, onboarding_completed_at, timezone, push_broadcast, push_streak, push_meal_evening, push_water, push_weekly, reminder_evening_time, analytics_opt_out';
 
 /** Profilzeile anlegen, falls sie fehlt — aus den lokal gespiegelten Quiz-Antworten */
 async function ensureProfile(userId: string): Promise<Profile | null> {
@@ -154,6 +156,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
       .then(([p]) => {
         if (cancelled) return;
         setProfile(p);
+        // Widerspruch gegen die Nutzungsstatistik haengt am Profil, damit er auf
+        // jedem Geraet gilt. Der Zaehler liest ihn lokal — hier wird gespiegelt.
+        if (p) void syncAnalyticsOptOut(p.analytics_opt_out);
       })
       .catch((e) => console.warn('Profil laden fehlgeschlagen', e))
       .finally(() => {

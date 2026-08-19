@@ -21,7 +21,7 @@ export const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.
 
 export interface PlanOffer {
   identifier: string;
-  /** Lokalisierter Store-Preis, z. B. "6,99 €" */
+  /** Lokalisierter Store-Preis, z. B. "8,99 €" */
   priceString: string;
   /** Numerischer Preis + Währung — für abgeleitete Anzeigen (Monats-Äquivalent, Spar-Badge) */
   price: number;

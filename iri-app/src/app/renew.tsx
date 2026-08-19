@@ -97,8 +97,15 @@ export default function RenewScreen() {
     }
   };
 
+  /* Echter Preis kommt aus dem Store (RevenueCat) — der Rueckfallwert greift
+     nur ohne Store-Verbindung (Simulator, Netzausfall). Er kommt aus DENSELBEN
+     Textbausteinen wie die Paywall: Bei der Preiserhoehung am 16.08. auf
+     8,99/69,99 blieb hier ein fest eingetipptes 6,99/59,99 stehen (Fund
+     Sascha 17.08.) — mit zwei Stellen fuer denselben Preis passiert das wieder. */
   const price = (p: 'monthly' | 'yearly') =>
-    p === 'monthly' ? (offers?.monthly?.priceString ?? '6,99 €') : (offers?.yearly?.priceString ?? '59,99 €');
+    p === 'monthly'
+      ? (offers?.monthly?.priceString ?? t('onboarding.paywall.monthlyFallbackPrice'))
+      : (offers?.yearly?.priceString ?? t('onboarding.paywall.yearlyFallbackPrice'));
 
   return (
     <View style={styles.flex}>

@@ -4,7 +4,7 @@ import * as Haptics from 'expo-haptics';
 
 import { GlassView } from '@/components/glass/GlassView';
 import { Chip } from '@/components/ui/Chip';
-import { WHEEL_ITEM_H, WheelPicker } from '@/components/ui/WheelPicker';
+import { WHEEL_ITEM_H, WHEEL_VISIBLE, WheelPicker } from '@/components/ui/WheelPicker';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { macroShort } from '@/features/diary/macros';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -259,7 +259,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 8,
     right: 8,
-    top: WHEEL_ITEM_H * 2,
+    /* Aus der Zeilenzahl gerechnet statt fest „mal 2": Das feste 2 ging vom
+       Fuenf-Zeilen-Rad aus und liess das Band beim Drei-Zeilen-Experiment am
+       17.08. auf die unterste Zeile rutschen. So bleibt es in der Mitte, egal
+       was im WheelPicker eingestellt ist. */
+    top: WHEEL_ITEM_H * ((WHEEL_VISIBLE - 1) / 2),
     height: WHEEL_ITEM_H + 6,
     marginTop: -3,
     borderRadius: (WHEEL_ITEM_H + 6) / 2,

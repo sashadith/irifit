@@ -6,7 +6,9 @@ import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
+  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 
@@ -16,35 +18,53 @@ import { RoseHeart } from '@/components/ui/RoseHeart';
 import { t } from '@/i18n';
 import { colors, font, radius, typography } from '@/theme';
 
-/** S16: Flamme atmet (Scale 1,0→1,04) — NUR bei aktiver Serie, die 0er bleibt still */
-function BreathingFlame({ active }: { active: boolean }) {
+/**
+ * Herzschlag am Gruss (Sascha 18.08.: „wenigstens etwas soll sich bewegen").
+ *
+ * Der Trick, warum das dauerhaft laufen darf, obwohl wir gerade alle
+ * Endlos-Animationen stillgelegt haben: Es ist ein DOPPELSCHLAG MIT PAUSE,
+ * kein Dauerlauf. Waehrend der ~3,5 s Pause aendert sich kein Wert — Reanimated
+ * rendert dann schlicht nichts, die Bildschirm-Pipeline darf schlafen. Nur der
+ * Schlag selbst (~0,7 s) kostet Bilder, und der ist eine reine
+ * Transform-Animation auf dem UI-Thread: kein SVG-Neubau, kein JS.
+ */
+function BeatingHeart({ size }: { size: number }) {
   const scale = useSharedValue(1);
 
   useEffect(() => {
-    if (active) {
-      scale.value = withRepeat(
-        withTiming(1.04, { duration: 1400, easing: Easing.inOut(Easing.sin) }),
-        -1,
-        true,
-      );
-    } else {
-      cancelAnimation(scale);
-      scale.value = 1;
-    }
+    scale.value = withRepeat(
+      withSequence(
+        withTiming(1.18, { duration: 160, easing: Easing.out(Easing.quad) }),
+        withTiming(1, { duration: 190, easing: Easing.in(Easing.quad) }),
+        withTiming(1.1, { duration: 150, easing: Easing.out(Easing.quad) }),
+        withTiming(1, { duration: 280, easing: Easing.in(Easing.quad) }),
+        // Pause als letzter Schritt der Sequenz — hier ruht die Pipeline
+        withDelay(3400, withTiming(1, { duration: 1 })),
+      ),
+      -1,
+    );
     return () => cancelAnimation(scale);
-  }, [active, scale]);
+  }, [scale]);
 
   const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   return (
     <Animated.View style={style}>
-      <IriIcon
-        name="flame"
-        size={16}
-        color={active ? colors.tintDeep : colors.muted}
-        opacity={active ? 1 : 0.7}
-      />
+      <RoseHeart size={size} color={colors.tint} />
     </Animated.View>
+  );
+}
+
+/** Flamme statisch (Sascha 18.08.: „braucht kein Mensch") — nur die Farbe
+    unterscheidet aktive Serie von der 0er */
+function StreakFlame({ active }: { active: boolean }) {
+  return (
+    <IriIcon
+      name="flame"
+      size={16}
+      color={active ? colors.tintDeep : colors.muted}
+      opacity={active ? 1 : 0.7}
+    />
   );
 }
 
@@ -108,7 +128,7 @@ export function DiaryHeader({ date, isToday, greeting, streakCount, onShiftDate 
 
         <Pressable accessibilityRole="button" accessibilityLabel={t('home.streakInfoTitle')} onPress={explainStreak}>
           <GlassView borderRadius={radius.pill} contentStyle={styles.streak}>
-            <BreathingFlame active={streakCount > 0} />
+            <StreakFlame active={streakCount > 0} />
             <Text style={[styles.streakText, streakCount === 0 && styles.streakStart]}>
               {streakCount === 0
                 ? t('home.streakStart')
@@ -123,10 +143,19 @@ export function DiaryHeader({ date, isToday, greeting, streakCount, onShiftDate 
       {/* Eigene Zeile statt verschachteltem Text: Transforms (Herz-Breite)
           wirken in RN nicht auf Text-Spans, wohl aber auf eigenstaendige Texte */}
       <View style={styles.greetingRow}>
-        <Text style={[typography.displayLg, styles.greeting]} numberOfLines={1}>
+        {/* Lange Gruesse duerfen schrumpfen statt abgeschnitten zu werden
+            (17.08.): „Halben Montag geschafft, Irina" passt bei 26 px nicht in
+            eine Zeile. Bis 0,72 herunter bleibt die Display-Schrift lesbar und
+            die Zeile ganz; die meisten Gruesse sind kurz und bleiben unberuehrt. */}
+        <Text
+          style={[typography.displayLg, styles.greeting]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.72}
+        >
           {greeting}
         </Text>
-        <RoseHeart size={26} color={colors.tint} />
+        <BeatingHeart size={26} />
       </View>
     </View>
   );
