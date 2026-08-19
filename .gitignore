@@ -10,6 +10,13 @@ build/
 .env
 .env.*
 .iri-*.env
+# Postfach-Passwort fuer das Kontaktformular (Vorlage: smtp-config.example.php)
+website/smtp-config.php
+
+# Fertige App-Pakete (26 MB je Stueck, gehoeren zu Apple, nicht ins Repo)
+*.ipa
+*.aab
+*.apk
 
 # Kundendaten (DSGVO: enthält Käuferinnen-E-Mails aus Digistore24)
 data/legacy-import.json
