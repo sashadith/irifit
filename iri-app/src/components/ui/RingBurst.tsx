@@ -26,9 +26,9 @@ import { font } from '@/theme';
  * berechnen, was er nicht ohnehin tut.
  */
 
-/** 21 statt 14 (Sascha 20.08.: „50 % mehr Objekte") — der erste Ausbruch war
+/** Zweimal aufgestockt (Sascha 20.08.): 14 → 21 → 32. Der erste Ausbruch war
     zu duenn, man sah eher einzelne Zeichen als eine Wolke. */
-const COUNT = 21;
+const COUNT = 32;
 const DURATION = 1100;
 
 /** Marken-Rose plus warme Nachbartoene — kein Signalrot, kein Giftgruen */

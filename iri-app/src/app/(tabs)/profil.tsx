@@ -470,11 +470,14 @@ export default function ProfilScreen() {
         {/* Widerspruch gegen die Nutzungsstatistik (Art. 21 DSGVO, Punkt 15).
             Steht hier und nicht bei den Erinnerungen: Es ist keine Einstellung
             am Produkt, sondern eine am eigenen Datenschutz. */}
+        {/* Erklaerung UNTER der Schalterzeile statt daneben (Sascha 20.08.):
+            In der linken Spalte brach sie auf zwei Dritteln der Kartenbreite
+            um und lief in fuenf kurze Zeilen — ueber die volle Breite sind es
+            drei, und der Text liest sich als Absatz statt als Spalte. */}
         <View style={styles.analyticsRow}>
-          <View style={styles.analyticsText}>
-            <Text style={styles.analyticsLabel}>{t('profile.analytics')}</Text>
-            <Text style={styles.hint}>{t('profile.analyticsHint')}</Text>
-          </View>
+          <Text style={[styles.analyticsLabel, styles.analyticsText]}>
+            {t('profile.analytics')}
+          </Text>
           <Switch
             value={!analyticsOff}
             onValueChange={toggleAnalytics}
@@ -483,6 +486,7 @@ export default function ProfilScreen() {
             accessibilityLabel={t('profile.analytics')}
           />
         </View>
+        <Text style={styles.hint}>{t('profile.analyticsHint')}</Text>
       </GlassView>
 
       {/* Abo-Zustand hinter dem Rechtsteil (Sascha 20.08.): Wer bis hierher
@@ -704,7 +708,6 @@ const styles = StyleSheet.create({
     fontFamily: font.semibold,
     fontSize: 14,
     color: colors.ink,
-    marginBottom: 2,
   },
   deleteGap: {
     marginTop: 14,
