@@ -451,11 +451,6 @@ export default function ProfilScreen() {
         </View>
       </GlassView>
 
-      {/* Abo-Zustand direkt vor dem Rechtsteil: Wer wegen Kuendigung oder
-          Widerruf hier herunterscrollt, findet zuerst die Antwort auf die
-          eigentliche Frage — wann laeuft es ab und was kostet es. */}
-      <SubscriptionCard />
-
       <GlassView borderRadius={radius.md} contentStyle={styles.card} style={styles.gap}>
         <View style={styles.legalHead}>
           <Text style={styles.paragraph}>§</Text>
@@ -489,6 +484,11 @@ export default function ProfilScreen() {
           />
         </View>
       </GlassView>
+
+      {/* Abo-Zustand hinter dem Rechtsteil (Sascha 20.08.): Wer bis hierher
+          scrollt, sucht Vertrag, Kuendigung oder Widerruf — dann steht die
+          Antwort auf „wann laeuft es ab" direkt daneben. */}
+      <SubscriptionCard />
 
       {/* Blitzableiter (Session 24): Kritik soll HIER landen, nicht im Store */}
       <GhostButton

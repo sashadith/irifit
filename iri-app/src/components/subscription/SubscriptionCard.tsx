@@ -3,7 +3,7 @@ import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { GlassView } from '@/components/glass/GlassView';
-import { IriIcon } from '@/components/icons/IriIcon';
+import { RoseHeart } from '@/components/ui/RoseHeart';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { loadSubStatus, type SubStatus } from '@/features/subscription/status';
 import { t } from '@/i18n';
@@ -87,7 +87,9 @@ export function SubscriptionCard() {
   return (
     <GlassView borderRadius={radius.md} contentStyle={styles.card} style={styles.gap}>
       <View style={styles.head}>
-        <IriIcon name="calendar" size={16} color={colors.tintDeep} />
+        {/* Herz statt Kalender (Sascha 20.08.): Ein Kalender signalisiert
+            Termin, hier geht es um Zugehoerigkeit. */}
+        <RoseHeart size={16} color={colors.tint} />
         <Text style={styles.sectionTitle}>{t('subscription.section')}</Text>
       </View>
 
@@ -160,9 +162,12 @@ const styles = StyleSheet.create({
   links: {
     marginTop: spacing.md,
   },
+  // Auffindbar, aber kein Blickfang (Sascha 20.08.): Der Weg zur Kuendigung
+  // gehoert sichtbar in die App, ihn hervorzuheben waere gegen unser Interesse.
   link: {
     fontFamily: font.semibold,
-    fontSize: 14,
-    color: colors.tintDeep,
+    fontSize: 13,
+    color: colors.muted,
+    textDecorationLine: 'underline',
   },
 });
