@@ -18,7 +18,9 @@
     "loading": "Einen Moment …",
     "close": "Schließen",
     "save": "Speichern",
-    "cancel": "Abbrechen"
+    "cancel": "Abbrechen",
+    "passwordShow": "Passwort anzeigen",
+    "passwordHide": "Passwort verbergen"
   },
   "onboarding": {
     "stepLabel": "Schritt {step} von 7",
@@ -100,13 +102,23 @@
       "confirmEmailText": "Wir haben dir einen Bestätigungslink an {email} geschickt. Danach kannst du dich hier anmelden.",
       "oauthUnavailable": "Das klappt gerade nicht. Nutze für den Test bitte E-Mail & Passwort — Apple/Google schalten wir mit dem App-Store-Build frei.",
       "alreadySignedInTitle": "Fast geschafft!",
-      "alreadySignedInText": "Du bist schon angemeldet als {email}. Verrate uns noch deinen Vornamen, dann geht es weiter."
+      "alreadySignedInText": "Du bist schon angemeldet als {email}. Verrate uns noch deinen Vornamen, dann geht es weiter.",
+      "typoHint": "Meintest du {suggestion}? Zum Übernehmen tippen",
+      "typoCta": "Vorgeschlagene Adresse übernehmen"
     },
     "login": {
       "title": "Willkommen zurück",
       "signIn": "Anmelden",
       "noAccount": "Neu hier? Starte mit den 7 Fragen",
-      "invalidCredentials": "E-Mail oder Passwort stimmen nicht."
+      "invalidCredentials": "E-Mail oder Passwort stimmen nicht.",
+      "forgot": "Passwort vergessen? Code per Mail",
+      "codeLabel": "Code aus der E-Mail",
+      "codeSent": "Wir haben dir einen sechsstelligen Code an {email} geschickt. Er gilt eine Stunde.",
+      "codeSignIn": "Mit Code anmelden",
+      "codeBack": "Zurück zum Passwort",
+      "codeError": "Der Code konnte nicht verschickt werden. Gibt es zu dieser Adresse ein Konto?",
+      "codeInvalid": "Der Code stimmt nicht oder ist abgelaufen. Fordere einen neuen an.",
+      "codeNeedsEmail": "Trag zuerst deine E-Mail-Adresse ein, dann schicken wir dir den Code."
     },
     "paywall": {
       "title": "7 Tage kostenlos —\ndann entscheidest du.",

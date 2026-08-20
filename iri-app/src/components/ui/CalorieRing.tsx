@@ -85,10 +85,14 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
      Reine Spielerei — aber genau die Art, die Leute morgens die App oeffnen
      laesst. Kostet nichts, solange niemand tippt.
 
-     Sperre gegen Dauerfeuer: Waehrend ein Ausbruch laeuft, startet kein
-     zweiter. Sonst haetten wir bei schnellem Tippen doch wieder Dauerlast. */
-  const [burst, setBurst] = useState(0);
-  const laeuft = useRef(false);
+     Jeder Tipp loest SOFORT einen eigenen Ausbruch aus (Sascha 20.08.) —
+     vorher sperrte ein Riegel, bis die laufende Welle durch war, und schnelles
+     Tippen fuehlte sich tot an. Die Wellen liegen jetzt uebereinander: Jede
+     bekommt eine eigene Kennung und raeumt sich selbst ab. Die Obergrenze von
+     vier gleichzeitigen Wellen ist der Schutz gegen Dauerlast — bei mehr
+     saehe man ohnehin nur noch Brei. */
+  const [bursts, setBursts] = useState<number[]>([]);
+  const naechsteId = useRef(0);
   const druck = useSharedValue(1);
 
   const tippen = useCallback(() => {
@@ -100,13 +104,13 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
       withSpring(1, { damping: 22, stiffness: 420 }),
     );
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    if (laeuft.current) return;
-    laeuft.current = true;
-    setBurst((n) => n + 1);
-    setTimeout(() => {
-      laeuft.current = false;
-    }, 1100);
+    const id = ++naechsteId.current;
+    setBursts((alt) => [...alt.slice(-3), id]);
   }, [druck]);
+
+  const burstFertig = useCallback((id: number) => {
+    setBursts((alt) => alt.filter((x) => x !== id));
+  }, []);
 
   const druckStil = useAnimatedStyle(() => ({ transform: [{ scale: druck.value }] }));
 
@@ -155,7 +159,9 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
     >
       {/* Der Ausbruch steht VOR dem Ring im Baum und liegt damit dahinter —
           die Teilchen kommen unter dem Bogen hervor (Vorbild Wolt) */}
-      {burst > 0 ? <RingBurst trigger={burst} /> : null}
+      {bursts.map((id) => (
+        <RingBurst key={id} trigger={id} onDone={() => burstFertig(id)} />
+      ))}
       <Animated.View style={druckStil}>
       <Svg width={size} height={size} style={styles.rotated}>
         <Defs>

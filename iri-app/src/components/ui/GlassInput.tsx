@@ -1,6 +1,8 @@
-import { forwardRef } from 'react';
-import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
+import { forwardRef, useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
 
+import { IriIcon } from '@/components/icons/IriIcon';
+import { t } from '@/i18n';
 import { colors, font, radius } from '@/theme';
 
 export interface GlassInputProps extends TextInputProps {
@@ -11,9 +13,18 @@ export interface GlassInputProps extends TextInputProps {
 
 /** Eingabefeld im Glas-Look (Suchfeld-Stil des Prototyps) */
 export const GlassInput = forwardRef<TextInput, GlassInputProps>(function GlassInput(
-  { label, unit, style, ...inputProps },
+  { label, unit, style, secureTextEntry, ...inputProps },
   ref,
 ) {
+  /* Augenzeichen bei Passwortfeldern (Sascha 20.08.). Auf dem Telefon vertippt
+     man sich bei verdeckter Eingabe staendig — und wer sein Passwort nicht
+     pruefen kann, waehlt ein kuerzeres. Sichtbarkeit ist hier also nicht das
+     Gegenteil von Sicherheit, sondern Voraussetzung dafuer.
+     Steht in GlassInput statt in den beiden Bildschirmen, damit Registrierung
+     und Anmeldung sich nicht auseinanderentwickeln. */
+  const [sichtbar, setSichtbar] = useState(false);
+  const istPasswort = secureTextEntry === true;
+
   return (
     <View style={styles.wrap}>
       <Text style={styles.label}>{label}</Text>
@@ -23,8 +34,20 @@ export const GlassInput = forwardRef<TextInput, GlassInputProps>(function GlassI
           accessibilityLabel={label}
           placeholderTextColor={colors.muted2}
           style={[styles.input, style]}
+          secureTextEntry={istPasswort && !sichtbar}
           {...inputProps}
         />
+        {istPasswort ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t(sichtbar ? 'common.passwordHide' : 'common.passwordShow')}
+            onPress={() => setSichtbar((s) => !s)}
+            hitSlop={12}
+            style={styles.auge}
+          >
+            <IriIcon name={sichtbar ? 'eyeOff' : 'eye'} size={19} color={colors.muted} />
+          </Pressable>
+        ) : null}
         {unit ? <Text style={styles.unit}>{unit}</Text> : null}
       </View>
     </View>
@@ -59,6 +82,9 @@ const styles = StyleSheet.create({
     fontFamily: font.semibold,
     fontSize: 15,
     color: colors.ink,
+  },
+  auge: {
+    marginLeft: 8,
   },
   unit: {
     fontFamily: font.bold,

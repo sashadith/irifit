@@ -146,6 +146,19 @@ const ICONS = {
       'M9.3 8.5V7a2.7 2.7 0 0 1 5.4 0v1.5',
     ],
   },
+  // Passwort sichtbar / verdeckt (Sascha 20.08.) — gleicher Strichstil wie
+  // der Rest, damit kein Fremdkoerper im Formular sitzt
+  eye: {
+    circles: [{ cx: 12, cy: 12, r: 2.6 }],
+    paths: ['M2.8 12C5 8.4 8.3 6.6 12 6.6S19 8.4 21.2 12C19 15.6 15.7 17.4 12 17.4S5 15.6 2.8 12z'],
+  },
+  eyeOff: {
+    paths: [
+      'M9.9 6.9c.7-.2 1.4-.3 2.1-.3 3.7 0 7 1.8 9.2 5.4-.9 1.5-2 2.7-3.2 3.6M14.3 14.4a2.6 2.6 0 0 1-3.6-3.6',
+      'M6.4 8.2A12.4 12.4 0 0 0 2.8 12c2.2 3.6 5.5 5.4 9.2 5.4 1.2 0 2.4-.2 3.4-.6',
+      'M4.5 4.5l15 15',
+    ],
+  },
 } satisfies Record<string, { paths?: string[]; circles?: { cx: number; cy: number; r: number }[] }>;
 
 export type IriIconName = keyof typeof ICONS;

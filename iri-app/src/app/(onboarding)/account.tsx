@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
+  Pressable,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -18,6 +19,7 @@ import { GlassInput } from '@/components/ui/GlassInput';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { schlageAdresseVor } from '@/features/auth/emailTypo';
 import { signInWithApple, signInWithGoogle } from '@/features/auth/oauth';
 import { useOnboarding } from '@/features/onboarding/OnboardingProvider';
 import { t } from '@/i18n';
@@ -32,6 +34,10 @@ export default function AccountScreen() {
   const [name, setName] = useState(answers.displayName ?? '');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  /* Vertipper in der Domain (Sascha 20.08.): Wir verlangen bewusst keine
+     Bestaetigung per Mail — dann muss der Fehler hier auffallen, sonst ist
+     die Kundin bei vergessenem Passwort dauerhaft ausgesperrt. */
+  const vorschlag = useMemo(() => schlageAdresseVor(email), [email]);
   const [busy, setBusy] = useState(false);
   const [awaitingConfirm, setAwaitingConfirm] = useState(false);
 
@@ -163,6 +169,19 @@ export default function AccountScreen() {
             autoComplete="email"
             placeholder="du@beispiel.de"
           />
+            {vorschlag ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('onboarding.account.typoCta')}
+                onPress={() => setEmail(vorschlag)}
+                hitSlop={8}
+                style={styles.typoRow}
+              >
+                <Text style={styles.typoText}>
+                  {t('onboarding.account.typoHint', { suggestion: vorschlag })}
+                </Text>
+              </Pressable>
+            ) : null}
           <GlassInput
             label={t('onboarding.account.password')}
             value={password}
@@ -206,6 +225,16 @@ export default function AccountScreen() {
 }
 
 const styles = StyleSheet.create({
+  typoRow: {
+    marginTop: -6,
+    marginBottom: 10,
+    marginLeft: 6,
+  },
+  typoText: {
+    fontFamily: font.semibold,
+    fontSize: 12.5,
+    color: colors.tintDeep,
+  },
   flex: {
     flex: 1,
   },
