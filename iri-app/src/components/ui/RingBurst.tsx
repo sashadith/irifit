@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
@@ -80,16 +80,31 @@ export function RingBurst({ trigger, onDone }: RingBurstProps) {
   const progress = useSharedValue(0);
   const teilchen = useMemo(() => baueTeilchen(trigger), [trigger]);
 
+  /* onDone in einer Box statt in den Abhaengigkeiten (Sascha 20.08.).
+     Der Aufrufer gibt bei jedem Tipp eine NEUE Funktion herein — steht die in
+     den Abhaengigkeiten, laeuft der Effekt erneut und setzt progress auf 0
+     zurueck. Folge: Ein neuer Tipp hat alle noch laufenden Wellen mit
+     zurueckgerissen, statt sich darueberzulegen. Genau der Fehler, den Sascha
+     gesehen hat. Jetzt startet jede Welle genau einmal und laeuft unbeirrt zu
+     Ende, egal wie oft daneben getippt wird. */
+  const fertigRef = useRef(onDone);
+  fertigRef.current = onDone;
+
   useEffect(() => {
     progress.value = 0;
     progress.value = withTiming(
       1,
       { duration: DURATION, easing: Easing.out(Easing.quad) },
       (fertig) => {
-        if (fertig && onDone) runOnJS(onDone)();
+        if (fertig) runOnJS(melden)();
       },
     );
-  }, [trigger, progress, onDone]);
+    function melden() {
+      fertigRef.current?.();
+    }
+    // Bewusst NUR trigger: siehe Kommentar oben
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trigger]);
 
   return (
     <View style={styles.layer} pointerEvents="none">
