@@ -107,8 +107,13 @@ export default function HomeScreen() {
       setSteps(wert);
       celebrateStepGoal(wert).then((gefeiert) => {
         if (!gefeiert) return;
-        setKonfetti(true);
-        playSound('stepGoal'); // Feuerwerk zum Konfetti
+        /* Eine Sekunde warten (Sascha 20.08.): Beim Start baut sich der
+           Bildschirm noch auf, und wer mitten im Aufbau Konfetti bekommt, sieht
+           es gar nicht. Erst ankommen lassen, dann feiern. */
+        setTimeout(() => {
+          setKonfetti(true);
+          playSound('stepGoal'); // Feuerwerk zum Konfetti
+        }, 1000);
       });
     });
   }, []);
@@ -199,7 +204,7 @@ export default function HomeScreen() {
       {konfetti ? (
         <Confetti
           originX={SCREEN_W - 66}
-          originY={202}
+          originY={186}
           onDone={() => setKonfetti(false)}
         />
       ) : null}

@@ -34,8 +34,12 @@ import Animated, {
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
-const COUNT = 90;
-const DURATION = 2600;
+/* Dicht wie bei Apple (Sascha 20.08.: „viel mehr Teilchen"). 220 Stueck sind
+   vertretbar, weil jedes nur eine Transform-Animation auf dem UI-Strang ist und
+   ALLE aus derselben Zeitachse rechnen — es gibt keine 220 Zeitgeber. Nach
+   2,8 s haengt sich die Ansicht komplett aus. */
+const COUNT = 220;
+const DURATION = 2800;
 
 /** iMessage-Palette: kraeftig und bunt, bewusst nicht im Marken-Rose */
 const FARBEN = [
@@ -82,13 +86,18 @@ function baueTeilchen(saat: number, ursprungY: number): Teilchen[] {
   return Array.from({ length: COUNT }, (_, i) => {
     const form = i % 3; // 0 = Rechteck, 1 = Streifen, 2 = Kreis
     const winkel = (i / COUNT) * Math.PI * 2 + (zufall(i, saat, 1) - 0.5) * 0.7;
-    const tempo = 150 + zufall(i, saat, 2) * 260;
+    /* Breite Streuung der Wucht: Ein Teil schafft es weit, ein Teil kaum —
+       das erzeugt die Wolke statt eines gleichmaessigen Rings. Die dritte
+       Potenz haeuft die Werte unten, wenige fliegen sehr weit. */
+    const tempo = 120 + Math.pow(zufall(i, saat, 2), 0.55) * 620;
     return {
       farbe: FARBEN[i % FARBEN.length],
-      vx: Math.cos(winkel) * tempo * 1.35, // waagerecht weiter als senkrecht
-      // Nach oben gedeckelt, damit nichts oben hinausschiesst
-      vy: Math.sin(winkel) * Math.min(tempo, ursprungY - 40),
-      g: SCREEN_H - ursprungY + 220 + zufall(i, saat, 3) * 260,
+      vx: Math.cos(winkel) * tempo * 1.3, // waagerecht weiter als senkrecht
+      /* Nach oben darf es jetzt bis ueber den Rand (Sascha: „auch nach oben
+         sollen Teilchen fliegen") — der Deckel von vorher hat die obere
+         Haelfte der Explosion platt gedrueckt. */
+      vy: Math.sin(winkel) * Math.min(tempo, ursprungY + 120),
+      g: SCREEN_H - ursprungY + 260 + zufall(i, saat, 3) * 320,
       breite: form === 2 ? 9 : form === 1 ? 4 : 12,
       laenge: form === 2 ? 9 : form === 1 ? 16 : 9,
       radius: form === 2 ? 5 : 1.5,
@@ -156,8 +165,14 @@ function Stueck({
     // Schwerkraft holt sie ein und traegt sie unten aus dem Bild
     const y = p.vy * wurf + p.g * t * t;
 
+    /* „Kommt hinter dem Chip hervor": Solange ein Teilchen noch im Bereich des
+       Chips liegt, ist es unsichtbar; es blendet erst auf, wenn es darunter
+       herauskommt. Echtes Dahinterlegen geht nicht — die Seite deckt. */
+    const dist = Math.sqrt(x * x + y * y);
+    const auftauchen = interpolate(dist, [26, 52], [0, 1], 'clamp');
+
     return {
-      opacity: t > 0.82 ? interpolate(t, [0.82, 1], [1, 0]) : 1,
+      opacity: auftauchen * (t > 0.82 ? interpolate(t, [0.82, 1], [1, 0]) : 1),
       transform: [
         { translateX: x },
         { translateY: y },
@@ -187,6 +202,11 @@ function Stueck({
 }
 
 const styles = StyleSheet.create({
+  /* Muss OBEN liegen: Ein Versuch ohne zIndex (Sascha wollte „hinter dem
+     Chip") machte das Konfetti komplett unsichtbar — hinter dem Chip heisst
+     hier zwangslaeufig hinter der ganzen Seite, und die deckt. Den Eindruck
+     „kommt dahinter hervor" erzeugt stattdessen die Sichtbarkeitsschwelle im
+     Worklet: Teilchen werden erst gezeigt, wenn sie den Chip verlassen haben. */
   layer: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 100,
