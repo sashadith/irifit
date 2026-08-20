@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.irinadith.irifit",
-      "buildNumber": "22",
+      "buildNumber": "23",
       "config": {
         "usesNonExemptEncryption": false
       },
@@ -28,7 +28,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.irinadith.irifit",
-      "versionCode": 21,
+      "versionCode": 22,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
