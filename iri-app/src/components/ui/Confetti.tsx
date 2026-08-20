@@ -51,10 +51,11 @@ function zufall(i: number, saat: number, salz: number): number {
 
 interface Teilchen {
   farbe: string;
-  /** Wohin es fliegt (Bildschirmpunkte, relativ zum Ursprung) */
-  zielX: number;
-  hoehe: number;
-  fall: number;
+  /** Startgeschwindigkeit der Explosion, in Punkte pro Zeiteinheit */
+  vx: number;
+  vy: number;
+  /** Schwerkraft — zieht das Teilchen nach dem Ausbruch nach unten */
+  g: number;
   breite: number;
   laenge: number;
   radius: number;
@@ -63,25 +64,38 @@ interface Teilchen {
   wackel: number;
 }
 
+/**
+ * ECHTE EXPLOSION statt Regen (Sascha 20.08.).
+ *
+ * Die erste Fassung schoss die Teilchen bis zu 440 Punkte nach oben — also
+ * weit ueber den Bildschirmrand — und liess sie danach fallen. Von unten sah
+ * das aus, als regne es vom oberen Rand herein, statt hinter dem Chip
+ * herauszubrechen.
+ *
+ * Jetzt: Jedes Teilchen bekommt einen Winkel im VOLLEN Kreis und eine
+ * Geschwindigkeit; es fliegt schnell los und wird langsamer (das ist der
+ * Knall), waehrend die Schwerkraft es zunehmend nach unten zieht. Die
+ * Geschwindigkeiten sind so gewaehlt, dass der hoechste Punkt knapp unter dem
+ * Bildschirmrand liegt — der Ausbruch bleibt sichtbar.
+ */
 function baueTeilchen(saat: number, ursprungY: number): Teilchen[] {
   return Array.from({ length: COUNT }, (_, i) => {
     const form = i % 3; // 0 = Rechteck, 1 = Streifen, 2 = Kreis
-    const breite = form === 2 ? 9 : form === 1 ? 4 : 12;
-    const laenge = form === 2 ? 9 : form === 1 ? 16 : 9;
+    const winkel = (i / COUNT) * Math.PI * 2 + (zufall(i, saat, 1) - 0.5) * 0.7;
+    const tempo = 150 + zufall(i, saat, 2) * 260;
     return {
       farbe: FARBEN[i % FARBEN.length],
-      // Ueber die volle Breite streuen, aber zur Mitte hin dichter
-      zielX: (zufall(i, saat, 1) - 0.5) * SCREEN_W * 1.5,
-      // Aufstieg: manche schiessen hoch, manche kaum
-      hoehe: 120 + zufall(i, saat, 2) * 320,
-      // Fall bis unter den Bildschirmrand
-      fall: SCREEN_H - ursprungY + 160 + zufall(i, saat, 3) * 200,
-      breite,
-      laenge,
+      vx: Math.cos(winkel) * tempo * 1.35, // waagerecht weiter als senkrecht
+      // Nach oben gedeckelt, damit nichts oben hinausschiesst
+      vy: Math.sin(winkel) * Math.min(tempo, ursprungY - 40),
+      g: SCREEN_H - ursprungY + 220 + zufall(i, saat, 3) * 260,
+      breite: form === 2 ? 9 : form === 1 ? 4 : 12,
+      laenge: form === 2 ? 9 : form === 1 ? 16 : 9,
       radius: form === 2 ? 5 : 1.5,
       drehung: (zufall(i, saat, 4) - 0.5) * 1440,
-      verzoegerung: zufall(i, saat, 5) * 0.18,
-      wackel: (zufall(i, saat, 6) - 0.5) * 60,
+      // Kurzer Versatz: Der Knall soll knallen, nicht tropfen
+      verzoegerung: zufall(i, saat, 5) * 0.06,
+      wackel: (zufall(i, saat, 6) - 0.5) * 50,
     };
   });
 }
@@ -135,19 +149,18 @@ function Stueck({
     const t = Math.min(1, Math.max(0, (progress.value - p.verzoegerung) / (1 - p.verzoegerung)));
     if (t <= 0) return { opacity: 0 };
 
-    // Waagerecht: gleichmaessig nach aussen, mit leichtem Wackeln
-    const x = p.zielX * t + Math.sin(t * 9) * p.wackel;
+    // Ausbruch: schnell los, dann gebremst — das ist der Knall
+    const wurf = 1 - (1 - t) * (1 - t);
 
-    // Senkrecht: erst hoch (schnell, gebremst), dann fallen (beschleunigt) —
-    // dieselbe Kurve wie ein geworfener Gegenstand
-    const auf = interpolate(Math.min(t / 0.35, 1), [0, 1], [0, -p.hoehe]);
-    const ab = t > 0.35 ? Math.pow((t - 0.35) / 0.65, 2) * p.fall : 0;
+    const x = p.vx * wurf + Math.sin(t * 9) * p.wackel;
+    // Schwerkraft holt sie ein und traegt sie unten aus dem Bild
+    const y = p.vy * wurf + p.g * t * t;
 
     return {
       opacity: t > 0.82 ? interpolate(t, [0.82, 1], [1, 0]) : 1,
       transform: [
         { translateX: x },
-        { translateY: auf + ab },
+        { translateY: y },
         { rotate: `${p.drehung * t}deg` },
         // Zweite Achse: laesst die Plaettchen kippen statt nur zu kreiseln
         { scaleX: Math.cos(t * 12 + p.wackel) },
