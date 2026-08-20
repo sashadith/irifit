@@ -507,13 +507,29 @@ export default function ProfilScreen() {
       />
 
       <GhostButton label={t('profile.signOut')} onPress={signOut} style={styles.gap} />
+      {/* Zwei Pillen statt unterstrichener Textzeilen (Sascha 20.08.): So weit
+          unten wirkten die Links wie ein vergessenes Fussnotenfeld. Als Chips
+          in derselben Breite wie „Abmelden" gehoeren sie sichtbar zur Seite —
+          farblich aber deutlich abgesetzt, denn beides ist unwiderruflich. */}
       <View style={styles.deleteWrap}>
-        <Text style={styles.deleteLink} onPress={confirmReset}>
-          {t('profile.resetProgress')}
-        </Text>
-        <Text style={[styles.deleteLink, styles.deleteGap]} onPress={confirmDelete}>
-          {t('profile.deleteAccount')}
-        </Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={confirmReset}
+          style={({ pressed }) => [styles.dangerChip, pressed && styles.dangerChipGedrueckt]}
+        >
+          <Text style={styles.dangerText}>{t('profile.resetProgress')}</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          onPress={confirmDelete}
+          style={({ pressed }) => [
+            styles.dangerChip,
+            styles.deleteGap,
+            pressed && styles.dangerChipGedrueckt,
+          ]}
+        >
+          <Text style={styles.dangerText}>{t('profile.deleteAccount')}</Text>
+        </Pressable>
       </View>
 
       <IrinaCard visible={showIrina} onClose={() => setShowIrina(false)} />
@@ -714,17 +730,30 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   deleteGap: {
-    marginTop: 14,
+    marginTop: 10,
   },
   deleteWrap: {
-    alignItems: 'center',
+    alignSelf: 'stretch',
     marginTop: spacing.xl,
     marginBottom: spacing.lg,
   },
-  deleteLink: {
+  /* Gleiche Breite und Rundung wie „Abmelden" darueber, aber in Rose statt
+     Weiss — sichtbar, ohne zum Knopf einzuladen. Beides ist unwiderruflich. */
+  dangerChip: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    paddingVertical: 13,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(210,85,120,0.07)',
+    borderWidth: 1,
+    borderColor: 'rgba(210,85,120,0.18)',
+  },
+  dangerChipGedrueckt: {
+    opacity: 0.55,
+  },
+  dangerText: {
     fontFamily: font.semibold,
-    fontSize: 13,
-    color: colors.muted,
-    textDecorationLine: 'underline',
+    fontSize: 13.5,
+    color: colors.tintDeep,
   },
 });
