@@ -93,26 +93,28 @@ export function SubscriptionCard() {
         <Text style={styles.sectionTitle}>{t('subscription.section')}</Text>
       </View>
 
-      <Text style={styles.produkt}>{produktName(sub)}</Text>
-      <Text style={[styles.verlauf, !sub.active && styles.verlaufAus]}>{verlauf(sub)}</Text>
-
-      {legacy ? <Text style={styles.legacy}>{t('subscription.legacyHint')}</Text> : null}
-
-      <View style={styles.links}>
+      {/* Verweis auf gleicher Hoehe wie der Produktname (Sascha 20.08.): Als
+          eigene Zeile darunter machte er die Karte unnoetig hoch, obwohl
+          rechts neben „Jahresabo" die halbe Breite frei stand. */}
+      <View style={styles.zeile}>
+        <Text style={styles.produkt}>{produktName(sub)}</Text>
         {sub.active ? (
           <Pressable
             accessibilityRole="link"
             onPress={() => Linking.openURL(APPLE_SUBSCRIPTIONS)}
-            hitSlop={8}
+            hitSlop={10}
           >
             <Text style={styles.link}>{t('subscription.manage')}</Text>
           </Pressable>
         ) : (
-          <Pressable accessibilityRole="button" onPress={() => router.push('/renew')} hitSlop={8}>
+          <Pressable accessibilityRole="button" onPress={() => router.push('/renew')} hitSlop={10}>
             <Text style={styles.link}>{t('subscription.renew')}</Text>
           </Pressable>
         )}
       </View>
+      <Text style={[styles.verlauf, !sub.active && styles.verlaufAus]}>{verlauf(sub)}</Text>
+
+      {legacy ? <Text style={styles.legacy}>{t('subscription.legacyHint')}</Text> : null}
     </GlassView>
   );
 }
@@ -159,15 +161,18 @@ const styles = StyleSheet.create({
     color: colors.muted,
     marginTop: spacing.sm,
   },
-  links: {
-    marginTop: spacing.md,
+  zeile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
   },
   // Auffindbar, aber kein Blickfang (Sascha 20.08.): Der Weg zur Kuendigung
   // gehoert sichtbar in die App, ihn hervorzuheben waere gegen unser Interesse.
+  // Ohne Unterstrich — der wirkte wie ein Formularfeld statt wie ein Verweis.
   link: {
     fontFamily: font.semibold,
     fontSize: 13,
     color: colors.muted,
-    textDecorationLine: 'underline',
   },
 });
