@@ -553,15 +553,16 @@ const styles = StyleSheet.create({
   saveGap: {
     marginTop: 14,
   },
-  /* Groesse und Farbe wie „Was soll ich noch essen?" auf der Startseite
-     (Sascha 20.08.), aber in Kapitaelchen — mit 11 px in Grau war die
-     Ueberschrift kaum als solche zu erkennen. */
+  /* Groesse wie „Was soll ich noch essen?" auf der Startseite, aber in
+     Kapitaelchen, mittig und in Rose (Sascha 20.08.) — mit 11 px in Grau am
+     linken Rand war die Ueberschrift kaum als solche zu erkennen. */
   macroLabel: {
     fontFamily: font.bold,
     fontSize: 14,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    color: colors.ink,
+    textAlign: 'center',
+    color: colors.tintDeep,
     marginTop: 16,
     marginBottom: 8,
   },

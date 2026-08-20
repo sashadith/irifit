@@ -86,32 +86,31 @@ export function SubscriptionCard() {
 
   return (
     <GlassView borderRadius={radius.md} contentStyle={styles.card} style={styles.gap}>
+      {/* Kopfzeile: links die Ueberschrift, rechts gegenueber der Verweis als
+          feiner Chip (Sascha 20.08.). Der spart der Karte eine ganze Zeile und
+          nutzt den Platz, der neben „DEIN ZUGANG" ohnehin leer stand. */}
       <View style={styles.head}>
-        {/* Herz statt Kalender (Sascha 20.08.): Ein Kalender signalisiert
-            Termin, hier geht es um Zugehoerigkeit. */}
-        <RoseHeart size={16} color={colors.tint} />
-        <Text style={styles.sectionTitle}>{t('subscription.section')}</Text>
+        <View style={styles.headLinks}>
+          {/* Herz statt Kalender: Ein Kalender signalisiert Termin, hier geht
+              es um Zugehoerigkeit. */}
+          <RoseHeart size={16} color={colors.tint} />
+          <Text style={styles.sectionTitle}>{t('subscription.section')}</Text>
+        </View>
+        <Pressable
+          accessibilityRole={sub.active ? 'link' : 'button'}
+          onPress={() =>
+            sub.active ? Linking.openURL(APPLE_SUBSCRIPTIONS) : router.push('/renew')
+          }
+          hitSlop={10}
+          style={({ pressed }) => [styles.chip, pressed && styles.chipGedrueckt]}
+        >
+          <Text style={styles.chipText}>
+            {sub.active ? t('subscription.manage') : t('subscription.renew')}
+          </Text>
+        </Pressable>
       </View>
 
-      {/* Verweis auf gleicher Hoehe wie der Produktname (Sascha 20.08.): Als
-          eigene Zeile darunter machte er die Karte unnoetig hoch, obwohl
-          rechts neben „Jahresabo" die halbe Breite frei stand. */}
-      <View style={styles.zeile}>
-        <Text style={styles.produkt}>{produktName(sub)}</Text>
-        {sub.active ? (
-          <Pressable
-            accessibilityRole="link"
-            onPress={() => Linking.openURL(APPLE_SUBSCRIPTIONS)}
-            hitSlop={10}
-          >
-            <Text style={styles.link}>{t('subscription.manage')}</Text>
-          </Pressable>
-        ) : (
-          <Pressable accessibilityRole="button" onPress={() => router.push('/renew')} hitSlop={10}>
-            <Text style={styles.link}>{t('subscription.renew')}</Text>
-          </Pressable>
-        )}
-      </View>
+      <Text style={styles.produkt}>{produktName(sub)}</Text>
       <Text style={[styles.verlauf, !sub.active && styles.verlaufAus]}>{verlauf(sub)}</Text>
 
       {legacy ? <Text style={styles.legacy}>{t('subscription.legacyHint')}</Text> : null}
@@ -129,8 +128,34 @@ const styles = StyleSheet.create({
   head: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    gap: spacing.md,
     marginBottom: spacing.sm,
+  },
+  headLinks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  /* Feiner Chip statt blossem Text (Sascha 20.08.): als Pille erkennbar
+     antippbar, aber blass genug, um nicht mit dem Produktnamen zu konkurrieren
+     — der Weg zur Kuendigung gehoert sichtbar in die App, hervorgehoben
+     gehoert er nicht. */
+  chip: {
+    paddingHorizontal: 11,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.55)',
+    borderWidth: 1,
+    borderColor: 'rgba(28,28,33,0.07)',
+  },
+  chipGedrueckt: {
+    opacity: 0.6,
+  },
+  chipText: {
+    fontFamily: font.semibold,
+    fontSize: 12,
+    color: colors.muted,
   },
   sectionTitle: {
     fontFamily: font.bold,
@@ -160,19 +185,5 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: colors.muted,
     marginTop: spacing.sm,
-  },
-  zeile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.md,
-  },
-  // Auffindbar, aber kein Blickfang (Sascha 20.08.): Der Weg zur Kuendigung
-  // gehoert sichtbar in die App, ihn hervorzuheben waere gegen unser Interesse.
-  // Ohne Unterstrich — der wirkte wie ein Formularfeld statt wie ein Verweis.
-  link: {
-    fontFamily: font.semibold,
-    fontSize: 13,
-    color: colors.muted,
   },
 });
