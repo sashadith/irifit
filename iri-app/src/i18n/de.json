@@ -589,5 +589,22 @@
     "cardTitle": "Dein Abo ist abgelaufen",
     "cardText": "Verlängere jetzt, um Workouts, den Kurs und die KI-Scans weiter zu nutzen.",
     "cardCta": "Abo verlängern"
+  },
+  "subscription": {
+    "section": "Dein Zugang",
+    "yearly": "Jahresabo",
+    "monthly": "Monatsabo",
+    "voucher": "Gratismonat",
+    "generic": "IriFit-Zugang",
+    "renewsOn": "Verlängert sich am {date}",
+    "untilEnd": "Läuft noch bis {date} — danach endet der Zugang",
+    "voucherUntil": "Kostenlos bis {date}",
+    "billingIssue": "Mit der Zahlung klemmt es gerade. Dein Zugang bleibt bis {date}.",
+    "billingIssueShort": "Mit der Zahlung klemmt es gerade — bitte im Store prüfen.",
+    "noEnd": "Unbefristet",
+    "ended": "Dein Zugang ist abgelaufen",
+    "manage": "Abo verwalten",
+    "renew": "Zugang verlängern",
+    "legacyHint": "Dein gekaufter BLEIB-FIT-Kurs gehört dir dauerhaft — unabhängig vom Abo."
   }
 }

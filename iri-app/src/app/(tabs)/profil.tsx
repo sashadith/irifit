@@ -25,6 +25,7 @@ import { IriIcon } from '@/components/icons/IriIcon';
 import { GlobeIcon, InstagramIcon, TikTokIcon } from '@/components/icons/SocialIcons';
 import { RoseHeart } from '@/components/ui/RoseHeart';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { SubscriptionCard } from '@/components/subscription/SubscriptionCard';
 import { setAnalyticsOptOut } from '@/features/analytics/track';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { t } from '@/i18n';
@@ -449,6 +450,11 @@ export default function ProfilScreen() {
           </View>
         </View>
       </GlassView>
+
+      {/* Abo-Zustand direkt vor dem Rechtsteil: Wer wegen Kuendigung oder
+          Widerruf hier herunterscrollt, findet zuerst die Antwort auf die
+          eigentliche Frage — wann laeuft es ab und was kostet es. */}
+      <SubscriptionCard />
 
       <GlassView borderRadius={radius.md} contentStyle={styles.card} style={styles.gap}>
         <View style={styles.legalHead}>
