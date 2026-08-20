@@ -59,6 +59,16 @@ function meldung(
       if (vorherStatus === 'trialing' && !trial) {
         return `💚 <b>Aus Test wurde Abo</b> — ${produkt}${bis ? `, bis ${bis}` : ''}`;
       }
+      // Wiederbelebung nach Zahlungsproblem oder Ablauf. Aufgefallen beim
+      // Sandbox-Test 20.08.: Der Test wandelte sich in ein Abo um, aber eine
+      // Minute vorher hatten BILLING_ISSUE und EXPIRATION den Status schon auf
+      // 'expired' gesetzt — die Meldung oben griff nicht mehr, und der Kauf
+      // blieb unbemerkt. Das trifft echte Kundinnen genauso: Karte klemmt kurz,
+      // Zugang laeuft ab, Zahlung wird nachgezogen. Diese Rueckkehr ist eine
+      // Meldung wert, die stille Standard-Verlaengerung darunter nicht.
+      if (vorherStatus === 'expired' || vorherStatus === 'in_grace' || vorherStatus === 'paused') {
+        return `💚 <b>Zahlung nachgeholt</b> — ${produkt} wieder aktiv${bis ? `, bis ${bis}` : ''}`;
+      }
       return null;
     case 'PRODUCT_CHANGE':
       return `🔁 <b>Tarifwechsel</b> zu ${produkt}${bis ? `, bis ${bis}` : ''}`;
