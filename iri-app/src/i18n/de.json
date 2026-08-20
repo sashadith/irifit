@@ -517,6 +517,8 @@
     "noResults": "Nichts gefunden — probier einen anderen Begriff.",
     "searchError": "Die Suche hat nicht geklappt. Prüfe deine Verbindung.",
     "recentSection": "Nochmal essen",
+    "usedBeforeSection": "SCHON MAL VERWENDET",
+    "allResultsSection": "ALLE TREFFER",
     "favoritesSection": "Favoriten",
     "noRecent": "Was du zuletzt gegessen hast, erscheint hier — ein Tipp genügt, und es steht wieder im Tagebuch.",
     "noFavorites": "Tippe bei einem Lebensmittel auf ☆, um es hier zu sichern.",

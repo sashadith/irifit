@@ -1,17 +1,22 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import Animated, {
   cancelAnimation,
   Easing,
   useAnimatedProps,
+  useAnimatedStyle,
   useSharedValue,
   withRepeat,
+  withSequence,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { RingBurst } from '@/components/ui/RingBurst';
 import { colors, font, typography } from '@/theme';
 
 export interface CalorieRingProps {
@@ -75,6 +80,36 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
     }, [flow, alive, clamped]),
   );
 
+  /* Tipp-Ausbruch (Sascha 20.08., Vorbild Wolt): Der Ring gibt kurz nach, man
+     spuert es in der Hand, und hinter ihm fliegen kcal und Herzen heraus.
+     Reine Spielerei — aber genau die Art, die Leute morgens die App oeffnen
+     laesst. Kostet nichts, solange niemand tippt.
+
+     Sperre gegen Dauerfeuer: Waehrend ein Ausbruch laeuft, startet kein
+     zweiter. Sonst haetten wir bei schnellem Tippen doch wieder Dauerlast. */
+  const [burst, setBurst] = useState(0);
+  const laeuft = useRef(false);
+  const druck = useSharedValue(1);
+
+  const tippen = useCallback(() => {
+    /* Kurzes Antippen statt Nachwippen (Sascha 20.08.): Die weiche Feder hat
+       den Ring fast eine halbe Sekunde nachschwingen lassen — das wirkte
+       wackelig. Jetzt gibt er knapp nach und ist sofort wieder still. */
+    druck.value = withSequence(
+      withTiming(0.97, { duration: 70, easing: Easing.out(Easing.quad) }),
+      withSpring(1, { damping: 22, stiffness: 420 }),
+    );
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    if (laeuft.current) return;
+    laeuft.current = true;
+    setBurst((n) => n + 1);
+    setTimeout(() => {
+      laeuft.current = false;
+    }, 1100);
+  }, [druck]);
+
+  const druckStil = useAnimatedStyle(() => ({ transform: [{ scale: druck.value }] }));
+
   const arcProps = useAnimatedProps(() => ({
     strokeDashoffset: c * (1 - animated.value),
   }));
@@ -112,7 +147,16 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
   const bubble2 = bubbleProps(0.45, 2);
 
   return (
-    <View style={{ width: size, height: size }}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={tippen}
+      style={{ width: size, height: size }}
+    >
+      {/* Der Ausbruch steht VOR dem Ring im Baum und liegt damit dahinter —
+          die Teilchen kommen unter dem Bogen hervor (Vorbild Wolt) */}
+      {burst > 0 ? <RingBurst trigger={burst} /> : null}
+      <Animated.View style={druckStil}>
       <Svg width={size} height={size} style={styles.rotated}>
         <Defs>
           <LinearGradient
@@ -156,7 +200,8 @@ export function CalorieRing({ value, label, progress, size = 210 }: CalorieRingP
         <AnimatedNumber value={value} from={0} style={[typography.displayNum, styles.number]} />
         <Text style={styles.label}>{label}</Text>
       </View>
-    </View>
+      </Animated.View>
+    </Pressable>
   );
 }
 

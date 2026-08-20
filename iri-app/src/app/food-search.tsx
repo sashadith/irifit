@@ -228,6 +228,39 @@ export default function FoodSearchScreen() {
 
   const showSearch = query.trim().length >= 2;
 
+  /**
+   * „Schon mal verwendet" (Sascha 20.08.).
+   *
+   * Die Datenbank liefert auf „Wassermelone" zwanzig Treffer, und jedes Mal
+   * muss man erneut heraussuchen, welcher davon der richtige war. Wer ein
+   * Lebensmittel schon einmal eingetragen hat, hat diese Entscheidung aber
+   * bereits getroffen — also steht seine Wahl beim naechsten Mal oben, in
+   * einem eigenen Abschnitt.
+   *
+   * Quelle ist die ohnehin geladene „Zuletzt"-Liste; es braucht keinen neuen
+   * Speicher und keine zusaetzliche Abfrage. Gesucht wird im Titel, damit auch
+   * „Wassermelone (Edeka)" bei der Eingabe „wasser" auftaucht.
+   */
+  const usedBefore: RecentEntry[] = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (term.length < 2) return [];
+    const seen = new Set<string>();
+    return recents.filter((r) => {
+      if (!r.title.toLowerCase().includes(term)) return false;
+      const key = r.food ? foodKey(r.food) : r.title.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [query, recents]);
+
+  /** Dieselben Eintraege nicht doppelt zeigen — was oben steht, faellt unten raus */
+  const freshResults: FoodItem[] = useMemo(() => {
+    if (usedBefore.length === 0) return results;
+    const bekannt = new Set(usedBefore.filter((r) => r.food).map((r) => foodKey(r.food!)));
+    return results.filter((item) => !bekannt.has(foodKey(item)));
+  }, [results, usedBefore]);
+
   const removeAiIngredient = (index: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setAiResult((prev) => {
@@ -421,7 +454,7 @@ export default function FoodSearchScreen() {
                   <ActivityIndicator color={colors.tintDeep} />
                   <Text style={typography.bodyMuted}> {t('food.searching')}</Text>
                 </View>
-              ) : results.length === 0 ? (
+              ) : results.length === 0 && usedBefore.length === 0 ? (
                 <>
                   <Text style={[typography.bodyMuted, styles.emptyText]}>{t('food.noResults')}</Text>
                   {/* KI bewusst als Fallback NACH der Datenbanksuche (Sascha 11.08.):
@@ -445,7 +478,31 @@ export default function FoodSearchScreen() {
                 </>
               ) : (
                 <>
-                  {results.map((item, i) => (
+                  {usedBefore.length > 0 ? (
+                    <>
+                      <Text style={[typography.eyebrow, styles.sectionLabel, styles.usedLabel]}>
+                        {t('food.usedBeforeSection')}
+                      </Text>
+                      {usedBefore.map((entry, i) => (
+                        <FoodRow
+                          key={`used-${entry.title}-${i}`}
+                          title={entry.title}
+                          subtitle={recentSubtitle(entry)}
+                          onPress={() =>
+                            entry.food
+                              ? oeffneSheet({ item: entry.food, source: 'search' })
+                              : relog(entry)
+                          }
+                        />
+                      ))}
+                      {freshResults.length > 0 ? (
+                        <Text style={[typography.eyebrow, styles.sectionLabel]}>
+                          {t('food.allResultsSection')}
+                        </Text>
+                      ) : null}
+                    </>
+                  ) : null}
+                  {freshResults.map((item, i) => (
                     <FoodRow
                       key={`${foodKey(item)}-${i}`}
                       title={item.name}
@@ -916,6 +973,11 @@ const styles = StyleSheet.create({
   sectionLabel: {
     marginTop: 20,
     marginBottom: 10,
+  },
+  // Erster Abschnitt direkt unter dem Suchfeld — hier waeren 20 px zu viel
+  usedLabel: {
+    marginTop: 4,
+    color: colors.tintDeep,
   },
   row: {
     marginBottom: 8,

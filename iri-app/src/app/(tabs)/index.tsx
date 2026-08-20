@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AppState, Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { DiaryHeader } from '@/components/diary/DiaryHeader';
@@ -12,6 +12,7 @@ import { WaterCard } from '@/components/diary/WaterCard';
 import { GlassView } from '@/components/glass/GlassView';
 import { IriIcon } from '@/components/icons/IriIcon';
 import { ScreenScaffold } from '@/components/ScreenScaffold';
+import { Confetti } from '@/components/ui/Confetti';
 import { CalorieRing } from '@/components/ui/CalorieRing';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { SattScoreDots } from '@/components/recipes/SattScoreDots';
@@ -34,6 +35,8 @@ import { supabase } from '@/lib/supabase';
 import { colors, font, radius, spacing } from '@/theme';
 
 const SLOTS: MealSlot[] = ['breakfast', 'lunch', 'dinner', 'snack'];
+
+const { width: SCREEN_W } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -94,10 +97,19 @@ export default function HomeScreen() {
   const [steps, setSteps] = useState<number | null>(null);
   // Nach jedem Abruf pruefen, ob die 10.000 gerissen sind (Sascha 16.08.).
   // celebrateStepGoal() feiert von sich aus nur einmal pro Tag.
+  /* Konfetti beim ersten Blick auf die 10.000 (Sascha 20.08.).
+     celebrateStepGoal() gibt true zurueck, wenn HEUTE noch nicht gefeiert
+     wurde — daran haengt auch der Ausbruch, sonst regnet es bei jedem
+     Tab-Wechsel erneut. Der Ursprung liegt am Schritte-Chip oben rechts. */
+  const [konfetti, setKonfetti] = useState(false);
   const ladeSchritte = useCallback(() => {
     fetchTodaySteps().then((wert) => {
       setSteps(wert);
-      celebrateStepGoal(wert);
+      celebrateStepGoal(wert).then((gefeiert) => {
+        if (!gefeiert) return;
+        setKonfetti(true);
+        playSound('stepGoal'); // Feuerwerk zum Konfetti
+      });
     });
   }, []);
   useFocusEffect(ladeSchritte);
@@ -181,6 +193,16 @@ export default function HomeScreen() {
   if (lapsed) return <LockedScreen />;
 
   return (
+    <View style={styles.root}>
+      {/* Konfetti liegt UEBER dem Bildschirm, nicht darin — sonst wuerde es
+          mitscrollen und an der Kante abgeschnitten */}
+      {konfetti ? (
+        <Confetti
+          originX={SCREEN_W - 66}
+          originY={202}
+          onDone={() => setKonfetti(false)}
+        />
+      ) : null}
     <ScreenScaffold>
       <DiaryHeader
         date={diary.date}
@@ -196,7 +218,7 @@ export default function HomeScreen() {
             <IriIcon
               name="steps"
               size={15}
-              color={steps >= STEP_GOAL ? colors.water : colors.tintDeep}
+              color={steps >= STEP_GOAL ? colors.ok : colors.tintDeep}
             />
             <Text style={[styles.stepsText, steps >= STEP_GOAL && styles.stepsTextDone]}>
               {steps.toLocaleString('de-DE')}
@@ -252,9 +274,12 @@ export default function HomeScreen() {
         </GlassView>
       ) : null}
 
+      {/* Ohne Glaskarte (Sascha 20.08.): Der Weichzeichner endete hier mit einer
+          sichtbaren Kante quer unter dem Knopf — auf dem Pastell-Hintergrund las
+          sich das wie ein Verlaufsabbruch. Den Rahmen braucht der Text ohnehin
+          nicht, er steht ja nur bis zum ersten Eintrag. */}
       {showEmptyHint ? (
-        <Animated.View entering={FadeInUp.duration(400)}>
-        <GlassView style={styles.emptyCard} contentStyle={styles.emptyContent}>
+        <Animated.View entering={FadeInUp.duration(400)} style={styles.emptyContent}>
           <Text style={styles.emptyTitle}>{t('home.emptyTitle')}</Text>
           <Text style={styles.emptyText}>{t('home.emptyText')}</Text>
           <PrimaryButton
@@ -262,7 +287,6 @@ export default function HomeScreen() {
             onPress={() => router.push('/scan')}
             style={styles.emptyCta}
           />
-        </GlassView>
         </Animated.View>
       ) : null}
 
@@ -286,10 +310,14 @@ export default function HomeScreen() {
         onPress={() => router.push('/progress')}
       />
     </ScreenScaffold>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   stepsChip: {
     position: 'absolute',
     top: 12,
@@ -306,14 +334,15 @@ const styles = StyleSheet.create({
     // Muss ueber dem Kalorienring liegen, sonst verschwindet der Chip dahinter
     zIndex: 1,
   },
-  /* Ziel erreicht: Chip in Wasserblau — dieselbe Farbe wie die Glaeser,
-     damit „geschafft" in der App ueberall gleich aussieht (Sascha 16.08.) */
+  /* Ziel erreicht: Chip in Gruen (Sascha 20.08.). Vorher Wasserblau — das
+     stand aber schon fuer die Trinkglaeser, und zwei Bedeutungen auf einer
+     Farbe verwaessern beide. Gruen heisst hier wie ueberall: geschafft. */
   stepsChipDone: {
-    backgroundColor: 'rgba(90,200,222,0.16)',
-    borderColor: 'rgba(90,200,222,0.55)',
+    backgroundColor: 'rgba(76,175,125,0.16)',
+    borderColor: 'rgba(76,175,125,0.55)',
   },
   stepsTextDone: {
-    color: colors.water,
+    color: colors.ok,
   },
   stepsText: {
     fontFamily: font.bold,
@@ -333,11 +362,10 @@ const styles = StyleSheet.create({
     color: colors.muted,
     marginTop: 14,
   },
-  emptyCard: {
-    marginBottom: 14,
-  },
   emptyContent: {
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.lg,
     alignItems: 'center',
   },
   emptyTitle: {

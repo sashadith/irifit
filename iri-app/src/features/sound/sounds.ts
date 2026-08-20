@@ -12,6 +12,9 @@ const FILES = {
   water: require('../../../assets/sounds/water-drop.wav'),
   scan: require('../../../assets/sounds/scan-done.wav'),
   streak: require('../../../assets/sounds/streak.wav'),
+  // Feuerwerk zum Konfetti bei 10.000 Schritten (Sascha 20.08.) — der einzige
+  // laengere Ton der App, weil er das Konfetti begleitet und nicht nur quittiert
+  stepGoal: require('../../../assets/sounds/steps-goal.wav'),
 } as const;
 
 export type SoundName = keyof typeof FILES;
